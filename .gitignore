@@ -1,0 +1,31 @@
+# Python tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Runtime audit state and generated deliverables
+data/
+reports/
+output/
+tmp/
+*.session
+
+# Local editor state
+.vscode/
+.idea/
+frontend/node_modules/
+frontend/dist/
+.env
+.env.*
+!.env.example
+.ruff_cache/
+.streamlit/
+legacy/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.db-wal
+*.db-shm
+*.log

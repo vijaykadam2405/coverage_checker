@@ -1,0 +1,231 @@
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.overview-grid .panel {
+  margin: 0;
+}
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 21px 22px 15px;
+}
+.panel-heading p {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.panel-heading .eyebrow {
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+.progress-track {
+  height: 5px;
+  background: #263147;
+  border-radius: 4px;
+  margin: 0 24px;
+  overflow: hidden;
+}
+.progress-track > span {
+  display: block;
+  background: #829fff;
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+.indeterminate > span {
+  animation: progress 2s ease-in-out infinite;
+}
+.progress-caption {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #8b9bb5;
+  margin: 10px 24px 20px;
+}
+.current-event {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+  background: #151b29;
+  border-top: 1px solid var(--line);
+  color: #849bbf;
+  min-height: 71px;
+}
+.current-event div {
+  min-width: 0;
+}
+.current-event strong {
+  font-size: 10px;
+  font-weight: 500;
+  color: #b4c0d6;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 460px;
+}
+.current-event small {
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 9px;
+  margin-top: 6px;
+}
+.coverage-body {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  padding: 18px 24px 25px;
+}
+.donut {
+  height: 152px;
+  width: 152px;
+  border-radius: 50%;
+  padding: 13px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+.donut > div {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--panel);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.donut strong {
+  font-size: 29px;
+  font-weight: 600;
+  letter-spacing: -1px;
+}
+.donut span {
+  font-size: 9px;
+  color: #92a2bc;
+  margin-top: 5px;
+}
+.legend {
+  flex: 1;
+  min-width: 0;
+}
+.legend > div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 10px;
+  color: #b1bdd2;
+  margin: 15px 0;
+}
+.legend i {
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: #62738e;
+  flex-shrink: 0;
+}
+.legend i.found {
+  background: var(--green);
+}
+.legend i.missing {
+  background: var(--red);
+}
+.legend strong {
+  margin-left: auto;
+  font-size: 12px;
+  color: #d8e2f4;
+  font-weight: 600;
+}
+.legend p {
+  font-size: 9px;
+  color: #75859f;
+  line-height: 1.7;
+  margin-top: 18px;
+}
+.bar-track {
+  height: 7px;
+  flex: 1;
+  border-radius: 2px;
+  background: #263147;
+  overflow: hidden;
+}
+.bar-track i {
+  height: 100%;
+  display: block;
+  background: #7997f1;
+  border-radius: 2px;
+  min-width: 0;
+}
+.footnote {
+  padding: 0 23px 20px;
+  color: #6d809e;
+  font-size: 9px;
+  line-height: 1.7;
+}
+.boundary-banner,
+.error-banner,
+.info-box {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 15px 18px;
+  margin: 0 0 20px;
+  border-radius: 7px;
+  background: #282637;
+  border: 1px solid #514250;
+  color: #d5b5a3;
+  font-size: 11px;
+}
+.boundary-banner svg,
+.info-box svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.boundary-banner strong {
+  font-size: 11px;
+  font-weight: 600;
+}
+.boundary-banner p {
+  font-size: 10px;
+  color: #a99287;
+  margin-top: 4px;
+}
+.error-banner {
+  background: #392731;
+  color: #f3b4bd;
+  border-color: #65404b;
+  align-items: center;
+}
+.error-banner > span {
+  flex: 1;
+}
+.info-box {
+  background: #1e2b40;
+  border-color: #34445f;
+  color: #9bafd0;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #a4baff;
+  background: transparent;
+  font-size: 11px;
+  white-space: nowrap;
+}
