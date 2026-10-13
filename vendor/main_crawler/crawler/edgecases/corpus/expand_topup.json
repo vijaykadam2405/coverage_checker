@@ -1,0 +1,96 @@
+[
+ {
+  "category": "ssl_error",
+  "url": "https://www.pacsoft.com/",
+  "expect": "An abandoned Odin/Plesk hosting control panel still answering on 443 with a self-signed 1024-bit RSA certificate issued for a completely different name. OpenSSL 3 rejects the key as too weak before it ever reaches the name or the dates, so the crawler must record a TLS failure rather than retry or store an empty page.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 2.1s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: EE certificate key too weak (_ssl.c:1006)') ; probe2 0.6s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: EE certificate key too weak (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, follow_redirects=False). Leaf pulled separately with verification disabled to explain the failure: TLSv1.2 / DHE-RSA-AES256-GCM-SHA384, 665-byte DER, subject == issuer (self-signed) 'emailAddress=webmaster@odin.com,CN=odin.com,OU=Odin Automation,O=Odin,L=Moscow,ST=Moscow,C=RU', RSA key size 1024, sigalg sha256, notBefore 2016-03-22 notAfter 2036-03-17, no subjectAltName extension at all.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://www.kolkatapolice.gov.in/",
+  "expect": "A live municipal police portal fronted by an old appliance that only offers unsafe legacy renegotiation. The handshake itself fails, so no certificate is ever presented and there is nothing to fall back on - the crawler must bucket this as a TLS error, not as an empty or slow page.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.2s -> ConnectError('[SSL: UNSAFE_LEGACY_RENEGOTIATION_DISABLED] unsafe legacy renegotiation disabled (_ssl.c:1006)') ; probe2 0.3s -> ConnectError('[SSL: UNSAFE_LEGACY_RENEGOTIATION_DISABLED] unsafe legacy renegotiation disabled (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, follow_redirects=False). Distinct from every certificate-validation case in this corpus: a follow-up raw ssl socket with check_hostname=False and verify_mode=CERT_NONE ALSO failed with the same SSLError, i.e. the failure is in the handshake and not in path validation, so no leaf certificate could be retrieved at all.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://www.dtic.mil/",
+  "expect": "The US Defense Technical Information Center serves a perfectly current certificate that simply chains to the DoD PKI, which is in no public trust store. Dates are valid and the hostname matches, so this is a pure untrusted-root failure - the case most likely to be mistaken for a site being down when a defence crawler meets it.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.5s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1006)') ; probe2 0.2s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, follow_redirects=False). Leaf pulled separately with verification disabled to explain the failure: TLSv1.2 / ECDHE-RSA-AES256-GCM-SHA384, 1540-byte DER, subject 'CN=com-apps-dtic.cce.af.mil,OU=USAF,OU=PKI,OU=DoD,O=U.S. Government,C=US', issuer 'CN=DOD SW CA-82,OU=PKI,OU=DoD,O=U.S. Government,C=US', RSA 2048 sha256, notBefore 2026-05-15 notAfter 2027-06-16 (in date), SAN includes 'dtic.mil' and '*.dtic.mil' (hostname matches). The only defect is the private DoD issuing CA.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://expired-isrgrootx1.letsencrypt.org/",
+  "expect": "Let's Encrypt's own permanently-expired test endpoint, kept live by the CA for client testing. Nine years past notAfter, so path validation fails closed on the date check - a deliberate test target from a CA family this corpus does not otherwise cover.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 2.0s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') ; probe2 0.7s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, follow_redirects=False). Leaf pulled separately with verification disabled to explain the failure: TLSv1.3 / TLS_AES_256_GCM_SHA384, 1324-byte DER, subject 'CN=expired-isrgrootx1.letsencrypt.org', issuer \"CN=Let's Encrypt Authority X3,O=Let's Encrypt,C=US\", RSA 2048 sha256, notBefore 2016-11-17 notAfter 2017-02-15, SAN ['expired-isrgrootx1.letsencrypt.org'].",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://www.resmigazete.gov.tr/",
+  "expect": "The Turkish Official Gazette front page ships a plain reCAPTCHA v2 checkbox bound to its archive-search form. The gazette text itself renders server-side, so this is the mixed case a crawler must get right: keep the page, but recognise that the search form behind it is gated.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 198364 bytes, 0 redirect hops, title 'T.C. Resmi Gazete'; markers found: script src recaptcha/api.js x1; class=\"g-recaptcha\" x1; g-recaptcha-response x1; data-sitekey attribute present (len=40) - value REDACTED; markup: <script src='https://www.google.com/recaptcha/api.js'> and <div class=\"g-recaptcha\" data-sitekey=\"(redacted)\">. Page structure: 31 <script>, 4 <form>, 20 <input>, 41669 chars of visible text (the gazette contents themselves render server-side).",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "enterprise",
+  "url": "https://www.kaggle.com/account/login",
+  "expect": "Kaggle answers the login URL with a reCAPTCHA Enterprise interstitial instead of the login page: an invisible widget that self-submits and only then forwards. The crawler sees HTTP 200 with a real title and almost no text, so this is the case where a 200 must still be classified as a wall.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 20264 bytes, 0 redirect hops, title 'Checking your browser - reCAPTCHA'; markers found: script src recaptcha/enterprise.js x1 (?onload=onLoad&trustedtypes=true&hl=en-US); class=\"g-recaptcha\" x1; grecaptcha. x1; data-sitekey attribute present (len=40) - value REDACTED; the widget div also carries data-size=\"invisible\" data-callback=\"onSuccess\". Only 159 chars of visible text, the whole of it being 'Checking your browser - reCAPTCHA Checking your browser before accessing www.kaggle.com ... Click here if you are not automatically redirected after 5 seconds.'; 19 <script>, 0 <form>, 0 <input>, 0 <img>.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_invisible",
+  "url": "https://urlscan.io/",
+  "expect": "urlscan.io renders its full landing page and scan-submission form server-side, then guards the submit with an invisible reCAPTCHA v2 fired from the button callback. Content is extractable; only the action is gated.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 41329 bytes, 0 redirect hops, title 'URL and website scanner - urlscan.io'; markers found: script src recaptcha/api.js x1; class=\"g-recaptcha\" x1; data-sitekey attribute present (len=40) - value REDACTED; markup: <div class=\"g-recaptcha\" data-size=\"invisible\" data-sitekey=\"(redacted)\" data-callback='onSubmit'> and <script src='https://www.google.com/recaptcha/api.js' async defer>. Page structure: 10 <script>, 1 <form>, 31 <input>, 21 <img>, 2536 chars of visible text.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://community.mybb.com/index.php",
+  "expect": "The MyBB Community forum answers its own index with a site-wide hCaptcha checkbox wall instead of the board: a 4KB stub carrying the visitor's IP, a timestamp and nothing else. Every path on the host returns the identical stub, so a crawler that only looks for a captcha on form pages will happily store the whole forum as a few hundred bytes of boilerplate.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 4108 bytes, 0 redirect hops; markers found: script src //js.hcaptcha.com/1/api.js x1; class=\"h-captcha\" x1; data-sitekey attribute present (len=36, UUID form) - value REDACTED; markup: <script type=\"text/javascript\" src=\"//js.hcaptcha.com/1/api.js\"></script><div class=\"h-captcha\" data-sitekey=\"(redacted)\" data-theme=\"light\" data-size=\"normal\"></div>. Only 234 chars of visible text: 'MyBB Community Forums / Client IP Address: <our egress IP> / Timestamp: 2026-07-26T23:09:06+00:00 / Site: community.mybb.com / Human Verification / Please tick the checkbox that you see below. This process is used to prevent automated spam bots.' Confirmed site-wide and not form-only: https://community.mybb.com/forum-1.html returned the byte-identical 4108-byte wall in the same session; 5 <script>, 1 <img>.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "securimage",
+  "url": "https://judgments.ecourts.gov.in/pdfsearch/index.php",
+  "expect": "The Indian judiciary's combined Supreme Court and High Court judgment search gates its query form with a classic server-rendered Securimage bitmap: an <img> pointing at securimage_show.php beside a six-character text input. Nothing about the captcha is JavaScript, so a headless browser buys nothing - the crawler can index the page chrome but can never reach a judgment.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 19711 bytes, title 'Home | Judgements and Orders, Supreme Court and High courts of India' (https://judgments.ecourts.gov.in/ 30x's to this path); markers found: securimage x24; captcha generator <img> x1; captcha text <input> x1. Markup: <img style=\"padding-right: 0px;border:1px solid #ccc;\" id=\"captcha_image\" src=\"/pdfsearch/vendor/securimage/securimage_show.php?<per-session nonce>\" alt=\"CAPTCHA\" tabindex=\"0\" width=\"120\"/> paired with <input maxlength=\"6\" type=\"text\" name=\"captcha\" id=\"captcha\" class=\"captchaClass form-control form-control-sm\" placeholder=\"Enter captcha\" tabindex=\"0\"/>; supporting Securimage assets also present (securimage_play.php audio fallback, refresh-btn.png with onclick=\"clearCaptchaText();\"). Page structure: 16 <script>, 1 <form>, 11 <input>, 6 <img>, 1053 chars of visible text (navigation and language chrome only, zero judgment rows).",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://go.redirectingat.com/?url=https%3A%2F%2Fgo.redirectingat.com%2F%3Furl%3Dhttps%253A%252F%252Fgo.redirectingat.com%252F%253Furl%253Dhttps%25253A%25252F%25252Fgo.redirectingat.com%25252F%25253Furl%25253Dhttps%2525253A%2525252F%2525252Fgo.redirectingat.com%2525252F%2525253Furl%2525253Dhttps%252525253A%252525252F%252525252Fgo.redirectingat.com%252525252F%252525253Furl%252525253Dhttps%25252525253A%25252525252F%25252525252Fgo.redirectingat.com%25252525252F%25252525253Furl%25252525253Dhttps%2525252525253A%2525252525252F%2525252525252Fgo.redirectingat.com%2525252525252F%2525252525253Furl%2525252525253Dhttps%252525252525253A%252525252525252F%252525252525252Fgo.redirectingat.com%252525252525252F%252525252525253Furl%252525252525253Dhttps%25252525252525253A%25252525252525252F%25252525252525252Fgo.redirectingat.com%25252525252525252F%25252525252525253Furl%25252525252525253Dhttps%2525252525252525253A%2525252525252525252F%2525252525252525252Fgo.redirectingat.com%2525252525252525252F%2525252525252525253Furl%2525252525252525253Dhttps%252525252525252525253A%252525252525252525252F%252525252525252525252Fgo.redirectingat.com%252525252525252525252F%252525252525252525253Furl%252525252525252525253Dhttps%25252525252525252525253A%25252525252525252525252F%25252525252525252525252Fgo.redirectingat.com%25252525252525252525252F%25252525252525252525253Furl%25252525252525252525253Dhttps%2525252525252525252525253A%2525252525252525252525252F%2525252525252525252525252Fgo.redirectingat.com%2525252525252525252525252F%2525252525252525252525253Furl%2525252525252525252525253Dhttps%252525252525252525252525253A%252525252525252525252525252F%252525252525252525252525252Fgo.redirectingat.com%252525252525252525252525252F%252525252525252525252525253Furl%252525252525252525252525253Dhttps%25252525252525252525252525253A%25252525252525252525252525252F%25252525252525252525252525252Fgo.redirectingat.com%25252525252525252525252525252F%25252525252525252525252525253Furl%25252525252525252525252525253Dhttps%2525252525252525252525252525253A%2525252525252525252525252525252F%2525252525252525252525252525252Fgo.redirectingat.com%2525252525252525252525252525252F%2525252525252525252525252525253Furl%2525252525252525252525252525253Dhttps%252525252525252525252525252525253A%252525252525252525252525252525252F%252525252525252525252525252525252Fgo.redirectingat.com%252525252525252525252525252525252F%252525252525252525252525252525253Furl%252525252525252525252525252525253Dhttps%25252525252525252525252525252525253A%25252525252525252525252525252525252F%25252525252525252525252525252525252Fgo.redirectingat.com%25252525252525252525252525252525252F%25252525252525252525252525252525253Furl%25252525252525252525252525252525253Dhttps%2525252525252525252525252525252525253A%2525252525252525252525252525252525252F%2525252525252525252525252525252525252Fgo.redirectingat.com%2525252525252525252525252525252525252F%2525252525252525252525252525252525253Furl%2525252525252525252525252525252525253Dhttps%252525252525252525252525252525252525253A%252525252525252525252525252525252525252F%252525252525252525252525252525252525252Fgo.redirectingat.com%252525252525252525252525252525252525252F%252525252525252525252525252525252525253Furl%252525252525252525252525252525252525253Dhttps%25252525252525252525252525252525252525253A%25252525252525252525252525252525252525252F%25252525252525252525252525252525252525252Fgo.redirectingat.com%25252525252525252525252525252525252525252F%25252525252525252525252525252525252525253Furl%25252525252525252525252525252525252525253Dhttps%2525252525252525252525252525252525252525253A%2525252525252525252525252525252525252525252F%2525252525252525252525252525252525252525252Fgo.redirectingat.com%2525252525252525252525252525252525252525252F%2525252525252525252525252525252525252525253Furl%2525252525252525252525252525252525252525253Dhttps%252525252525252525252525252525252525252525253A%252525252525252525252525252525252525252525252F%252525252525252525252525252525252525252525252Fgo.redirectingat.com%252525252525252525252525252525252525252525252F%252525252525252525252525252525252525252525253Furl%252525252525252525252525252525252525252525253Dhttps%25252525252525252525252525252525252525252525253A%25252525252525252525252525252525252525252525252F%25252525252525252525252525252525252525252525252Fgo.redirectingat.com%25252525252525252525252525252525252525252525252F%25252525252525252525252525252525252525252525253Furl%25252525252525252525252525252525252525252525253Dhttps%2525252525252525252525252525252525252525252525253A%2525252525252525252525252525252525252525252525252F%2525252525252525252525252525252525252525252525252Fexample.com%2525252525252525252525252525252525252525252525252F",
+  "expect": "Skimlinks' production affiliate redirector go.redirectingat.com takes its next destination in a ?url= query parameter and will happily forward to itself. Stacked 25 deep it burns a 30x on every hop without ever reaching content. Unlike the httpbin counters elsewhere in this corpus this is a redirector a crawler actually meets in the wild, on any monetised page, so the hop cap has to hold on real hosts and not just on test endpoints.",
+  "evidence": "Live manual redirect walk 2026-07-27 (httpx, follow_redirects=False, one hop at a time, cookies persisted, 12-hop budget): sanity check first - a single un-nested https://go.redirectingat.com/?url=<target> returns one 302 straight to the target. The same redirector nested 25 deep (URL length 4670 chars) returned 302 on hop1, hop2, hop3, hop4, hop5, hop6, hop7, hop8, hop9, hop10, hop11 and hop12 - twelve consecutive 30x, no 2xx at any point - and the budget was EXHAUSTED with the walker still sitting on a 30x at https://go.redirectingat.com/?url=https%3A%2F%2Fexample.com%2F, i.e. one more redirect still owed. Depth is load-bearing and was measured: 23 and 24 levels also exhaust the 12-hop budget, while 26 levels and deeper are rejected by the edge with a single HTTP 502 (URL too long) instead of redirecting.",
+  "source": "verified-live-2026-07-27",
+  "stable": false
+ },
+ {
+  "category": "js_render",
+  "variant": "spa-shell",
+  "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/home",
+  "expect": "The EU Funding & Tenders Portal - the single front door to every EU call and tender - is an Angular application. The raw HTML is a bootstrap shell holding a spinner; every call, topic and deadline arrives later over XHR. A crawler without a renderer stores a 60KB page containing not one procurement record.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 59,933 bytes, 0 redirect hops, title 'EU Funding & Tenders Portal'; visible text (script/style/noscript stripped) = 278 chars, and that 278 is inline bootstrap configuration (an SN_CSM_EC.init({...}) call plus a getTokenCallBack stub), not page content. Body is the shell only: <body> <app-root> <div id=\"loader-wrapper\"> <div id=\"loader\"></div> </div> </app-root>, with 'app-root' x2 and 'loader-wrapper' x5; 15 <script> tags, 0 <img>, 0 <form>, 0 <input>. Expected content strings are absent from the raw body: 'HORIZON-' x0, 'Deadline' x0, 'Call for proposals' x0, 'Submission' x0, 'grant' x0, 'Programme' x0, 'ERC-' x0, 'EDF-' x0 ('tender' appears 3 times, only in the URL, the <base href> and the title). The sole non-JS fallback is a <noscript> link to a static topic-list page.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ }
+]

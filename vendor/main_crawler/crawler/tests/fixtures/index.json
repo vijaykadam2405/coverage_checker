@@ -1,0 +1,65 @@
+{
+  "https://idrw.org/lt-k9-vajra-followon/": {
+    "file": "lt_k9.html", "content_type": "text/html",
+    "etag": "\"lt-k9-v1\"", "last_modified": "Sun, 28 Jun 2026 04:00:00 GMT",
+    "published": "2026-06-28"
+  },
+  "https://idrw.org/lt-k9-vajra-followon/amp/": {
+    "file": "lt_k9.html", "content_type": "text/html",
+    "etag": "\"lt-k9-amp-v1\"", "published": "2026-06-28"
+  },
+  "https://economictimes.indiatimes.com/news/defence/adani-acquires-general-aeronautics/": {
+    "file": "adani_acq.html", "content_type": "text/html",
+    "etag": "\"adani-v1\"", "published": "2026-06-25"
+  },
+  "https://www.defensenews.com/global/2026/06/27/knds-caesar-nigeria/": {
+    "file": "knds_fr.html", "content_type": "text/html",
+    "etag": "\"knds-fr-v1\"", "published": "2026-06-27"
+  },
+  "https://mod.gov.in/tenders/mgs-155mm": {
+    "file": "mod_tender.html", "content_type": "text/html",
+    "etag": "\"mod-mgs-v1\"", "published": "2026-06-20"
+  },
+  "https://mod.gov.in/tenders/files/rfp-mgs-0441.pdf": {
+    "file": "mod_rfp.pdf", "content_type": "application/pdf",
+    "etag": "\"rfp-0441-v1\"", "published": "2026-06-20"
+  },
+  "https://sam.gov/opp/155mm-towed-howitzer/view": {
+    "file": "samgov_tender.html", "content_type": "text/html",
+    "etag": "\"samgov-v1\"", "published": "2026-06-15"
+  },
+  "https://www.nibe.co.in/news/nibe-sig-sauer-license/": {
+    "file": "nibe_profile.html", "content_type": "text/html",
+    "etag": "\"nibe-v1\"", "published": "2026-06-20"
+  },
+  "https://www.solargroup.com/news/nagastra-armenia-export/": {
+    "file": "solar_profile.html", "content_type": "text/html",
+    "etag": "\"solar-v1\"", "published": "2026-06-22"
+  },
+  "https://www.armyrecognition.com/caesar-6x6-specs": {
+    "file": "caesar_spec.html", "content_type": "text/html",
+    "etag": "\"caesar-spec-v1\"", "published": "2026-05-30"
+  },
+  "https://www.armyrecognition.com/img/caesar.jpg": {
+    "file": "caesar.jpg", "content_type": "image/jpeg"
+  },
+  "https://www.armyrecognition.com/img/logo.png": {
+    "file": "logo.png", "content_type": "image/png"
+  },
+  "https://www.defensenews.com/global/2026/06/19/armenia-artillery-tender/": {
+    "file": "armenia_market.html", "content_type": "text/html",
+    "etag": "\"armenia-v1\"", "published": "2026-06-19"
+  },
+  "https://www.defensenews.com/asia-pacific/2026/06/17/india-defence-budget/": {
+    "file": "budget_market.html", "content_type": "text/html",
+    "etag": "\"budget-v1\"", "published": "2026-06-17"
+  },
+  "https://www.shephardmedia.com/news/ramjet-155mm-rheinmetall/": {
+    "file": "ramjet_tech.html", "content_type": "text/html",
+    "etag": "\"ramjet-v1\"", "published": "2026-06-24"
+  },
+  "https://www.shephardmedia.com/news/loitering-munition-trends/": {
+    "file": "loiter_tech.html", "content_type": "text/html",
+    "etag": "\"loiter-v1\"", "published": "2026-06-21"
+  }
+}

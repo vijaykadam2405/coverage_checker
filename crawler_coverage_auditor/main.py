@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 
 from crawler_coverage_auditor.auditor import CoverageAuditor
-from crawler_coverage_auditor.config import AuditConfig
+from crawler_coverage_auditor.config import AuditConfig, WEBSITE_DELAY_SECONDS, CORPUS_INTERVAL_SECONDS
 from crawler_coverage_auditor.corpus.credentials import api_url
 
 
@@ -29,7 +29,7 @@ def main() -> int:
     args = parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     config = AuditConfig(target_url=args.url, corpus_url=args.corpus, include_subdomains=args.include_subdomains,
-                         use_browser=args.browser, website_delay_seconds=1.5, corpus_interval_seconds=3.0, output_dir=args.output,
+                         use_browser=args.browser, website_delay_seconds=WEBSITE_DELAY_SECONDS, corpus_interval_seconds=CORPUS_INTERVAL_SECONDS, output_dir=args.output,
                          database_path=args.database, resume=args.resume, full_audit=args.full_audit or not args.incremental,
                          incremental=args.incremental, compare_run=args.compare_run)
     result = asyncio.run(CoverageAuditor(config).run())

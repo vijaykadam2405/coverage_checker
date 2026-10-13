@@ -52,3 +52,23 @@ test("launcher validates ports rather than opening a different random port", asy
     (error) => error.code === 1 && /valid TCP port/.test(error.stderr),
   );
 });
+
+test("launcher reports stale backend code without interrupting an active scan", async () => {
+  await withServer(
+    {
+      application: "CrawlScope",
+      ui: "react",
+      scan_workflow: "serial-automatic",
+      backend_update_available: true,
+      active: { run_id: 3 },
+    },
+    async (port) => {
+      const result = await execute(process.execPath, [script], {
+        env: { ...process.env, CRAWLSCOPE_PORT: String(port) },
+      });
+      assert.match(result.stdout, /Pause the current scan/);
+      assert.match(result.stdout, /Do not interrupt an active write/);
+      assert.equal((await fetch(`http://127.0.0.1:${port}/`)).status, 200);
+    },
+  );
+});

@@ -1,0 +1,1112 @@
+[
+ {
+  "category": "http_4xx",
+  "url": "https://api.crossref.org/works?rows=notanumber",
+  "expect": "HTTP 400 Bad Request from a real production API: the request itself is malformed, so policy_for_status(400)='drop' and the crawler must record the failure and never requeue this URL — the same GET can only ever produce 400 again. The JSON/HTML error body must not be stored as content.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 400 / 400. 221 bytes, content-type 'application/json;charset=utf-8', server 'Jetty(9.4.40.v20210413)', <title> absent/empty. A well-formed URL with an out-of-range parameter value, i.e. the shape a crawler produces when it follows a faceted-search link with a mangled query string.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 400
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://graph.facebook.com/v19.0/me",
+  "expect": "HTTP 400 Bad Request from a real production API: the request itself is malformed, so policy_for_status(400)='drop' and the crawler must record the failure and never requeue this URL — the same GET can only ever produce 400 again. The JSON/HTML error body must not be stored as content. Note this one is a 400 where most vendors would send 401 — the classifier must key on the status actually returned, not on what the endpoint 'ought' to say.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 400 / 400. 221 bytes, content-type 'application/json; charset=UTF-8', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 400
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.openalex.org/works?filter=bogusfield:1",
+  "expect": "HTTP 400 Bad Request from a real production API: the request itself is malformed, so policy_for_status(400)='drop' and the crawler must record the failure and never requeue this URL — the same GET can only ever produce 400 again. The JSON/HTML error body must not be stored as content.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 400 / 400. 4,796 bytes, content-type 'application/json', server 'cloudflare', <title> absent/empty. The 4,796-byte body is a long human-readable explanation listing every valid filter — big enough that a size-based content heuristic would happily store it.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 400
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://query.wikidata.org/sparql?query=BOGUS",
+  "expect": "HTTP 400 Bad Request from a real production API: the request itself is malformed, so policy_for_status(400)='drop' and the crawler must record the failure and never requeue this URL — the same GET can only ever produce 400 again. The JSON/HTML error body must not be stored as content. The body is a 6.5 KB Java stack trace; storing it would put server internals in the corpus.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 400 / 400. 6,622 bytes, content-type 'text/plain', server 'nginx/1.18.0', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 400
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.openstreetmap.org/api/0.6/map?bbox=abc",
+  "expect": "HTTP 400 Bad Request from a real production API: the request itself is malformed, so policy_for_status(400)='drop' and the crawler must record the failure and never requeue this URL — the same GET can only ever produce 400 again. The JSON/HTML error body must not be stored as content.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 400 / 400. 88 bytes, content-type 'text/plain; charset=utf-8', server 'Apache', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 400
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.zotero.org/users/xyz/items",
+  "expect": "HTTP 400 Bad Request from a real production API: the request itself is malformed, so policy_for_status(400)='drop' and the crawler must record the failure and never requeue this URL — the same GET can only ever produce 400 again. The JSON/HTML error body must not be stored as content. A 15-byte body: the shortest 400 in the set, so nothing but the status is available.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 400 / 400. 15 bytes, content-type 'text/html; charset=UTF-8', server 'Apache', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 400
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://ows.terrestris.de/osm/service?request=bogus",
+  "expect": "HTTP 400 Bad Request from a real production API: the request itself is malformed, so policy_for_status(400)='drop' and the crawler must record the failure and never requeue this URL — the same GET can only ever produce 400 again. The JSON/HTML error body must not be stored as content. An OGC WMS map service — the 400 body is an XML ServiceExceptionReport, not JSON or HTML, so the classifier must not assume a content type.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 400 / 400. 486 bytes, content-type 'text/xml; charset=utf-8', server 'nginx', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 400
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.digitalocean.com/v2/account",
+  "expect": "HTTP 401 Unauthorized: an auth wall expressed as a status. diagnose() must return auth_wall + skip via its 401/403 branch, and the body must never be stored as content.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 401 / 401. 64 bytes, content-type 'application/json', server 'cloudflare', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 401
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.notion.com/v1/users",
+  "expect": "HTTP 401 Unauthorized: an auth wall expressed as a status. diagnose() must return auth_wall + skip via its 401/403 branch, and the body must never be stored as content.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 401 / 401. 139 bytes, content-type 'application/json; charset=utf-8', server 'cloudflare', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 401
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.sendgrid.com/v3/user/profile",
+  "expect": "HTTP 401 Unauthorized: an auth wall expressed as a status. diagnose() must return auth_wall + skip via its 401/403 branch, and the body must never be stored as content.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 401 / 401. 62 bytes, content-type 'application/json', server 'nginx', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 401
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://unsplash.com/this-page-does-not-exist-9f3a2b",
+  "expect": "A 401 that is NOT an auth wall: unsplash.com answers an ordinary page request from an unrecognised client with a bot check, redirecting to a challenge host and returning 401. The crawler must not conclude 'needs credentials' — no credential exists that fixes this; the remedy is the anti-bot ladder. This is the row that proves 401 alone does not mean auth_wall.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 401 / 401. 4,616 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'Making sure you're not a bot!'. Redirect chain ended at 'https://unsplash.com/.within.website?redir=%2Fthis-page-does-not-exist-9f3a2b'; body title \"Making sure you're not a bot!\". Path requested was a nonexistent page, so a correct server would have said 404.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 401
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://www.reuters.com/this-page-does-not-exist-9f3a2b",
+  "expect": "A major news site answering an ordinary GET with 401 and a 774-byte stub. Same trap as the unsplash row on a different stack: a WAF using 401 as its block code, where policy 'drop' would permanently discard a URL that a different network path could fetch.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 401 / 401. 774 bytes, content-type 'text/html;charset=utf-8', server 'CloudFront', <title> 'reuters.com'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 401
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://www.tesla.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 403 Forbidden from a real WAF. policy_for_status(403)='disguise' — the remedy is a different network path/UA, not a retry from the same one, and not mark_gone. Note diagnose() only calls a 403 an auth_wall when the final URL also looks like a login path, which it does not here. Akamai's minimal 'Access Denied' stub: 418 bytes and 238 chars of text, so a body-size heuristic sees an empty page rather than a block.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 403 / 403. 418 bytes, content-type 'text/html', server 'AkamaiGHost', <title> 'Access Denied'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 403
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://www.cdc.gov/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 403 Forbidden from a real WAF. policy_for_status(403)='disguise' — the remedy is a different network path/UA, not a retry from the same one, and not mark_gone. Note diagnose() only calls a 403 an auth_wall when the final URL also looks like a login path, which it does not here. A US federal .gov behind the same Akamai deny page — relevant because government portals are a primary crawl target.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 403 / 403. 416 bytes, content-type 'text/html', server 'AkamaiGHost', <title> 'Access Denied'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 403
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://www.navy.mil/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 403 Forbidden from a real WAF. policy_for_status(403)='disguise' — the remedy is a different network path/UA, not a retry from the same one, and not mark_gone. Note diagnose() only calls a 403 an auth_wall when the final URL also looks like a login path, which it does not here. A .mil host: the whole domain is refused, not just this path.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 403 / 403. 417 bytes, content-type 'text/html', server 'AkamaiGHost', <title> 'Access Denied'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 403
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://www.imf.org/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 403 Forbidden from a real WAF. policy_for_status(403)='disguise' — the remedy is a different network path/UA, not a retry from the same one, and not mark_gone. Note diagnose() only calls a 403 an auth_wall when the final URL also looks like a login path, which it does not here. A second international-organisation site on the same 416-byte Akamai deny stub as cdc.gov — one template, many hosts.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 403 / 403. 416 bytes, content-type 'text/html', server 'AkamaiGHost', <title> 'Access Denied'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 403
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.figma.com/v1/me",
+  "expect": "HTTP 403 Forbidden from a real WAF. policy_for_status(403)='disguise' — the remedy is a different network path/UA, not a retry from the same one, and not mark_gone. Note diagnose() only calls a 403 an auth_wall when the final URL also looks like a login path, which it does not here. A 36-byte JSON 403 from an API rather than an HTML block page — the classifier must not depend on HTML markers.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 403 / 403. 36 bytes, content-type 'application/json; charset=utf-8', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 403
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://en.wikipedia.org/api/rest_v1/page/html/%7B%7B",
+  "expect": "HTTP 403 Forbidden from a real WAF. policy_for_status(403)='disguise' — the remedy is a different network path/UA, not a retry from the same one, and not mark_gone. Note diagnose() only calls a 403 an auth_wall when the final URL also looks like a login path, which it does not here. Wikipedia's REST API rejects a title containing template braces with 403 rather than 400 — an argument-validation failure wearing the WAF code, so 'disguise' will never help.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 403 / 403. 351 bytes, content-type 'application/json', server 'mw-api-ext.codfw.main-568486bd8d-m9xvz', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 403
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://oauth.reddit.com/api/v1/me",
+  "expect": "HTTP 403 Forbidden from a real WAF. policy_for_status(403)='disguise' — the remedy is a different network path/UA, not a retry from the same one, and not mark_gone. Note diagnose() only calls a 403 an auth_wall when the final URL also looks like a login path, which it does not here. The counter-example to the tesla row: 189,908 bytes of HTML under a 403. Any rule that trusts 'big body means real page' stores a block page here.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 403 / 403. 189,908 bytes, content-type 'text/html', server 'snooserv', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 403
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://grse.in/this-page-does-not-exist-9f3a2b",
+  "expect": "A correct hard 404 from a defence-PSU shipyard: policy 'gone' -> diagnose() returns gone + mark_gone, never fetch again. The 196-byte bare-nginx body is the minimal end of the 404 spectrum and pairs with the vimeo row below.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 404 / 404. 196 bytes, content-type 'text/html; charset=iso-8859-1', server 'Apache', <title> '404 Not Found'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 404
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://vimeo.com/this-page-does-not-exist-9f3a2b",
+  "expect": "The maximal end of the same spectrum: a correct 404 carrying a 165 KB fully-rendered page. Together with the 196-byte grse.in row this proves mark_gone is driven by the status and nothing else.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 404 / 404. 165,037 bytes, content-type 'text/html; charset=UTF-8', server 'cloudflare', <title> 'VimeUhOh'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 404
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://zoom.us/oauth/token",
+  "expect": "HTTP 405 Method Not Allowed answering a GET: this URL is a POST-only OAuth endpoint, not a document. Unmapped by policy_for_status, so 'drop' — retrying the same GET can only produce 405 again. The 512,926-byte branded error page under the 405 is the trap.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 405 / 405. 512,926 bytes, content-type 'text/html;charset=utf-8', server 'cloudflare', <title> 'Error - Zoom'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 405
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.ted.europa.eu/v3/notices/search",
+  "expect": "The same 405 case with a 64-byte body, on the EU public-procurement API — directly relevant to tender crawling, where search endpoints are POST-only and get enqueued as links anyway.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 405 / 405. 64 bytes, content-type 'application/json', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 405
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://overpass-api.de/api/interpreter?data=BOGUS",
+  "expect": "A REAL HTTP 406 Not Acceptable in the wild (not a synthetic status endpoint): content negotiation failed, the server has no representation acceptable to our Accept header. Unmapped -> 'drop'; retrying with the same headers is pointless.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 406 / 406. 371 bytes, content-type 'text/html; charset=iso-8859-1', server 'Apache/2.4.68 (Debian)', <title> '406 Not Acceptable'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 406
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://www.stuff.co.nz/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 410 Gone — the strongest 'never come back' signal in HTTP; policy 'gone' -> mark_gone. The trap is the body: 66,683 bytes titled 'Stuff: Latest breaking news | New Zealand', i.e. a full homepage served under a 410. A crawler that decided on content instead of status would store the homepage under a URL that will never exist.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 410 / 410. 66,683 bytes, content-type 'text/html', server '(none sent)', <title> 'Stuff: Latest breaking news | New Zealand'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 410
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://www.rijksmuseum.nl/api/en/collection?key=&q=%28",
+  "expect": "A 410 with a completely empty body — the opposite shape from the stuff.co.nz row. Same verdict: mark_gone.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 410 / 410. 0 bytes, content-type '(none)', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 410
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.reliefweb.int/v1/reports?appname=x&query[value]=%28",
+  "expect": "A humanitarian-data API returning 410 for a retired API version. Real 410s are rare, so three independent ones are recorded here to keep the mark_gone path from resting on a single host.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 410 / 410. 143 bytes, content-type 'application/json', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 410
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://www.google.com/reader/",
+  "expect": "A decommissioned product on a major host: the URL 301s to /reader/about/ and THAT returns 404. The status a crawler must act on is the one at the end of the redirect chain, not the 301 at the front — policy 'gone' -> mark_gone applies to the original URL.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 404 / 404. 1,574 bytes, content-type 'text/html; charset=UTF-8', server 'sffe', <title> 'Error 404 (Not Found)!!1'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 404
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.weather.gov/points/999,999",
+  "expect": "A US National Weather Service endpoint returning a correct 404 for coordinates that cannot exist. Terminal: gone + mark_gone. The 498-byte body is an RFC 7807 problem+json document, a content type that is neither HTML nor plain JSON.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 404 / 404. 498 bytes, content-type 'application/problem+json', server 'nginx/1.28.3', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 404
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://httpbin.dev/status/415",
+  "expect": "HTTP 415 Unsupported Media Type. Unmapped -> 'drop'. Filed as synthetic and honestly labelled: 415 could not be reproduced from any real site with an ordinary GET, because 415 is a request-body error and a GET has no body. httpbin.dev is used rather than httpbingo.org so the synthetic rows are not concentrated on one vendor.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 415 / 415. 0 bytes, content-type '(none)', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 415
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.github.com/search/users",
+  "expect": "HTTP 422 Unprocessable Entity: the request parsed but a required parameter is missing. Policy 'drop'. CAVEAT recorded honestly — GitHub search also sends x-ratelimit-remaining, and if a harness run ever drives it to 0 diagnose() will return rate_limit before it reaches the 422 branch. That is correct behaviour, not a corpus error.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 422 / 422. 219 bytes, content-type 'application/json; charset=utf-8', server 'github.com', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 422
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.github.com/search/topics",
+  "expect": "HTTP 422 Unprocessable Entity: the request parsed but a required parameter is missing. Policy 'drop'. CAVEAT recorded honestly — GitHub search also sends x-ratelimit-remaining, and if a harness run ever drives it to 0 diagnose() will return rate_limit before it reaches the 422 branch. That is correct behaviour, not a corpus error.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 422 / 422. 219 bytes, content-type 'application/json; charset=utf-8', server 'github.com', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 422
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://venturebeat.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 429 Too Many Requests must become rate_limit + backoff, and it must win over every other rule — diagnose() checks 429 before the generic 4xx branch, and policy_for_status(429)='cooldown' slows the whole host, not just this URL. Vercel's 'Security Checkpoint' interstitial served with a 429: a bot wall wearing a rate-limit code, so a crawler that only sleeps and retries will still be blocked when it returns.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 429 / 429. 33,793 bytes, content-type 'text/html; charset=utf-8', server 'Vercel', <title> 'Vercel Security Checkpoint'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 429
+ },
+ {
+  "category": "http_4xx",
+  "url": "http://digg.com/",
+  "expect": "HTTP 429 Too Many Requests must become rate_limit + backoff, and it must win over every other rule — diagnose() checks 429 before the generic 4xx branch, and policy_for_status(429)='cooldown' slows the whole host, not just this URL. Second host on the same Vercel checkpoint, reached from the site root rather than a deep path — the block is the whole site, not one URL.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 429 / 429. 33,789 bytes, content-type 'text/html; charset=utf-8', server 'Vercel', <title> 'Vercel Security Checkpoint'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 429
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.semanticscholar.org/graph/v1/paper/search",
+  "expect": "HTTP 429 Too Many Requests must become rate_limit + backoff, and it must win over every other rule — diagnose() checks 429 before the generic 4xx branch, and policy_for_status(429)='cooldown' slows the whole host, not just this URL. A genuine unauthenticated-quota 429 from a research API, 144-byte JSON body.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 429 / 429. 144 bytes, content-type 'text/html', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 429
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.nasa.gov/insight_weather/?api_key=DEMO_KEY&feedtype=bogus",
+  "expect": "HTTP 429 Too Many Requests must become rate_limit + backoff, and it must win over every other rule — diagnose() checks 429 before the generic 4xx branch, and policy_for_status(429)='cooldown' slows the whole host, not just this URL. The shared DEMO_KEY quota is exhausted, so this is a 429 that no amount of backoff clears for this client — the retry schedule must be bounded.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 429 / 429. 179 bytes, content-type 'text/html', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 429
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://www.airbnb.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 429 Too Many Requests must become rate_limit + backoff, and it must win over every other rule — diagnose() checks 429 before the generic 4xx branch, and policy_for_status(429)='cooldown' slows the whole host, not just this URL. The status/title contradiction is the point: the wire status is 429 but the page <title> says '503 Service Unavailable - Airbnb'. A classifier that reads the title instead of the status lands in the 5xx retry_later path instead of the host cooldown path.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 429 / 429. 1,759 bytes, content-type 'text/html', server 'nginx', <title> '503 Service Unavailable - Airbnb'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 429
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://www.goodyear.com/this-page-does-not-exist-9f3a2b",
+  "expect": "The inverse of a soft 404: a 404 PAGE served with a 500 STATUS. policy_for_status(500)='retry_later', so the crawler will keep requeueing a URL that is in fact permanently absent, burning its retry budget forever. The strongest argument in the corpus that status and body must both be read.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 500 / 500. 143,208 bytes, content-type 'text/html; charset=utf-8', server 'cloudflare', <title> '404 page not found | Goodyear'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 500
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://bescom.karnataka.gov.in/this-page-does-not-exist-9f3a2b",
+  "expect": "A live state-government utility portal that answers ANY unknown path with an unhandled server error rather than a 404. Retryable by policy, permanently 500 in practice.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 500 / 500. 80,539 bytes, content-type 'text/html; charset=UTF-8', server '(none sent)', <title> 'ಬೆಂಗಳೂರು ವಿದ್ಯುತ್ ಸರಬರಾಜು ಕಂಪನಿ ನಿಯಮಿತ - This-page-does-not-exist-9f3a2b'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 500
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://www.sac.gov.in/this-page-does-not-exist-9f3a2b",
+  "expect": "ISRO's Space Applications Centre: 500 with a fully-rendered branded page whose <title> is the literal string 'null | Space Applications Centre'. Retry_later is correct policy but will never succeed.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 500 / 500. 35,646 bytes, content-type 'text/html;charset=UTF-8', server 'cloudflare', <title> 'null | Space Applications Centre'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 500
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://www.iiti.ac.in/this-page-does-not-exist-9f3a2b",
+  "expect": "A university CMS raising a 500 on an unknown route. Included because .ac.in / .edu hosts are a large share of any research crawl and this failure mode is common there.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 500 / 500. 10,336 bytes, content-type 'text/html; charset=UTF-8', server 'Apache/2.4.41 (Ubuntu)', <title> 'Error'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 500
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://www.whirlpoolindia.com/this-page-does-not-exist-9f3a2b",
+  "expect": "A 500 with a 22-byte body — no HTML, no error page, nothing to parse. The status is the whole signal.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 500 / 500. 22 bytes, content-type 'text/plain; charset=utf-8', server 'openresty', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 500
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://api.fda.gov/drug/event.json?search=%28",
+  "expect": "A real production API returning 500 for an unbalanced parenthesis in a search term. policy 'retry_later' is wrong for this URL in practice: the input is deterministic, so every retry reproduces the 500. This is what an unbounded retry budget looks like from the server's side.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 500 / 500. 480 bytes, content-type 'application/json; charset=utf-8', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 500
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://api.fda.gov/device/event.json?search=%28",
+  "expect": "The same defect on a second endpoint of the same API, confirming it is the query handler and not one broken dataset.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 500 / 500. 480 bytes, content-type 'application/json; charset=utf-8', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 500
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://api.irail.be/connections/?from=%28&to=%28",
+  "expect": "A Belgian public-transport API answering with 500 and a 20 KB stack trace. Retryable by policy; the 20 KB body must not be stored.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 500 / 500. 20,258 bytes, content-type 'application/json', server 'cloudflare', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 500
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://www.incometax.gov.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 503 Service Unavailable is the one 5xx mapped to 'cooldown' rather than plain retry_later — the whole HOST is asked to slow down. This row sends no Retry-After, so the crawler must fall back to its own schedule rather than reading a wait off the wire.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 503 / 503. 2,503 bytes, content-type 'text/html', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 503
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://www.mod.gov.ae/this-page-does-not-exist-9f3a2b",
+  "expect": "A defence-ministry portal returning 503 under a 204 KB body. Directly on-target for defence crawling: the host is up, the edge answers, and every unknown path is a cooldown trigger.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 503 / 503. 204,232 bytes, content-type 'text/html', server '(none sent)', <title> 'Ministry of Defence'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 503
+ },
+ {
+  "category": "http_5xx",
+  "url": "http://t.co/",
+  "expect": "Cloudflare 520 'Web server is returning an unknown error': the EDGE answered, the ORIGIN did not. status_reason(520) is http_520 (not in the _STATUS_REASON transport table, unlike 522/523/524/525/526), so this is the 52x code that stays a plain HTTP error.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 520 / 520. 7,281 bytes, content-type 'text/html; charset=UTF-8', server 'cloudflare', <title> 't.co | 520: Web server is returning an unknown error'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 520
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://www.editgrid.com/",
+  "expect": "Cloudflare 526 'Invalid SSL Certificate' — the edge->ORIGIN TLS leg failed, not ours. _STATUS_REASON maps 526 to ORIGIN_SSL, so the reason must be origin_ssl and NOT the client-side ssl category that arms the per-host circuit breaker: our own handshake to the edge succeeded perfectly.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 526 / 526. 7,261 bytes, content-type 'text/html; charset=UTF-8', server 'cloudflare', <title> 'editgrid.com | 526: Invalid SSL certificate'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 526
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbin.dev/status/501",
+  "expect": "501 Not Implemented — the server does not support the method at all. Unmapped, so policy_for_status falls through to RETRY_LATER for any >=500 code; retrying is futile but must not crash the classifier. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 501 / 501. 0 bytes, content-type '(none)', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 501
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbin.dev/status/505",
+  "expect": "505 HTTP Version Not Supported — a protocol-level refusal that will never change on retry, yet policy says retry_later. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 505 / 505. 0 bytes, content-type '(none)', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 505
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbin.dev/status/510",
+  "expect": "510 Not Extended (RFC 2774) — an exotic code that must fall through the >=500 default without raising. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 510 / 510. 0 bytes, content-type '(none)', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 510
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbin.dev/status/521",
+  "expect": "Cloudflare 521 'Web Server Is Down'. Not in _STATUS_REASON, so it stays http_521 while its neighbours 522-526 become named transport reasons — the boundary case for that table. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 521 / 521. 0 bytes, content-type '(none)', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 521
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbin.dev/status/527",
+  "expect": "Cloudflare 527 'Railgun Error' — inside the 52x block but NOT in _STATUS_REASON, so it must remain http_527 and not be folded into the timeout bucket. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 527 / 527. 0 bytes, content-type '(none)', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 527
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbin.dev/status/529",
+  "expect": "529 'Site Is Overloaded' (non-standard, used by Qualys/Shopify) — a 5xx above the Cloudflare block that must still take the >=500 retry_later default. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 529 / 529. 0 bytes, content-type '(none)', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 529
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbin.dev/status/599",
+  "expect": "599 Network Connect Timeout Error — the top of the 5xx range. Guards the upper bound of policy_for_status. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 599 / 599. 0 bytes, content-type '(none)', server '(none sent)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 599
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://mock.codes/503",
+  "expect": "503 Service Unavailable on a second vendor, so the 'cooldown' policy branch is not proved by a single host. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 503 / 503. 54 bytes, content-type 'text/plain; charset=utf-8', server 'Fly/c12ea07533 (2026-07-23)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 503
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://mock.codes/506",
+  "expect": "506 Variant Also Negotiates — content negotiation looping on the server side. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 506 / 506. 58 bytes, content-type 'text/plain; charset=utf-8', server 'Fly/c12ea07533 (2026-07-23)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 506
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://mock.codes/511",
+  "expect": "511 Network Authentication Required: a captive portal wearing a 5xx. The body is not the page that was asked for and must not be stored. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 511 / 511. 66 bytes, content-type 'text/plain; charset=utf-8', server 'Fly/c12ea07533 (2026-07-23)', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 511
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://postman-echo.com/status/500",
+  "expect": "500 on a third vendor. The plainest retry_later case, kept as a control against which the real-site 500s above are compared. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 500 / 500. 14 bytes, content-type 'application/json; charset=utf-8', server 'cloudflare', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 500
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://postman-echo.com/status/507",
+  "expect": "507 Insufficient Storage — a WebDAV code that reaches ordinary crawls through misconfigured origins. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 507 / 507. 14 bytes, content-type 'application/json; charset=utf-8', server 'cloudflare', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 507
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://postman-echo.com/status/511",
+  "expect": "511 on a second vendor, since captive-portal interception is a network condition rather than a site property. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 511 / 511. 14 bytes, content-type 'application/json; charset=utf-8', server 'cloudflare', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 511
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://dummyjson.com/http/500",
+  "expect": "500 on a fourth vendor, JSON body rather than empty — the classifier must not need HTML. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 500 / 500. 134 bytes, content-type 'application/problem+json; charset=utf-8', server 'cloudflare', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 500
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://dummyjson.com/http/502",
+  "expect": "502 Bad Gateway, and the body here is a REAL Cloudflare error page (6,398 bytes, title 'dummyjson.com | 502: Bad gateway') rather than a stub — the shape a genuine origin outage has. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 502 / 502. 6,398 bytes, content-type 'text/html; charset=UTF-8', server 'cloudflare', <title> 'dummyjson.com | 502: Bad gateway'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 502
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://dummyjson.com/http/503",
+  "expect": "503 with a JSON body and no Retry-After, so the cooldown must come from the crawler's own schedule. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 503 / 503. 128 bytes, content-type 'application/problem+json; charset=utf-8', server 'cloudflare', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 503
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbin.org/status/503",
+  "expect": "503 on a fifth vendor. This row exists because a REAL 503 could not be kept: www.interpol.int/<dead path> answered 503/503 on two passes on 2026-07-27 and then went to ReadTimeout on a third and fourth pass, so it failed the stability bar and was dropped rather than recorded as stable. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 503 / 503. 0 bytes, content-type 'text/html; charset=utf-8', server 'gunicorn/19.9.0', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 503
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbin.org/status/502",
+  "expect": "502 from httpbin.org itself. Worth a row because the existing corpus records httpbin.org as answering 503 from awselb/2.0 on every code; it is healthy again today, which is exactly why 5xx rows must be re-verified rather than trusted. Synthetic status endpoint. Recorded honestly: real, reproducible 5xx responses are scarce by definition — a server that reliably fails gets fixed or goes away — so the rarer codes are covered synthetically. Spread across four vendors (httpbin.dev, mock.codes, postman-echo.com, dummyjson.com) rather than piled onto httpbingo.org, which the existing http_5xx rows already use.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 502 / 502. 0 bytes, content-type 'text/html; charset=utf-8', server 'gunicorn/19.9.0', <title> absent/empty.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 502
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.mea.gov.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. The cleanest possible case and the one to test first: India's Ministry of External Affairs 302s a dead path to /error.htm and serves it 200. BOTH signals are present — the final URL is an error route AND the <title> literally says '404 | Page Not Found'.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 16,981 bytes, content-type 'text/html', server '(none sent)', <title> '404 | Page Not Found | Ministry of External Affairs, Government of India'. final_url after redirects 'https://www.mea.gov.in/error.htm'; visible text 395 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.qinetiq.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. A defence contractor on the same pattern: redirected to /en/error?404&item=<original path>, still 200. The original path is echoed into the query string, so every dead URL on the site produces a DIFFERENT final URL with identical content — a near-duplicate generator.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 44,199 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'QinetiQ - Page not found'. final_url after redirects 'https://www.qinetiq.com/en/error?404&item=%2fthis-page-does-not-exist-9f3a2b&user=extranet%5cAnonymous&site=qinetiq-primary'; visible text 2,127 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.wto.org/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. WTO redirects to /error/error_404.htm and returns 200. The title says 'The page cannot be found' but the status never does.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 10,063 bytes, content-type 'text/html', server 'cloudflare', <title> 'WTO | The page cannot be found'. final_url after redirects 'https://www.wto.org/error/error_404.htm'; visible text 1,160 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.sydney.edu.au/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. A large university redirecting to /errors/404.html with a 200. The title contains the literal string '404' while the wire status is 200 — the exact contradiction the detector exists for.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 18,414 bytes, content-type 'text/html;charset=utf-8', server 'Apache', <title> 'Error (404) - The University of Sydney'. final_url after redirects 'https://www.sydney.edu.au/errors/404.html'; visible text 776 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.astrazeneca.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Global pharma on a static /404.html served with 200, 126 KB of fully-branded chrome. Big enough that no size heuristic will flag it.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 126,273 bytes, content-type 'text/html; charset=UTF-8', server 'Apache', <title> '404'. final_url after redirects 'https://www.astrazeneca.com/404.html'; visible text 4,470 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.eni.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. An energy major whose WebLogic tier answers with /public/wl-error.html at 200. The title is 'Weblogic Error' — a stack-vendor string, not a not-found string, so a title-keyword-only detector misses it and only the /wl-error route gives it away.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 1,130 bytes, content-type 'text/html', server '(none sent)', <title> 'Weblogic Error'. final_url after redirects 'https://www.eni.com/public/wl-error.html'; visible text 284 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.tatapower.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. AEM behind /error-pages/404 at 200. The visible text is 230 chars of 'Oh no! Looks like something went wrong' with raw unescaped template markup leaking into it.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 125,161 bytes, content-type 'text/html;charset=utf-8', server '(none sent)', <title> 'Page Not Found'. final_url after redirects 'https://www.tatapower.com/error-pages/404'; visible text 230 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.bharatpetroleum.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. An Indian oil PSU redirecting to /errorpage at 200 with 199 KB of body.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 199,373 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'ErrorPage'. final_url after redirects 'https://www.bharatpetroleum.in/errorpage'; visible text 8,240 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.adaniports.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Redirects to /page-not-found?item=<original path>. Title is the raw route slug 'page-not-found' rather than a sentence, so the detector must accept slug-shaped titles.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 53,483 bytes, content-type 'text/html; charset=utf-8', server 'volt-adc', <title> 'page-not-found'. final_url after redirects 'https://www.adaniports.com/page-not-found?item=%2fthis-page-does-not-exist-9f3a2b&user=default%5cAnonymous&site=Ports'; visible text 4,062 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.adanipower.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Second site in the same group on the identical /page-not-found?item= pattern — confirming this is a CMS template, not one misconfigured page, so it will recur across every site built on it.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 67,689 bytes, content-type 'text/html; charset=utf-8', server 'volt-adc', <title> 'page-not'. final_url after redirects 'https://www.adanipower.com/page-not-found?item=%2fthis-page-does-not-exist-9f3a2b&user=default%5cAnonymous&site=Power'; visible text 4,173 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.indusind.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. A bank redirecting cross-DOMAIN (indusind.com -> indusind.bank.in) to /in/en/404.html and returning 200. Combines the soft-404 trap with the cross-domain-redirect scoping case: 577 KB of body, title 'ERROR404'.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 577,691 bytes, content-type 'text/html;charset=utf-8', server 'volt-adc', <title> 'ERROR404'. final_url after redirects 'https://www.indusind.bank.in/in/en/404.html'; visible text 34,075 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.idbibank.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. The worst shape in the whole category. Redirects cross-domain to idbi.bank.in/err404.aspx, returns 200 — and the <title> is the bank's ordinary HOMEPAGE title, with 106 KB of real homepage content. Only the /err404.aspx route betrays it; every text-based signal says 'real page'.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 106,777 bytes, content-type 'text/html; charset=utf-8', server 'Myserver', <title> 'Personal & Corporate Banking | MSME & Agri banking - IDBI Bank'. final_url after redirects 'https://www.idbi.bank.in/err404.aspx'; visible text 8,878 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "title_lies",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.nabard.org/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Same trap: /pagenotfound.aspx at 200, but the title is the institution's normal homepage title. The route is the only proof.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 53,160 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'NABARD - National Bank For Agriculture And Rural Development'. final_url after redirects 'https://www.nabard.org/pagenotfound.aspx'; visible text 1,847 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "title_lies",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.unionbankofindia.co.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. The classic ASP.NET customErrors misconfiguration: the dead path is redirected to the site's HOME page with ?aspxerrorpath=<original path> appended, and answered 200. Title and body are a genuine homepage, so the ONLY machine-readable evidence is the aspxerrorpath query parameter — and because the parameter carries the original path, every dead URL yields a distinct final URL holding the same homepage.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 261,590 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'Union Bank of India - Personal, Corporate & NRI Banking Online'. final_url after redirects 'https://www.unionbankofindia.bank.in/en/home?aspxerrorpath=/this-page-does-not-exist-9f3a2b'; visible text 8,367 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "aspxerrorpath",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.nsic.co.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Same aspxerrorpath mechanism, but redirected to /Error/NotFound instead of home, and here the title does say 'Page Not Found'. Pairs with the Union Bank row to show both ends of the pattern.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 54,040 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'Page Not Found - NSIC : National Small Industries Corporation Ltd. | www.nsic.co.in'. final_url after redirects 'https://www.nsic.co.in/Error/NotFound?aspxerrorpath=/this-page-does-not-exist-9f3a2b'; visible text 2,616 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "aspxerrorpath",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.finolex.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Third aspxerrorpath instance, at /Home/NotFound. Three independent hosts, so the detector can be written against the parameter rather than against one site.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 53,225 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'Page Not Found | Finolex Cables.'. final_url after redirects 'https://www.finolex.com/Home/NotFound?aspxerrorpath=/this-page-does-not-exist-9f3a2b'; visible text 2,706 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "aspxerrorpath",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.pnbindia.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. A public-sector bank redirecting cross-domain to pnb.bank.in/Page-Not-Found.html at 200, with 225 KB of body and 13 K chars of visible text — the largest not-found page in this set.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 225,468 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'Page Not Found | Punjab National Bank'. final_url after redirects 'https://pnb.bank.in/Page-Not-Found.html'; visible text 13,397 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.kotak.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. /error/err.html at 200, 965 bytes. The opposite extreme from the PNB row: a near-empty page whose title is honest ('404 Page Not Found') but whose status is not.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 965 bytes, content-type 'text/html', server 'cloudflare', <title> '404 Page Not Found'. final_url after redirects 'https://www.kotak.com/error/err.html'; visible text 103 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.mstcindia.co.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. An Indian government e-auction/e-procurement operator — directly on the tender-crawling path. Cross-host redirect to /404.html at 200.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 1,021 bytes, content-type 'text/html', server 'Microsoft-IIS/10.0', <title> '404 | Not found'. final_url after redirects 'https://mstcindia.co.in/404.html'; visible text 75 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://dfccil.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Dedicated Freight Corridor Corporation: /customerror/pagenotfound?Id=<random> at 200. The Id changes per request, so the same dead page yields an UNBOUNDED set of distinct final URLs — a soft 404 that is also a URL-space generator.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 52,756 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'DFCCIL'. final_url after redirects 'https://dfccil.com/customerror/pagenotfound?Id=2776414'; visible text 2,520 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://nhm.gov.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. National Health Mission: redirected to /index1.php/nhm_live/404.php, 200. Title '404 :: National Health Mission'.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 32,528 bytes, content-type 'text/html; charset=utf-8', server 'Apache', <title> '404 :: National Health Mission'. final_url after redirects 'https://nhm.gov.in/index1.php/nhm_live/404.php'; visible text 1,933 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.ugc.gov.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. University Grants Commission redirects to /ErrorPage/index?code=404 — the not-found is in the QUERY STRING, not the path — and the title is the ordinary 'Welcome to UGC, New Delhi, India'.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 44,820 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'Welcome to UGC, New Delhi, India'. final_url after redirects 'https://www.ugc.gov.in/ErrorPage/index?code=404'; visible text 2,719 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "title_lies",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.dcmsme.gov.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. MSME development office: /ErrorPages/FileNotFound.htm at 200, 1,109 bytes.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 1,109 bytes, content-type 'text/html', server '(none sent)', <title> 'File Not Found'. final_url after redirects 'https://www.dcmsme.gov.in/ErrorPages/FileNotFound.htm'; visible text 80 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.nabcons.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Redirects to /information/details/page-not-found and returns 200 with 9,642 chars of visible text — a not-found page that carries a full site's worth of navigation copy.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 50,705 bytes, content-type 'text/html; charset=UTF-8', server 'Apache', <title> 'NABCONS'. final_url after redirects 'https://www.nabcons.com/information/details/page-not-found'; visible text 9,642 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.imtech.res.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. A CSIR research institute redirecting to /page-not-found at 200.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 98,453 bytes, content-type 'text/html; charset=UTF-8', server 'Apache/2.4.52 (Ubuntu)', <title> 'Page Not Found'. final_url after redirects 'https://www.imtech.res.in/page-not-found'; visible text 3,359 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.iiitb.ac.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Redirected to /page-not-found/ with 200 — and there is NO <title> at all and 9,955 chars of ordinary department-listing text. The final URL is the only evidence that exists.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 130,628 bytes, content-type 'text/html; charset=UTF-8', server 'Apache/2.4.54 (Win64) OpenSSL/1.1.1p PHP/7.4.30', <title> absent/empty. final_url after redirects 'https://www.iiitb.ac.in/page-not-found/'; visible text 9,955 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "route_only",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.posco.co.kr/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. A Korean steel major: redirected DOWNGRADED to http://www.posco.co.kr/infomsg/error.html and served 200. Recorded honestly — the body is legacy EUC-KR served without a matching charset, so it mojibakes under UTF-8 decoding and no readable not-found string can be extracted; the route is the whole signal, which is precisely why route-based detection is needed.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 1,783 bytes, content-type 'text/html', server '(none sent)', <title> absent/empty. final_url after redirects 'http://www.posco.co.kr/infomsg/error.html'; visible text 60 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "route_only",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.jindalsteelpower.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Redirects cross-domain (jindalsteelpower.com -> jindalsteel.in) keeping the SAME dead path, and returns 200 with title 'Page Not Found' but only 14 chars of visible text under 342 KB of markup — a client-rendered shell whose one honest signal is the title.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 342,069 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'Page Not Found'. final_url after redirects 'https://www.jindalsteel.in/this-page-does-not-exist-9f3a2b'; visible text 14 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "title_only_cross_domain",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.iffco.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. IFFCO adds a locale prefix (/en/) and serves the dead path 200 with title 'IFFCO - Page Not Found'. The final URL is a normal-looking content route, so only the title gives it away.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 84,984 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'IFFCO - Page Not Found'. final_url after redirects 'https://www.iffco.in/en/this-page-does-not-exist-9f3a2b'; visible text 6,055 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "title_says_notfound",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://carnegieendowment.org/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. A major think tank: no redirect at all, the dead URL itself answers 200 with title 'Page Not Found' over 69 KB of body. The URL a crawler stores is the nonexistent one.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 69,752 bytes, content-type 'text/html; charset=utf-8', server 'envoy', <title> 'Page Not Found | Carnegie Endowment for International Peace'. final_url after redirects 'https://carnegieendowment.org/this-page-does-not-exist-9f3a2b'; visible text 59 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "title_says_notfound",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://hashnode.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. A modern developer platform answering a nonexistent username with 200 and title 'User not found | Hashnode' — the not-found wording is domain-specific ('user', not 'page'), so a detector keyed only on 'page not found' misses it.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 68,581 bytes, content-type 'text/html; charset=utf-8', server 'Vercel', <title> 'User not found | Hashnode'. final_url after redirects 'https://hashnode.com/this-page-does-not-exist-9f3a2b'; visible text 529 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "title_says_notfound",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.exideindustries.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. /error.aspx at 200, title \"Oops! This URL doesn't exists\" — informal phrasing with a grammatical error, the kind of string no fixed keyword list anticipates.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 77,561 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'Oops! This URL doesn't exists'. final_url after redirects 'https://www.exideindustries.com/error.aspx'; visible text 7,775 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "title_says_notfound",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.pib.gov.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Press Information Bureau, the Indian government's own press-release wire. 200, and the <title> is the ASP.NET default 'Untitled Page' — it says nothing. The only signal is 169 chars of body: 'The Page you have requested is not available at present.' A title-only detector stores this.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 5,214 bytes, content-type 'text/html', server '(none sent)', <title> 'Untitled Page'. final_url after redirects 'https://www.pib.gov.in/this-page-does-not-exist-9f3a2b'; visible text 169 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "body_only",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://rites.com/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. A government engineering consultancy. NO redirect, 200, and the <title> is the ordinary corporate 'RITES || THE INFRASTRUCTURE PEOPLE'. The words 'Page Not Found' appear only inside 43 KB of otherwise-normal body text.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 43,335 bytes, content-type 'text/html; charset=utf-8', server 'Microsoft-IIS/8.5', <title> 'RITES || THE INFRASTRUCTURE PEOPLE'. final_url after redirects 'https://rites.com/this-page-does-not-exist-9f3a2b'; visible text 2,580 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "body_only",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.cert-in.org.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. India's national CERT. Title is 'Cert-In - Home Page' (it claims to BE the homepage) and the 938-byte body says 'The requested URL is not found.' Title and body directly contradict each other; the body is right.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 938 bytes, content-type 'text/html', server '(none sent)', <title> 'Cert-In - Home Page'. final_url after redirects 'https://www.cert-in.org.in/this-page-does-not-exist-9f3a2b'; visible text 71 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "body_only",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.cimap.res.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. CSIR-CIMAP: title is just the institute name, body says 'Something went wrong!! Sorry, the page you are looking for is currently not available.' — phrased as a transient fault, so a crawler reading the wording would retry forever.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 1,776 bytes, content-type 'text/html; charset=utf-8', server 'Apache', <title> 'CSIR-CIMAP'. final_url after redirects 'https://www.cimap.res.in/this-page-does-not-exist-9f3a2b'; visible text 149 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "body_only",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.cdri.res.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. CSIR-CDRI redirects to /Application and returns 200 with title 'Application Closed' and a body reading 'Page Unavailable / The requested page is currently unavailable... the page has been moved or removed'. Neither title nor route contains the word 'found'.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 2,191 bytes, content-type 'text/html; charset=utf-8', server 'Apache', <title> 'Application Closed'. final_url after redirects 'https://cdri.res.in/Application'; visible text 249 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "body_only",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.teaboard.gov.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Tea Board of India: no redirect, 200, title is the site name, and the entire body is 76 chars — 'Page Not Found Go To Home Page'. A near-empty 200 that only body text identifies.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 1,252 bytes, content-type 'text/html', server 'Microsoft-IIS/10.0', <title> 'The Official Website of Tea Board India'. final_url after redirects 'https://www.teaboard.gov.in/this-page-does-not-exist-9f3a2b'; visible text 76 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "body_only",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.iitj.ac.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. IIT Jodhpur: 200, title 'Error...' (three dots, no code), body 'Sorry! Page/File Not Found'.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 5,598 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> 'Error...'. final_url after redirects 'https://www.iitj.ac.in/this-page-does-not-exist-9f3a2b'; visible text 78 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "body_only",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.rgpv.ac.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. A state technical university: no redirect, 200, title is the bare string '404' and the body says 'The Page you are looking for can not found'.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 1,301 bytes, content-type 'text/html', server 'Microsoft-IIS/10.0', <title> '404'. final_url after redirects 'https://www.rgpv.ac.in/this-page-does-not-exist-9f3a2b'; visible text 310 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "title_says_notfound",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://web.umang.gov.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. UMANG, the Indian government's unified services portal: 200, title '404', body 'Sorry, but the page your are looking for was either not found or does not exist.'",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 2,009 bytes, content-type 'text/html', server 'AmazonS3', <title> '404'. final_url after redirects 'https://web.umang.gov.in/this-page-does-not-exist-9f3a2b'; visible text 94 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "title_says_notfound",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://up.gov.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Uttar Pradesh state portal: redirected to /frmHttpErrorPage.aspx and served 200 with 33 KB of full site chrome. There is no <title> and the body says 'Something went wrong while processing your request' — an ERROR page rather than a not-found page, which is why the route matters.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 33,319 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> absent/empty. final_url after redirects 'https://up.gov.in/frmHttpErrorPage.aspx'; visible text 2,646 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://mazagondock.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Mazagon Dock Shipbuilders, a defence PSU: redirected to /Errors/Exception, 200, no title, body 'Something went wrong. The technical team has been informed'. An unhandled exception rendered as a 200 page — the crawler cannot tell it from content without reading the route.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 56,527 bytes, content-type 'text/html; charset=utf-8', server '(none sent)', <title> absent/empty. final_url after redirects 'https://mazagondock.in/Errors/Exception'; visible text 1,802 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "redirect_to_error_route",
+  "status": 200
+ },
+ {
+  "category": "soft_404",
+  "url": "https://www.icmr.gov.in/this-page-does-not-exist-9f3a2b",
+  "expect": "HTTP 200 for a path that has never existed. Nothing in the fetch ladder catches this — the status is fine, the content type is fine, the markup parses — so without the explicit soft-404 check the not-found page becomes the stored document, and because every such page on a site is near-identical they also poison near-duplicate detection. diagnose() must return soft_404 + skip. Indian Council of Medical Research. 200 on the wire, but the <title> is literally 'Exception(400) | Indian Council of Medical Research | Government of India' — the application renders a 400 into a 200 page, under 107 KB of the site's real homepage content including live announcements. Both the status and the visible content say 'real page'; only the title admits the truth.",
+  "evidence": "measured 2026-07-27 with httpx, follow_redirects=True, verify=True, UA=Chrome/127 on Windows; two independent passes, the second starting >=10 s after the first finished: 200 / 200. 107,774 bytes, content-type 'text/html; charset=utf-8', server 'nginx', <title> 'Exception(400) | Indian Council of Medical Research | Government of India'. final_url after redirects 'https://www.icmr.gov.in/this-page-does-not-exist-9f3a2b'; visible text 4,040 chars.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "status_body_mismatch",
+  "status": 200
+ }
+]

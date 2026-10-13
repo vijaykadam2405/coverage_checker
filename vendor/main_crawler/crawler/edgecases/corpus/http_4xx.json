@@ -1,0 +1,211 @@
+[
+ {
+  "category": "http_4xx",
+  "url": "https://httpbingo.org/status/400",
+  "expect": "HTTP 400 Bad Request is the server rejecting the request itself, not a transient fault; errors.policy_for_status(400)='drop', so the crawler must record the failure and stop retrying this URL rather than requeueing it.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 400 / 400, 0 bytes, content-type 'text/plain; charset=utf-8', server 'Fly/c12ea07533'. httpbingo.org (Go reimplementation of httpbin) is the reliable synthetic source today — httpbin.org answered 503 from awselb/2.0 on every code tested and httpstat.us answered ConnectError/RemoteProtocolError on every code tested.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 400
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://httpbingo.org/status/401",
+  "expect": "HTTP 401 Unauthorized is an auth wall expressed as a status. diagnose() must return auth_wall + skip (its 401/403 branch), NOT a generic http_error, and must never store the response body as content.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 401 / 401, 0 bytes, content-type 'text/plain; charset=utf-8'. No WWW-Authenticate header is sent, so the status alone is the whole signal.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 401
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://mock.codes/402",
+  "expect": "HTTP 402 Payment Required has no policy entry, so policy_for_status falls through to 'drop' for a sub-500 code. The crawler must not treat an unmapped 4xx as retryable.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 402 / 402, 51 bytes, body '{\"statusCode\":402,\"description\":\"Payment Required\"}}', content-type 'text/plain; charset=utf-8'. mock.codes used rather than httpbingo/status/402, whose 402 body is profanity.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 402
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://httpbingo.org/status/403",
+  "expect": "HTTP 403 Forbidden with no Retry-After and no vendor fingerprint. policy_for_status(403)='disguise' — the crawler should change its network path/UA and retry, not mark the URL dead. Note diagnose() only calls 403 an auth_wall when the final URL also looks like a login path, which it does not here.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 403 / 403, 0 bytes, no Retry-After, no cf-mitigated, no captcha vendor signature. A bare 403 with an empty body, i.e. the case where nothing but the code is available.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 403
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://postman-echo.com/status/404",
+  "expect": "HTTP 404 Not Found is terminal: policy 'gone' -> diagnose() returns gone + mark_gone. The URL must never be fetched again. This is the HARD 404, distinct from the soft_404 category where a 200 carries a 'page not found' body.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 404 / 404, 14 bytes, body '{\"status\":404}', content-type 'application/json; charset=utf-8', server 'cloudflare' (cf-ray a212fa150b853ada-BOM). Second vendor alongside httpbingo so the category does not rest on one host.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 404
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://httpbingo.org/status/405",
+  "expect": "HTTP 405 Method Not Allowed answering a GET means this URL is not a document at all — an API endpoint that only accepts POST. Unmapped, so policy is 'drop': record and never retry, because retrying the same GET can only produce 405 again.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 405 / 405, 0 bytes, content-type 'text/plain; charset=utf-8'. Cross-checked against the natural form of the same case: GET https://httpbingo.org/post (a POST-only endpoint) also returned 405, 19 bytes.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 405
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://httpbingo.org/status/406",
+  "expect": "HTTP 406 Not Acceptable is content negotiation failing — the server has the resource but not in a form the Accept header allows. Policy 'drop'; retrying with the same headers is pointless, and the JSON body naming the acceptable types must not be stored as content.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 406 / 406, 171 bytes, content-type 'application/json; charset=utf-8', body '{{ \"message\": \"Client did not request a supported media type\", \"accept\": [\"image/webp\",\"image/svg+xml\",\"image/jpeg\",\"image/png\",\"image/*\"] }}'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 406
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://httpbingo.org/status/408",
+  "expect": "HTTP 408 Request Timeout is the one 4xx that is explicitly retryable: policy_for_status(408)='retry_later'. The crawler must requeue rather than drop — this is the row that proves 4xx is not uniformly terminal.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 408 / 408, 0 bytes, content-type 'text/plain; charset=utf-8'. Returned immediately (no server-side stall), so this tests the STATUS handling, not the socket timeout path already covered by the network/timeout corpus.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 408
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://mock.codes/409",
+  "expect": "HTTP 409 Conflict on a GET is a server-state error the crawler cannot resolve. Unmapped -> 'drop'.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 409 / 409, 43 bytes, body '{\"statusCode\":409,\"description\":\"Conflict\"}', content-type 'text/plain; charset=utf-8', server 'Fly/c12ea07533'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 409
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://httpbingo.org/status/429",
+  "expect": "HTTP 429 Too Many Requests must become rate_limit + backoff, and it must win over every other rule — diagnose() checks 429 before the generic 4xx branch. This row carries NO Retry-After, so the crawler has to fall back to its own backoff schedule rather than reading a wait off the wire.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 429 / 429, 0 bytes, content-type 'text/plain; charset=utf-8'. Retry-After header ABSENT (checked explicitly), x-ratelimit-remaining absent. Four other 429 sources were checked for a Retry-After and none sent one: mock.codes/429, httpbin.dev/status/429, postman-echo.com/status/429, digg.com.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 429
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://httpbingo.org/status/451",
+  "expect": "HTTP 451 Unavailable For Legal Reasons. diagnose() has a dedicated branch returning geo_block + skip, ahead of the generic 4xx handling; errors.policy_for_status(451) says 'gone'. Either way it is terminal — no proxy or retry changes a legal takedown.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 451 / 451, 0 bytes, content-type 'text/plain; charset=utf-8'. Synthetic because 451 could not be reproduced against any real site from this vantage point (IN/BOM); the real 451s in the wild are served only to the jurisdictions they apply to.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 451
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.stackexchange.com/2.3/questions",
+  "expect": "A real production API returning 400 for a missing required parameter. The crawler must drop the URL: the request will be malformed on every retry.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 400 / 400, 91 bytes, content-type 'application/json; charset=utf-8', server 'cloudflare' (cf-ray a212fa20bc8e0aaa-BOM), body '{{\"error_id\":400,\"error_message\":\"site is required\",\"error_name\":\"bad_parameter\"}}'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 400
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.spotify.com/v1/me",
+  "expect": "A real OAuth-protected endpoint answering an unauthenticated GET with 401. Must be auth_wall + skip; the JSON error body is a wall, not a document.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 401 / 401, 77 bytes, content-type 'application/json', server 'envoy'. Reproduced on both fetches with no credentials sent.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 401
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany",
+  "expect": "A real WAF hard-block: Akamai in front of SEC EDGAR refuses an automated client with 403 and an HTML explanation page. policy 'disguise' — the remedy is a different network path and a declared UA, not a retry from the same one. The 2,165-byte body is a block page and must not be stored as content.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 403 / 403, 4,819 bytes decoded (content-length 2,165), content-type 'text/html', server 'AkamaiGHost'. Body is an XHTML 1.0 Transitional block page. No Retry-After and no cf-mitigated header, so this is a flat refusal rather than a challenge.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 403
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://developer.mozilla.org/en-US/docs/Xk9qzNoSuchPage",
+  "expect": "A genuinely nonexistent page on a large real documentation site. Terminal: gone + mark_gone. Note the 404 body is a full-weight rendered page (88 KB), so a crawler that decides on body size instead of status would store an error page as a document.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 404 / 404, 88,144 bytes, server 'Google Frontend'. Path is a 20-char nonce segment that has never existed, so this cannot start working later.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 404
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://www.gov.uk/xk9qz-no-such-page",
+  "expect": "Second real 404, on a different stack (GOV.UK / nginx), also serving a large branded error page under the 404. Confirms the mark_gone path is driven by the status and not by the shape of the body.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 404 / 404, 52,456 bytes, server 'nginx'. The same 52,456-byte body is returned for an unrelated missing path (/government/publications/xk9qz-nope), i.e. it is a catch-all error template served with a correct 404 status.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 404
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.github.com/repos/torvalds/linux/issues/1/reactions",
+  "expect": "A real HTTP 410 Gone from a production API — issues are disabled on that repository, so the sub-resource is permanently withdrawn. 410 is the strongest 'never come back' signal in HTTP; policy 'gone' -> mark_gone, no retry ever.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 410 / 410, 133 bytes, server 'github.com', body '{ \"message\": \"Issues are disabled for this repo\", \"documentation_url\": \"https://docs.github.com/v3/issues/\", \"status\": \"410\" }}'. Headers also carried x-ratelimit-remaining: 37 (not throttled — the 410 is a real resource state, not a quota).",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 410
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://www.google.com/teapot",
+  "expect": "A real, permanently-served HTTP 418 I'm a Teapot on a major production host. Unmapped by policy_for_status, so it falls to 'drop' — the test is that an exotic 4xx does not crash the classifier or get mistaken for a retryable fault.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 418 / 418, 826 bytes, content-type 'text/html; charset=UTF-8', server 'gws'. Body is a real rendered Google page (the teapot easter egg), not an empty stub.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 418
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://api.github.com/search/repositories",
+  "expect": "A real 422 Unprocessable Entity: the request parsed but the required search parameter is missing. Policy 'drop'. CAVEAT recorded honestly — GitHub's search endpoint also sends x-ratelimit-remaining, measured at 9 of 10 per minute; if a harness run ever drives that header to exactly 0, diagnose() will call rate_limit before it ever reaches the 422 branch. That is correct behaviour, not a corpus error.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 422 / 422, 219 bytes, server 'github.com', body '{ \"message\": \"Validation Failed\", \"errors\": [{{\"resource\":\"Search\",\"field\":\"q\",\"code\":\"missing\"}}], \"status\": \"422\" }}'. x-ratelimit-remaining: 9, x-ratelimit-reset: 1785064487.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 422
+ },
+ {
+  "category": "http_4xx",
+  "url": "https://www.googleapis.com/books/v1/volumes",
+  "expect": "A real production 429 from a quota limiter, reproduced on two consecutive fetches. The crawler must back off this host. It carries NO Retry-After, which is the point: the backoff has to come from the crawler's own schedule, and a policy that only knows how to honour Retry-After would hammer this endpoint forever.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 429 / 429, 1,306 bytes, content-type 'application/json; charset=UTF-8', server 'ESF'. Retry-After ABSENT. Body: '{{\"error\":{{\"code\":429,\"message\":\"Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service 'books.googleapis.com'...\"}}}}'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 429
+ },
+ {
+  "category": "soft_404",
+  "variant": "slug_title_image_404",
+  "url": "https://www.adanidefence.com/DefenceMedia",
+  "expect": "Dead route answered HTTP 200. The site redirects to /page-not-found and the visible '404' is an IMAGE, so no body text says it; the only textual signal is the <title>, which is the route SLUG 'page-not-found'.",
+  "evidence": "HTTP 200; <title>page-not-found</title>; final_url path /page-not-found",
+  "source": "found live in a production crawl 2026-07-27 — it was stored as a real document",
+  "stable": true
+ }
+]

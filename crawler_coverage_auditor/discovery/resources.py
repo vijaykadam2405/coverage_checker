@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import json
 import re
-from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
+from urllib.parse import urlsplit
 
-from crawler_coverage_auditor.discovery.static_links import Link
+from crawler_coverage_auditor.discovery.static_links import Link, published_url
+from crawler_coverage_auditor.discovery.api_pagination import continuations
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".ico", ".avif", ".bmp", ".tif", ".tiff"}
 FILE_EXTENSIONS = {".pdf", ".doc", ".docx", '.docm', ".xls", ".xlsx", '.xlsm', '.xlsb', ".ppt", ".pptx", '.pptm', ".csv", ".txt", ".rtf", ".odt", ".ods", ".odp", ".zip", ".xml", ".epub", ".7z", ".rar", ".gz", ".tar"}
@@ -65,23 +66,15 @@ def json_links(content: str, base_url: str) -> list[Link]:
         elif isinstance(value, list):
             for item in value:
                 visit(item, key)
-        elif isinstance(value, str) and (value.startswith(("http://", "https://", "/")) or key in {"url", "href", "link", "next", "next_url", "canonical", "download"}):
+        elif isinstance(value, str) and (value.startswith(("http://", "https://", "/")) or key in {"url", "href", "link", "next", "next_url", "nextpageurl", "next_page_url", "next_page", "canonical", "download"}):
             if not value.startswith(("javascript:", "data:")) and ("/" in value or "?" in value):
-                result.append(Link(urljoin(base_url, value), key, "api"))
+                target = published_url(value, base_url)
+                if target and target != base_url:
+                    result.append(Link(target, key, "api"))
     visit(payload)
     if isinstance(payload, dict):
-        # Follow response-supplied cursors/offsets only when the request already uses that parameter.
-        parts = urlsplit(base_url)
-        pairs = dict(parse_qsl(parts.query, keep_blank_values=True))
-        mappings = {"next_cursor": "cursor", "nextCursor": "cursor", "next_offset": "offset", "nextOffset": "offset", "next_page": "page", "nextPage": "page"}
-        for metadata in [payload, payload.get("pagination", {}), payload.get("meta", {})]:
-            if not isinstance(metadata, dict):
-                continue
-            for field, parameter in mappings.items():
-                value = metadata.get(field)
-                if parameter in pairs and value is not None and value != "" and not isinstance(value, (bool, dict, list)):
-                    next_pairs = {**pairs, parameter: str(value)}
-                    result.append(Link(urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(next_pairs), "")), f"API {field}", "api"))
+        for url in continuations(payload, base_url):
+            result.append(Link(url, 'API response-backed pagination', 'api'))
     return result
 
 

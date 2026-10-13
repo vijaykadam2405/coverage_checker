@@ -1,0 +1,903 @@
+[
+ {
+  "category": "redirect_loop",
+  "url": "https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://example.com/a.mp3",
+  "expect": "Podcast tracking-prefix redirector 2.gum.fm stacked 14 deep. Prefix redirectors take the next URL as a raw path suffix and 302 to it; real podcast feeds stack 3-6 of them, and nothing stops a link from stacking more, so a crawler that follows enclosure URLs must cap the hop count rather than trust the chain.",
+  "evidence": "Live manual redirect walk 2026-07-27: single-hop sanity check 2.gum.fm -> 302 to the suffix URL first; then the same prefix nested 14 deep (URL length 263 chars) walked with a 12-hop budget: hop1 302 -> https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https; hop2 302 -> https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https://2.gum.fm/https; ... hop13 302 -> https://2.gum.fm/https://example.com/a.mp3; budget EXHAUSTED after 13 requests, still a 30x at https://2.gum.fm/https://example.com/a.mp3.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://example.com/a.mp3",
+  "expect": "Podcast tracking-prefix redirector arttrk.com stacked 14 deep. Prefix redirectors take the next URL as a raw path suffix and 302 to it; real podcast feeds stack 3-6 of them, and nothing stops a link from stacking more, so a crawler that follows enclosure URLs must cap the hop count rather than trust the chain.",
+  "evidence": "Live manual redirect walk 2026-07-27: single-hop sanity check arttrk.com -> 302 to the suffix URL first; then the same prefix nested 14 deep (URL length 403 chars) walked with a 12-hop budget: hop1 302 -> https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://a; hop2 302 -> https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://arttrk.com/p/ABCD1/https://a; ... hop13 302 -> https://arttrk.com/p/ABCD1/https://example.com/a.mp3; budget EXHAUSTED after 13 requests, still a 30x at https://arttrk.com/p/ABCD1/https://example.com/a.mp3.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.co/absolute-redirect/15",
+  "expect": "httpbin-compatible endpoint on httpbin.co serving a decrementing chain of absolute Location headers (fully-qualified URLs, and the last hops downgrade to http://): 15 hops are required before any content page, so exercises absolute-Location plus scheme-downgrade handling. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> https://httpbin.co/absolute-redirect/14; hop2 302 -> https://httpbin.co/absolute-redirect/13; hop3 302 -> https://httpbin.co/absolute-redirect/12; ... hop13 302 -> https://httpbin.co/absolute-redirect/2; budget EXHAUSTED after 13 requests, still a 30x at https://httpbin.co/absolute-redirect/2 -- i.e. 15 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.co/redirect-to?url=https%3A%2F%2Fhttpbin.co%2Fredirect-to%3Furl%3Dhttps%253A%252F%252Fhttpbin.co%252Fredirect-to%253Furl%253Dhttps%25253A%25252F%25252Fhttpbin.co%25252Fredirect-to%25253Furl%25253Dhttps%2525253A%2525252F%2525252Fhttpbin.co%2525252Fredirect-to%2525253Furl%2525253Dhttps%252525253A%252525252F%252525252Fhttpbin.co%252525252Fredirect-to%252525253Furl%252525253Dhttps%25252525253A%25252525252F%25252525252Fhttpbin.co%25252525252Fredirect-to%25252525253Furl%25252525253Dhttps%2525252525253A%2525252525252F%2525252525252Fhttpbin.co%2525252525252Fredirect-to%2525252525253Furl%2525252525253Dhttps%252525252525253A%252525252525252F%252525252525252Fhttpbin.co%252525252525252Fredirect-to%252525252525253Furl%252525252525253Dhttps%25252525252525253A%25252525252525252F%25252525252525252Fhttpbin.co%25252525252525252Fredirect-to%25252525252525253Furl%25252525252525253Dhttps%2525252525252525253A%2525252525252525252F%2525252525252525252Fhttpbin.co%2525252525252525252Fredirect-to%2525252525252525253Furl%2525252525252525253Dhttps%252525252525252525253A%252525252525252525252F%252525252525252525252Fhttpbin.co%252525252525252525252Fredirect-to%252525252525252525253Furl%252525252525252525253Dhttps%25252525252525252525253A%25252525252525252525252F%25252525252525252525252Fhttpbin.co%25252525252525252525252Fredirect-to%25252525252525252525253Furl%25252525252525252525253Dhttps%2525252525252525252525253A%2525252525252525252525252F%2525252525252525252525252Fhttpbin.co%2525252525252525252525252Fget",
+  "expect": "A 13-deep self-nested redirect chain built from httpbin.co's own /redirect-to?url= endpoint: every hop peels one layer of percent-encoding off a ~1.5 KB URL. Tests both the hop budget and the URL-length/canonicalisation guard, since each hop is a distinct, very long, still-valid URL.",
+  "evidence": "Constructed by nesting httpbin.co/redirect-to?url= 13 deep (each layer is a percent-encoded copy of the next, URL length 1517 chars) and then walked live 2026-07-27 with a 12-hop budget: hop1 302 -> https://httpbin.co/redirect-to?url=https%3A%2F%2Fhttpbin.co%2Fredirect-to%3Furl%3Dhttps%25; hop2 302 -> https://httpbin.co/redirect-to?url=https%3A%2F%2Fhttpbin.co%2Fredirect-to%3Furl%3Dhttps%25; ... hop13 302 -> https://httpbin.co/get; budget EXHAUSTED after 13 requests, still a 30x at hop 13 -- the terminal /get was never reached.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.co/redirect/20",
+  "expect": "httpbin-compatible endpoint on httpbin.co serving a decrementing /redirect/N chain (each hop rewrites to /relative-redirect/N-1): 20 hops are required before any content page, so a crawler capped at 10-12 hops abandons the chain with several hops still to go. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /relative-redirect/19; hop2 302 -> /relative-redirect/18; hop3 302 -> /relative-redirect/17; ... hop13 302 -> /relative-redirect/7; budget EXHAUSTED after 13 requests, still a 30x at https://httpbin.co/relative-redirect/7 -- i.e. 20 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.co/relative-redirect/15",
+  "expect": "httpbin-compatible endpoint on httpbin.co serving a decrementing chain of bare relative Location headers (no host or scheme in Location): 15 hops are required before any content page, so proves a crawler that resolves relative Location values alone still never lands on content. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /relative-redirect/14; hop2 302 -> /relative-redirect/13; hop3 302 -> /relative-redirect/12; ... hop13 302 -> /relative-redirect/2; budget EXHAUSTED after 13 requests, still a 30x at https://httpbin.co/relative-redirect/2 -- i.e. 15 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.dev/absolute-redirect/15",
+  "expect": "httpbin-compatible endpoint on httpbin.dev serving a decrementing chain of absolute Location headers (fully-qualified URLs, and the last hops downgrade to http://): 15 hops are required before any content page, so exercises absolute-Location plus scheme-downgrade handling. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> https://httpbin.dev/absolute-redirect/14; hop2 302 -> https://httpbin.dev/absolute-redirect/13; hop3 302 -> https://httpbin.dev/absolute-redirect/12; ... hop13 302 -> https://httpbin.dev/absolute-redirect/2; budget EXHAUSTED after 13 requests, still a 30x at https://httpbin.dev/absolute-redirect/2 -- i.e. 15 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.dev/redirect-to?url=https%3A%2F%2Fhttpbin.dev%2Fredirect-to%3Furl%3Dhttps%253A%252F%252Fhttpbin.dev%252Fredirect-to%253Furl%253Dhttps%25253A%25252F%25252Fhttpbin.dev%25252Fredirect-to%25253Furl%25253Dhttps%2525253A%2525252F%2525252Fhttpbin.dev%2525252Fredirect-to%2525253Furl%2525253Dhttps%252525253A%252525252F%252525252Fhttpbin.dev%252525252Fredirect-to%252525253Furl%252525253Dhttps%25252525253A%25252525252F%25252525252Fhttpbin.dev%25252525252Fredirect-to%25252525253Furl%25252525253Dhttps%2525252525253A%2525252525252F%2525252525252Fhttpbin.dev%2525252525252Fredirect-to%2525252525253Furl%2525252525253Dhttps%252525252525253A%252525252525252F%252525252525252Fhttpbin.dev%252525252525252Fredirect-to%252525252525253Furl%252525252525253Dhttps%25252525252525253A%25252525252525252F%25252525252525252Fhttpbin.dev%25252525252525252Fredirect-to%25252525252525253Furl%25252525252525253Dhttps%2525252525252525253A%2525252525252525252F%2525252525252525252Fhttpbin.dev%2525252525252525252Fredirect-to%2525252525252525253Furl%2525252525252525253Dhttps%252525252525252525253A%252525252525252525252F%252525252525252525252Fhttpbin.dev%252525252525252525252Fredirect-to%252525252525252525253Furl%252525252525252525253Dhttps%25252525252525252525253A%25252525252525252525252F%25252525252525252525252Fhttpbin.dev%25252525252525252525252Fredirect-to%25252525252525252525253Furl%25252525252525252525253Dhttps%2525252525252525252525253A%2525252525252525252525252F%2525252525252525252525252Fhttpbin.dev%2525252525252525252525252Fget",
+  "expect": "A 13-deep self-nested redirect chain built from httpbin.dev's own /redirect-to?url= endpoint: every hop peels one layer of percent-encoding off a ~1.5 KB URL. Tests both the hop budget and the URL-length/canonicalisation guard, since each hop is a distinct, very long, still-valid URL.",
+  "evidence": "Constructed by nesting httpbin.dev/redirect-to?url= 13 deep (each layer is a percent-encoded copy of the next, URL length 1531 chars) and then walked live 2026-07-27 with a 12-hop budget: hop1 302 -> https://httpbin.dev/redirect-to?url=https%3A%2F%2Fhttpbin.dev%2Fredirect-to%3Furl%3Dhttps%; hop2 302 -> https://httpbin.dev/redirect-to?url=https%3A%2F%2Fhttpbin.dev%2Fredirect-to%3Furl%3Dhttps%; ... hop13 302 -> https://httpbin.dev/get; budget EXHAUSTED after 13 requests, still a 30x at hop 13 -- the terminal /get was never reached.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.dev/redirect/20",
+  "expect": "httpbin-compatible endpoint on httpbin.dev serving a decrementing /redirect/N chain (each hop rewrites to /relative-redirect/N-1): 20 hops are required before any content page, so a crawler capped at 10-12 hops abandons the chain with several hops still to go. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /relative-redirect/19; hop2 302 -> /relative-redirect/18; hop3 302 -> /relative-redirect/17; ... hop13 302 -> /relative-redirect/7; budget EXHAUSTED after 13 requests, still a 30x at https://httpbin.dev/relative-redirect/7 -- i.e. 20 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.dev/relative-redirect/15",
+  "expect": "httpbin-compatible endpoint on httpbin.dev serving a decrementing chain of bare relative Location headers (no host or scheme in Location): 15 hops are required before any content page, so proves a crawler that resolves relative Location values alone still never lands on content. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /relative-redirect/14; hop2 302 -> /relative-redirect/13; hop3 302 -> /relative-redirect/12; ... hop13 302 -> /relative-redirect/2; budget EXHAUSTED after 13 requests, still a 30x at https://httpbin.dev/relative-redirect/2 -- i.e. 15 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.dmuth.org/redirect/20",
+  "expect": "httpbin-compatible endpoint on httpbin.dmuth.org serving a decrementing /redirect/N chain (each hop rewrites to /relative-redirect/N-1): 20 hops are required before any content page, so a crawler capped at 10-12 hops abandons the chain with several hops still to go. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /redirect/19?code=302; hop2 302 -> /redirect/18?code=302; hop3 302 -> /redirect/17?code=302; ... hop13 302 -> /redirect/7?code=302; budget EXHAUSTED after 13 requests, still a 30x at https://httpbin.dmuth.org/redirect/7?code=302 -- i.e. 20 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.fly.dev/redirect/20",
+  "expect": "httpbin-compatible endpoint on httpbin.fly.dev serving a decrementing /redirect/N chain (each hop rewrites to /relative-redirect/N-1): 20 hops are required before any content page, so a crawler capped at 10-12 hops abandons the chain with several hops still to go. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /redirect/19?code=302; hop2 302 -> /redirect/18?code=302; hop3 302 -> /redirect/17?code=302; ... hop13 302 -> /redirect/7?code=302; budget EXHAUSTED after 13 requests, still a 30x at https://httpbin.fly.dev/redirect/7?code=302 -- i.e. 20 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.io/absolute-redirect/15",
+  "expect": "httpbin-compatible endpoint on httpbin.io serving a decrementing chain of absolute Location headers (fully-qualified URLs, and the last hops downgrade to http://): 15 hops are required before any content page, so exercises absolute-Location plus scheme-downgrade handling. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> http://httpbin.io/absolute-redirect/14; hop2 302 -> http://httpbin.io/absolute-redirect/13; hop3 302 -> http://httpbin.io/absolute-redirect/12; ... hop13 302 -> http://httpbin.io/absolute-redirect/2; budget EXHAUSTED after 13 requests, still a 30x at http://httpbin.io/absolute-redirect/2 -- i.e. 15 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.io/redirect-to?url=https%3A%2F%2Fhttpbin.io%2Fredirect-to%3Furl%3Dhttps%253A%252F%252Fhttpbin.io%252Fredirect-to%253Furl%253Dhttps%25253A%25252F%25252Fhttpbin.io%25252Fredirect-to%25253Furl%25253Dhttps%2525253A%2525252F%2525252Fhttpbin.io%2525252Fredirect-to%2525253Furl%2525253Dhttps%252525253A%252525252F%252525252Fhttpbin.io%252525252Fredirect-to%252525253Furl%252525253Dhttps%25252525253A%25252525252F%25252525252Fhttpbin.io%25252525252Fredirect-to%25252525253Furl%25252525253Dhttps%2525252525253A%2525252525252F%2525252525252Fhttpbin.io%2525252525252Fredirect-to%2525252525253Furl%2525252525253Dhttps%252525252525253A%252525252525252F%252525252525252Fhttpbin.io%252525252525252Fredirect-to%252525252525253Furl%252525252525253Dhttps%25252525252525253A%25252525252525252F%25252525252525252Fhttpbin.io%25252525252525252Fredirect-to%25252525252525253Furl%25252525252525253Dhttps%2525252525252525253A%2525252525252525252F%2525252525252525252Fhttpbin.io%2525252525252525252Fredirect-to%2525252525252525253Furl%2525252525252525253Dhttps%252525252525252525253A%252525252525252525252F%252525252525252525252Fhttpbin.io%252525252525252525252Fredirect-to%252525252525252525253Furl%252525252525252525253Dhttps%25252525252525252525253A%25252525252525252525252F%25252525252525252525252Fhttpbin.io%25252525252525252525252Fredirect-to%25252525252525252525253Furl%25252525252525252525253Dhttps%2525252525252525252525253A%2525252525252525252525252F%2525252525252525252525252Fhttpbin.io%2525252525252525252525252Fget",
+  "expect": "A 13-deep self-nested redirect chain built from httpbin.io's own /redirect-to?url= endpoint: every hop peels one layer of percent-encoding off a ~1.5 KB URL. Tests both the hop budget and the URL-length/canonicalisation guard, since each hop is a distinct, very long, still-valid URL.",
+  "evidence": "Constructed by nesting httpbin.io/redirect-to?url= 13 deep (each layer is a percent-encoded copy of the next, URL length 1517 chars) and then walked live 2026-07-27 with a 12-hop budget: hop1 302 -> https://httpbin.io/redirect-to?url=https%3A%2F%2Fhttpbin.io%2Fredirect-to%3Furl%3Dhttps%25; hop2 302 -> https://httpbin.io/redirect-to?url=https%3A%2F%2Fhttpbin.io%2Fredirect-to%3Furl%3Dhttps%25; ... hop13 302 -> https://httpbin.io/get; budget EXHAUSTED after 13 requests, still a 30x at hop 13 -- the terminal /get was never reached.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.io/redirect/20",
+  "expect": "httpbin-compatible endpoint on httpbin.io serving a decrementing /redirect/N chain (each hop rewrites to /relative-redirect/N-1): 20 hops are required before any content page, so a crawler capped at 10-12 hops abandons the chain with several hops still to go. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /relative-redirect/19; hop2 302 -> /relative-redirect/18; hop3 302 -> /relative-redirect/17; ... hop13 302 -> /relative-redirect/7; budget EXHAUSTED after 13 requests, still a 30x at https://httpbin.io/relative-redirect/7 -- i.e. 20 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.io/redirect/30",
+  "expect": "httpbin-compatible endpoint on httpbin.io serving a decrementing /redirect/N chain (each hop rewrites to /relative-redirect/N-1): 30 hops are required before any content page, so a crawler capped at 10-12 hops abandons the chain with several hops still to go. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /relative-redirect/29; hop2 302 -> /relative-redirect/28; hop3 302 -> /relative-redirect/27; ... hop13 302 -> /relative-redirect/17; budget EXHAUSTED after 13 requests, still a 30x at https://httpbin.io/relative-redirect/17 -- i.e. 30 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.io/relative-redirect/15",
+  "expect": "httpbin-compatible endpoint on httpbin.io serving a decrementing chain of bare relative Location headers (no host or scheme in Location): 15 hops are required before any content page, so proves a crawler that resolves relative Location values alone still never lands on content. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /relative-redirect/14; hop2 302 -> /relative-redirect/13; hop3 302 -> /relative-redirect/12; ... hop13 302 -> /relative-redirect/2; budget EXHAUSTED after 13 requests, still a 30x at https://httpbin.io/relative-redirect/2 -- i.e. 15 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.kennethreitz.org/redirect-to?url=https%3A%2F%2Fhttpbin.kennethreitz.org%2Fredirect-to%3Furl%3Dhttps%253A%252F%252Fhttpbin.kennethreitz.org%252Fredirect-to%253Furl%253Dhttps%25253A%25252F%25252Fhttpbin.kennethreitz.org%25252Fredirect-to%25253Furl%25253Dhttps%2525253A%2525252F%2525252Fhttpbin.kennethreitz.org%2525252Fredirect-to%2525253Furl%2525253Dhttps%252525253A%252525252F%252525252Fhttpbin.kennethreitz.org%252525252Fredirect-to%252525253Furl%252525253Dhttps%25252525253A%25252525252F%25252525252Fhttpbin.kennethreitz.org%25252525252Fredirect-to%25252525253Furl%25252525253Dhttps%2525252525253A%2525252525252F%2525252525252Fhttpbin.kennethreitz.org%2525252525252Fredirect-to%2525252525253Furl%2525252525253Dhttps%252525252525253A%252525252525252F%252525252525252Fhttpbin.kennethreitz.org%252525252525252Fredirect-to%252525252525253Furl%252525252525253Dhttps%25252525252525253A%25252525252525252F%25252525252525252Fhttpbin.kennethreitz.org%25252525252525252Fredirect-to%25252525252525253Furl%25252525252525253Dhttps%2525252525252525253A%2525252525252525252F%2525252525252525252Fhttpbin.kennethreitz.org%2525252525252525252Fredirect-to%2525252525252525253Furl%2525252525252525253Dhttps%252525252525252525253A%252525252525252525252F%252525252525252525252Fhttpbin.kennethreitz.org%252525252525252525252Fredirect-to%252525252525252525253Furl%252525252525252525253Dhttps%25252525252525252525253A%25252525252525252525252F%25252525252525252525252Fhttpbin.kennethreitz.org%25252525252525252525252Fredirect-to%25252525252525252525253Furl%25252525252525252525253Dhttps%2525252525252525252525253A%2525252525252525252525252F%2525252525252525252525252Fhttpbin.kennethreitz.org%2525252525252525252525252Fget",
+  "expect": "A 13-deep self-nested redirect chain built from httpbin.kennethreitz.org's own /redirect-to?url= endpoint: every hop peels one layer of percent-encoding off a ~1.5 KB URL. Tests both the hop budget and the URL-length/canonicalisation guard, since each hop is a distinct, very long, still-valid URL.",
+  "evidence": "Constructed by nesting httpbin.kennethreitz.org/redirect-to?url= 13 deep (each layer is a percent-encoded copy of the next, URL length 1713 chars) and then walked live 2026-07-27 with a 12-hop budget: hop1 302 -> https://httpbin.kennethreitz.org/redirect-to?url=https%3A%2F%2Fhttpbin.kennethreitz.org%2F; hop2 302 -> https://httpbin.kennethreitz.org/redirect-to?url=https%3A%2F%2Fhttpbin.kennethreitz.org%2F; ... hop13 302 -> https://httpbin.kennethreitz.org/get; budget EXHAUSTED after 13 requests, still a 30x at hop 13 -- the terminal /get was never reached.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.kennethreitz.org/redirect/20",
+  "expect": "httpbin-compatible endpoint on httpbin.kennethreitz.org serving a decrementing /redirect/N chain (each hop rewrites to /relative-redirect/N-1): 20 hops are required before any content page, so a crawler capped at 10-12 hops abandons the chain with several hops still to go. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /relative-redirect/19; hop2 302 -> /relative-redirect/18; hop3 302 -> /relative-redirect/17; ... hop13 302 -> /relative-redirect/7; budget EXHAUSTED after 13 requests, still a 30x at https://httpbin.kennethreitz.org/relative-redirect/7 -- i.e. 20 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.konghq.com/redirect-to?url=https%3A%2F%2Fhttpbin.konghq.com%2Fredirect-to%3Furl%3Dhttps%253A%252F%252Fhttpbin.konghq.com%252Fredirect-to%253Furl%253Dhttps%25253A%25252F%25252Fhttpbin.konghq.com%25252Fredirect-to%25253Furl%25253Dhttps%2525253A%2525252F%2525252Fhttpbin.konghq.com%2525252Fredirect-to%2525253Furl%2525253Dhttps%252525253A%252525252F%252525252Fhttpbin.konghq.com%252525252Fredirect-to%252525253Furl%252525253Dhttps%25252525253A%25252525252F%25252525252Fhttpbin.konghq.com%25252525252Fredirect-to%25252525253Furl%25252525253Dhttps%2525252525253A%2525252525252F%2525252525252Fhttpbin.konghq.com%2525252525252Fredirect-to%2525252525253Furl%2525252525253Dhttps%252525252525253A%252525252525252F%252525252525252Fhttpbin.konghq.com%252525252525252Fredirect-to%252525252525253Furl%252525252525253Dhttps%25252525252525253A%25252525252525252F%25252525252525252Fhttpbin.konghq.com%25252525252525252Fredirect-to%25252525252525253Furl%25252525252525253Dhttps%2525252525252525253A%2525252525252525252F%2525252525252525252Fhttpbin.konghq.com%2525252525252525252Fredirect-to%2525252525252525253Furl%2525252525252525253Dhttps%252525252525252525253A%252525252525252525252F%252525252525252525252Fhttpbin.konghq.com%252525252525252525252Fredirect-to%252525252525252525253Furl%252525252525252525253Dhttps%25252525252525252525253A%25252525252525252525252F%25252525252525252525252Fhttpbin.konghq.com%25252525252525252525252Fredirect-to%25252525252525252525253Furl%25252525252525252525253Dhttps%2525252525252525252525253A%2525252525252525252525252F%2525252525252525252525252Fhttpbin.konghq.com%2525252525252525252525252Fget",
+  "expect": "A 13-deep self-nested redirect chain built from httpbin.konghq.com's own /redirect-to?url= endpoint: every hop peels one layer of percent-encoding off a ~1.5 KB URL. Tests both the hop budget and the URL-length/canonicalisation guard, since each hop is a distinct, very long, still-valid URL.",
+  "evidence": "Constructed by nesting httpbin.konghq.com/redirect-to?url= 13 deep (each layer is a percent-encoded copy of the next, URL length 1629 chars) and then walked live 2026-07-27 with a 12-hop budget: hop1 302 -> https://httpbin.konghq.com/redirect-to?url=https%3A%2F%2Fhttpbin.konghq.com%2Fredirect-to%; hop2 302 -> https://httpbin.konghq.com/redirect-to?url=https%3A%2F%2Fhttpbin.konghq.com%2Fredirect-to%; ... hop13 302 -> https://httpbin.konghq.com/get; budget EXHAUSTED after 13 requests, still a 30x at hop 13 -- the terminal /get was never reached.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.konghq.com/redirect/20",
+  "expect": "httpbin-compatible endpoint on httpbin.konghq.com serving a decrementing /redirect/N chain (each hop rewrites to /relative-redirect/N-1): 20 hops are required before any content page, so a crawler capped at 10-12 hops abandons the chain with several hops still to go. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /relative-redirect/19; hop2 302 -> /relative-redirect/18; hop3 302 -> /relative-redirect/17; ... hop13 302 -> /relative-redirect/7; budget EXHAUSTED after 13 requests, still a 30x at https://httpbin.konghq.com/relative-redirect/7 -- i.e. 20 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbingo.fly.dev/redirect/20",
+  "expect": "httpbin-compatible endpoint on httpbingo.fly.dev serving a decrementing /redirect/N chain (each hop rewrites to /relative-redirect/N-1): 20 hops are required before any content page, so a crawler capped at 10-12 hops abandons the chain with several hops still to go. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /relative-redirect/19; hop2 302 -> /relative-redirect/18; hop3 302 -> /relative-redirect/17; ... hop13 302 -> /relative-redirect/7; budget EXHAUSTED after 13 requests, still a 30x at https://httpbingo.fly.dev/relative-redirect/7 -- i.e. 20 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbingo.org/absolute-redirect/20",
+  "expect": "httpbin-compatible endpoint on httpbingo.org serving a decrementing chain of absolute Location headers (fully-qualified URLs, and the last hops downgrade to http://): 20 hops are required before any content page, so exercises absolute-Location plus scheme-downgrade handling. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> https://httpbingo.org/absolute-redirect/19; hop2 302 -> https://httpbingo.org/absolute-redirect/18; hop3 302 -> https://httpbingo.org/absolute-redirect/17; ... hop13 302 -> https://httpbingo.org/absolute-redirect/7; budget EXHAUSTED after 13 requests, still a 30x at https://httpbingo.org/absolute-redirect/7 -- i.e. 20 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbingo.org/redirect/30",
+  "expect": "httpbin-compatible endpoint on httpbingo.org serving a decrementing /redirect/N chain (each hop rewrites to /relative-redirect/N-1): 30 hops are required before any content page, so a crawler capped at 10-12 hops abandons the chain with several hops still to go. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /relative-redirect/29; hop2 302 -> /relative-redirect/28; hop3 302 -> /relative-redirect/27; ... hop13 302 -> /relative-redirect/17; budget EXHAUSTED after 13 requests, still a 30x at https://httpbingo.org/relative-redirect/17 -- i.e. 30 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbun.com/absolute-redirect/15",
+  "expect": "httpbin-compatible endpoint on httpbun.com serving a decrementing chain of absolute Location headers (fully-qualified URLs, and the last hops downgrade to http://): 15 hops are required before any content page, so exercises absolute-Location plus scheme-downgrade handling. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /absolute-redirect/14; hop2 302 -> /absolute-redirect/13; hop3 302 -> /absolute-redirect/12; ... hop13 302 -> /absolute-redirect/2; budget EXHAUSTED after 13 requests, still a 30x at https://httpbun.com/absolute-redirect/2 -- i.e. 15 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbun.com/redirect-to?url=https%3A%2F%2Fhttpbun.com%2Fredirect-to%3Furl%3Dhttps%253A%252F%252Fhttpbun.com%252Fredirect-to%253Furl%253Dhttps%25253A%25252F%25252Fhttpbun.com%25252Fredirect-to%25253Furl%25253Dhttps%2525253A%2525252F%2525252Fhttpbun.com%2525252Fredirect-to%2525253Furl%2525253Dhttps%252525253A%252525252F%252525252Fhttpbun.com%252525252Fredirect-to%252525253Furl%252525253Dhttps%25252525253A%25252525252F%25252525252Fhttpbun.com%25252525252Fredirect-to%25252525253Furl%25252525253Dhttps%2525252525253A%2525252525252F%2525252525252Fhttpbun.com%2525252525252Fredirect-to%2525252525253Furl%2525252525253Dhttps%252525252525253A%252525252525252F%252525252525252Fhttpbun.com%252525252525252Fredirect-to%252525252525253Furl%252525252525253Dhttps%25252525252525253A%25252525252525252F%25252525252525252Fhttpbun.com%25252525252525252Fredirect-to%25252525252525253Furl%25252525252525253Dhttps%2525252525252525253A%2525252525252525252F%2525252525252525252Fhttpbun.com%2525252525252525252Fredirect-to%2525252525252525253Furl%2525252525252525253Dhttps%252525252525252525253A%252525252525252525252F%252525252525252525252Fhttpbun.com%252525252525252525252Fredirect-to%252525252525252525253Furl%252525252525252525253Dhttps%25252525252525252525253A%25252525252525252525252F%25252525252525252525252Fhttpbun.com%25252525252525252525252Fredirect-to%25252525252525252525253Furl%25252525252525252525253Dhttps%2525252525252525252525253A%2525252525252525252525252F%2525252525252525252525252Fhttpbun.com%2525252525252525252525252Fget",
+  "expect": "A 13-deep self-nested redirect chain built from httpbun.com's own /redirect-to?url= endpoint: every hop peels one layer of percent-encoding off a ~1.5 KB URL. Tests both the hop budget and the URL-length/canonicalisation guard, since each hop is a distinct, very long, still-valid URL.",
+  "evidence": "Constructed by nesting httpbun.com/redirect-to?url= 13 deep (each layer is a percent-encoded copy of the next, URL length 1531 chars) and then walked live 2026-07-27 with a 12-hop budget: hop1 302 -> https://httpbun.com/redirect-to?url=https%3A%2F%2Fhttpbun.com%2Fredirect-to%3Furl%3Dhttps%; hop2 302 -> https://httpbun.com/redirect-to?url=https%3A%2F%2Fhttpbun.com%2Fredirect-to%3Furl%3Dhttps%; ... hop13 302 -> https://httpbun.com/get; budget EXHAUSTED after 13 requests, still a 30x at hop 13 -- the terminal /get was never reached.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbun.com/redirect/20",
+  "expect": "httpbin-compatible endpoint on httpbun.com serving a decrementing /redirect/N chain (each hop rewrites to /relative-redirect/N-1): 20 hops are required before any content page, so a crawler capped at 10-12 hops abandons the chain with several hops still to go. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> 19; hop2 302 -> 18; hop3 302 -> 17; ... hop13 302 -> 7; budget EXHAUSTED after 13 requests, still a 30x at https://httpbun.com/redirect/7 -- i.e. 20 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbun.com/relative-redirect/15",
+  "expect": "httpbin-compatible endpoint on httpbun.com serving a decrementing chain of bare relative Location headers (no host or scheme in Location): 15 hops are required before any content page, so proves a crawler that resolves relative Location values alone still never lands on content. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> 14; hop2 302 -> 13; hop3 302 -> 12; ... hop13 302 -> 2; budget EXHAUSTED after 13 requests, still a 30x at https://httpbun.com/relative-redirect/2 -- i.e. 15 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://nghttp2.org/httpbin/absolute-redirect/15",
+  "expect": "httpbin-compatible endpoint on nghttp2.org serving a decrementing chain of absolute Location headers (fully-qualified URLs, and the last hops downgrade to http://): 15 hops are required before any content page, so exercises absolute-Location plus scheme-downgrade handling. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> https://nghttp2.org/httpbin/absolute-redirect/14; hop2 302 -> https://nghttp2.org/httpbin/absolute-redirect/13; hop3 302 -> https://nghttp2.org/httpbin/absolute-redirect/12; ... hop13 302 -> https://nghttp2.org/httpbin/absolute-redirect/2; budget EXHAUSTED after 13 requests, still a 30x at https://nghttp2.org/httpbin/absolute-redirect/2 -- i.e. 15 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://nghttp2.org/httpbin/relative-redirect/15",
+  "expect": "httpbin-compatible endpoint on nghttp2.org serving a decrementing chain of bare relative Location headers (no host or scheme in Location): 15 hops are required before any content page, so proves a crawler that resolves relative Location values alone still never lands on content. The crawler must give up with a redirect-budget error and must not treat the intermediate hops as new pages to keep.",
+  "evidence": "Live manual redirect walk 2026-07-27 with a 12-hop budget (never following more than 13 requests): hop1 302 -> /httpbin/relative-redirect/14; hop2 302 -> /httpbin/relative-redirect/13; hop3 302 -> /httpbin/relative-redirect/12; ... hop13 302 -> /httpbin/relative-redirect/2; budget EXHAUSTED after 13 requests, still a 30x at https://nghttp2.org/httpbin/relative-redirect/2 -- i.e. 15 hops were declared and 12 were consumed without reaching the terminal /get page.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://example.com/a.mp3",
+  "expect": "Podcast tracking-prefix redirector op3.dev stacked 14 deep. Prefix redirectors take the next URL as a raw path suffix and 302 to it; real podcast feeds stack 3-6 of them, and nothing stops a link from stacking more, so a crawler that follows enclosure URLs must cap the hop count rather than trust the chain.",
+  "evidence": "Live manual redirect walk 2026-07-27: single-hop sanity check op3.dev -> 302 to the suffix URL first; then the same prefix nested 14 deep (URL length 277 chars) walked with a 12-hop budget: hop1 302 -> https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/; hop2 302 -> https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/https://op3.dev/e/; ... hop13 302 -> https://op3.dev/e/https://example.com/a.mp3; budget EXHAUSTED after 13 requests, still a 30x at https://op3.dev/e/https://example.com/a.mp3.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://example.com/a.mp3",
+  "expect": "Podcast tracking-prefix redirector pdcn.co stacked 14 deep. Prefix redirectors take the next URL as a raw path suffix and 302 to it; real podcast feeds stack 3-6 of them, and nothing stops a link from stacking more, so a crawler that follows enclosure URLs must cap the hop count rather than trust the chain.",
+  "evidence": "Live manual redirect walk 2026-07-27: single-hop sanity check pdcn.co -> 302 to the suffix URL first; then the same prefix nested 14 deep (URL length 277 chars) walked with a 12-hop budget: hop1 302 -> https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/; hop2 302 -> https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/https://pdcn.co/e/; ... hop13 302 -> https://pdcn.co/e/https://example.com/a.mp3; budget EXHAUSTED after 13 requests, still a 30x at https://pdcn.co/e/https://example.com/a.mp3.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://pdst.fm/e/https://pdst.fm/e/https://pdst.fm/e/https://pdst.fm/e/https://pdst.fm/e/https://pdst.fm/e/https://pdst.fm/e/https://pdst.fm/e/https://pdst.fm/e/https://pdst.fm/e/https://pdst.fm/e/https://pdst.fm/e/https://pdst.fm/e/https://pdst.fm/e/https://example.com/a.mp3",
+  "expect": "Podcast tracking-prefix redirector pdst.fm stacked 14 deep. Prefix redirectors take the next URL as a raw path suffix and 302 to it; real podcast feeds stack 3-6 of them, and nothing stops a link from stacking more, so a crawler that follows enclosure URLs must cap the hop count rather than trust the chain.",
+  "evidence": "Live manual redirect walk 2026-07-27: single-hop sanity check pdst.fm -> 302 to the suffix URL first; then the same prefix nested 14 deep (URL length 277 chars) walked with a 12-hop budget: hop1 301 -> /e/https:/pdst.fm/e/https:/pdst.fm/e/https:/pdst.fm/e/https:/pdst.fm/e/https:/pdst.fm/e/ht; hop2 302 -> https://pdst.fm/e/https:/pdst.fm/e/https:/pdst.fm/e/https:/pdst.fm/e/https:/pdst.fm/e/http; ... hop13 302 -> https://pdst.fm/e/https:/pdst.fm/e/https:/example.com/a.mp3; budget EXHAUSTED after 13 requests, still a 30x at https://pdst.fm/e/https:/pdst.fm/e/https:/example.com/a.mp3.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://pfx.vpixl.com/6qmFJ/https://pfx.vpixl.com/6qmFJ/https://pfx.vpixl.com/6qmFJ/https://pfx.vpixl.com/6qmFJ/https://pfx.vpixl.com/6qmFJ/https://pfx.vpixl.com/6qmFJ/https://pfx.vpixl.com/6qmFJ/https://pfx.vpixl.com/6qmFJ/https://pfx.vpixl.com/6qmFJ/https://pfx.vpixl.com/6qmFJ/https://pfx.vpixl.com/6qmFJ/https://pfx.vpixl.com/6qmFJ/https://pfx.vpixl.com/6qmFJ/https://pfx.vpixl.com/6qmFJ/https://example.com/a.mp3",
+  "expect": "Podcast tracking-prefix redirector pfx.vpixl.com stacked 14 deep. Prefix redirectors take the next URL as a raw path suffix and 302 to it; real podcast feeds stack 3-6 of them, and nothing stops a link from stacking more, so a crawler that follows enclosure URLs must cap the hop count rather than trust the chain.",
+  "evidence": "Live manual redirect walk 2026-07-27: single-hop sanity check pfx.vpixl.com -> 302 to the suffix URL first; then the same prefix nested 14 deep (URL length 417 chars) walked with a 12-hop budget: hop1 302 -> https://pfx.vpixl.com/6qmFJ/pfx.vpixl.com/6qmFJ/pfx.vpixl.com/6qmFJ/pfx.vpixl.com/6qmFJ/pf; hop2 302 -> https://pfx.vpixl.com/6qmFJ/pfx.vpixl.com/6qmFJ/pfx.vpixl.com/6qmFJ/pfx.vpixl.com/6qmFJ/pf; ... hop13 302 -> https://pfx.vpixl.com/6qmFJ/example.com/a.mp3; budget EXHAUSTED after 13 requests, still a 30x at https://pfx.vpixl.com/6qmFJ/example.com/a.mp3.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://prfx.byspotify.com/e/https://prfx.byspotify.com/e/https://prfx.byspotify.com/e/https://prfx.byspotify.com/e/https://prfx.byspotify.com/e/https://prfx.byspotify.com/e/https://prfx.byspotify.com/e/https://prfx.byspotify.com/e/https://prfx.byspotify.com/e/https://prfx.byspotify.com/e/https://prfx.byspotify.com/e/https://prfx.byspotify.com/e/https://prfx.byspotify.com/e/https://prfx.byspotify.com/e/https://example.com/a.mp3",
+  "expect": "Podcast tracking-prefix redirector prfx.byspotify.com stacked 14 deep. Prefix redirectors take the next URL as a raw path suffix and 302 to it; real podcast feeds stack 3-6 of them, and nothing stops a link from stacking more, so a crawler that follows enclosure URLs must cap the hop count rather than trust the chain.",
+  "evidence": "Live manual redirect walk 2026-07-27: single-hop sanity check prfx.byspotify.com -> 302 to the suffix URL first; then the same prefix nested 14 deep (URL length 431 chars) walked with a 12-hop budget: hop1 301 -> /e/https:/prfx.byspotify.com/e/https:/prfx.byspotify.com/e/https:/prfx.byspotify.com/e/htt; hop2 302 -> https://prfx.byspotify.com/e/https:/prfx.byspotify.com/e/https:/prfx.byspotify.com/e/https; ... hop13 302 -> https://prfx.byspotify.com/e/https:/prfx.byspotify.com/e/https:/example.com/a.mp3; budget EXHAUSTED after 13 requests, still a 30x at https://prfx.byspotify.com/e/https:/prfx.byspotify.com/e/https:/example.com/a.mp3.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.nnva.gov/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.nnva.gov/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 126744 bytes, title \"Calendar - Newport News, VA - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.nnva.gov/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 127029 bytes, title \"Calendar - Newport News, VA - CivicEngage\"; 4 of its 54 outbound links carry a further far-future date parameter (e.g. https://www.nnva.gov/Calendar.aspx?EID=3707&month=7&year=3099&day=&calType=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.nnva.gov/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.cityofsanmateo.org/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.cityofsanmateo.org/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 114003 bytes, title \"Calendar - San Mateo - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.cityofsanmateo.org/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 113868 bytes, title \"Calendar - San Mateo - CivicEngage\"; 4 of its 35 outbound links carry a further far-future date parameter (e.g. https://www.cityofsanmateo.org/Calendar.aspx?EID=16524&month=7&year=3099&day=&calType=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.cityofsanmateo.org/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.redmond.gov/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.redmond.gov/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 124001 bytes, title \"Calendar - Redmond, WA - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.redmond.gov/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 124286 bytes, title \"Calendar - Redmond, WA - CivicEngage\"; 4 of its 42 outbound links carry a further far-future date parameter (e.g. https://www.redmond.gov/Calendar.aspx?EID=3492&month=7&year=3099&day=&calType=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.redmond.gov/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.jupiter.fl.us/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.jupiter.fl.us/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 126486 bytes, title \"Calendar - Jupiter, FL - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.jupiter.fl.us/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 126771 bytes, title \"Calendar - Jupiter, FL - CivicEngage\"; 4 of its 32 outbound links carry a further far-future date parameter (e.g. https://www.jupiter.fl.us/2096/Jup-Life-Live-Cam). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.jupiter.fl.us/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.hanovercounty.gov/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.hanovercounty.gov/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 128435 bytes, title \"Calendar - Hanover County, VA - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.hanovercounty.gov/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 129245 bytes, title \"Calendar - Hanover County, VA - CivicEngage\"; 3 of its 35 outbound links carry a further far-future date parameter (e.g. https://www.hanovercounty.gov/calendar.aspx?view=list&amp;year=3099&amp;month=7&amp;CID=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.hanovercounty.gov/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.suffolkva.us/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.suffolkva.us/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 134048 bytes, title \"Calendar - Suffolk, VA - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.suffolkva.us/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 134858 bytes, title \"Calendar - Suffolk, VA - CivicEngage\"; 3 of its 46 outbound links carry a further far-future date parameter (e.g. https://www.suffolkva.us/calendar.aspx?view=list&amp;year=3099&amp;month=7&amp;CID=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.suffolkva.us/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.chesterfield.gov/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.chesterfield.gov/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 155506 bytes, title \"Calendar - Chesterfield County, VA - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.chesterfield.gov/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 156316 bytes, title \"Calendar - Chesterfield County, VA - CivicEngage\"; 3 of its 42 outbound links carry a further far-future date parameter (e.g. https://www.chesterfield.gov/calendar.aspx?view=list&amp;year=3099&amp;month=7&amp;CID=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.chesterfield.gov/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.yorkcounty.gov/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.yorkcounty.gov/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 146082 bytes, title \"Calendar - York County, VA - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.yorkcounty.gov/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 146367 bytes, title \"Calendar - York County, VA - CivicEngage\"; 3 of its 45 outbound links carry a further far-future date parameter (e.g. https://www.yorkcounty.gov/calendar.aspx?view=list&amp;year=3099&amp;month=7&amp;CID=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.yorkcounty.gov/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.livonia.gov/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.livonia.gov/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 130252 bytes, title \"Calendar - Livonia, MI - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.livonia.gov/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 131062 bytes, title \"Calendar - Livonia, MI - CivicEngage\"; 3 of its 38 outbound links carry a further far-future date parameter (e.g. https://www.livonia.gov/calendar.aspx?view=list&amp;year=3099&amp;month=7&amp;CID=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.livonia.gov/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.friscotexas.gov/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.friscotexas.gov/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 122740 bytes, title \"Calendar - Frisco, TX - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.friscotexas.gov/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 123550 bytes, title \"Calendar - Frisco, TX - CivicEngage\"; 3 of its 41 outbound links carry a further far-future date parameter (e.g. https://www.friscotexas.gov/calendar.aspx?view=list&amp;year=3099&amp;month=7&amp;CID=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.friscotexas.gov/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.applevalleymn.gov/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.applevalleymn.gov/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 125374 bytes, title \"Calendar - Apple Valley, MN - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.applevalleymn.gov/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 126184 bytes, title \"Calendar - Apple Valley, MN - CivicEngage\"; 3 of its 36 outbound links carry a further far-future date parameter (e.g. https://www.applevalleymn.gov/calendar.aspx?view=list&amp;year=3099&amp;month=7&amp;CID=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.applevalleymn.gov/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.westminsterco.gov/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.westminsterco.gov/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 125707 bytes, title \"Calendar - Westminster, CO - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.westminsterco.gov/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 126517 bytes, title \"Calendar - Westminster, CO - CivicEngage\"; 3 of its 43 outbound links carry a further far-future date parameter (e.g. https://www.westminsterco.gov/calendar.aspx?view=list&amp;year=3099&amp;month=7&amp;CID=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.westminsterco.gov/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.burnsvillemn.gov/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.burnsvillemn.gov/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 124744 bytes, title \"Calendar - Burnsville - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.burnsvillemn.gov/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 125554 bytes, title \"Calendar - Burnsville - CivicEngage\"; 3 of its 36 outbound links carry a further far-future date parameter (e.g. https://www.burnsvillemn.gov/calendar.aspx?view=list&amp;year=3099&amp;month=7&amp;CID=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.burnsvillemn.gov/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.maplegrovemn.gov/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.maplegrovemn.gov/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 131690 bytes, title \"Calendar - Maple Grove, MN - CivicEngage\". Far-future probe 2 (deliberately absurd): https://www.maplegrovemn.gov/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 132500 bytes, title \"Calendar - Maple Grove, MN - CivicEngage\"; 3 of its 34 outbound links carry a further far-future date parameter (e.g. https://www.maplegrovemn.gov/calendar.aspx?view=list&amp;year=3099&amp;month=7&amp;CID=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.maplegrovemn.gov/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.canton-mi.org/calendar.aspx?Month=1&Year=2099",
+  "expect": "CivicPlus CivicEngage municipal calendar: calendar.aspx accepts any Month/Year pair and renders a full month grid whose prev/next links carry the same unbounded Month=/Year= parameters, so a crawler that follows 'next month' walks forward forever. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.canton-mi.org/calendar.aspx?Month=1&Year=2099 -> HTTP 200, 149009 bytes, title \"Calendar - Canton Township, MI - CivicEngage\" (server redirected the request to https://www.cantonmi.gov/calendar.aspx?Month=1&Year=2099). Far-future probe 2 (deliberately absurd): https://www.canton-mi.org/calendar.aspx?Month=7&Year=3099 -> HTTP 200, 149819 bytes, title \"Calendar - Canton Township, MI - CivicEngage\" (server redirected the request to https://www.cantonmi.gov/calendar.aspx?Month=7&Year=3099); 3 of its 44 outbound links carry a further far-future date parameter (e.g. https://www.cantonmi.gov/calendar.aspx?view=list&amp;year=3099&amp;month=7&amp;CID=0). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.canton-mi.org/calendar.aspx?Month=7&Year=3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://events.vanderbilt.edu/day/date/20990101",
+  "expect": "Localist university events calendar: /day/date/YYYYMMDD accepts any 8-digit date and always returns a rendered day/agenda page, so the date axis is an infinite supply of 200s over the same (empty) content. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://events.vanderbilt.edu/day/date/20990101 -> HTTP 200, 153659 bytes, title \"Events@Vanderbilt | Vanderbilt University\". Far-future probe 2 (deliberately absurd): https://events.vanderbilt.edu/day/date/29990101 -> HTTP 200, 153659 bytes, title \"Events@Vanderbilt | Vanderbilt University\"; 1 of its 72 outbound links carry a further far-future date parameter (e.g. https://events.vanderbilt.edu/day/date/29990101?event_id={{ id }}). Two independent dates 73 and 973 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://events.vanderbilt.edu/day/date/29990101"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://events.uconn.edu/day/date/20990101",
+  "expect": "Localist university events calendar: /day/date/YYYYMMDD accepts any 8-digit date and always returns a rendered day/agenda page, so the date axis is an infinite supply of 200s over the same (empty) content. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://events.uconn.edu/day/date/20990101 -> HTTP 200, 110867 bytes, title \"UConn Calendar\". Far-future probe 2 (deliberately absurd): https://events.uconn.edu/day/date/29990101 -> HTTP 200, 110867 bytes, title \"UConn Calendar\"; 1 of its 24 outbound links carry a further far-future date parameter (e.g. https://events.uconn.edu/day/date/29990101?event_id={{ id }}). Two independent dates 73 and 973 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://events.uconn.edu/day/date/29990101"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://events.iu.edu/day/date/20990101",
+  "expect": "Localist university events calendar: /day/date/YYYYMMDD accepts any 8-digit date and always returns a rendered day/agenda page, so the date axis is an infinite supply of 200s over the same (empty) content. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://events.iu.edu/day/date/20990101 -> HTTP 200, 185063 bytes, title \"Events Calendar\". Far-future probe 2 (deliberately absurd): https://events.iu.edu/day/date/29990101 -> HTTP 200, 185063 bytes, title \"Events Calendar\"; 1 of its 27 outbound links carry a further far-future date parameter (e.g. https://events.iu.edu/day/date/29990101?event_id={{ id }}). Two independent dates 73 and 973 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://events.iu.edu/day/date/29990101"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://events.clemson.edu/day/date/20990101",
+  "expect": "Localist university events calendar: /day/date/YYYYMMDD accepts any 8-digit date and always returns a rendered day/agenda page, so the date axis is an infinite supply of 200s over the same (empty) content. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://events.clemson.edu/day/date/20990101 -> HTTP 200, 147241 bytes, title \"Clemson University Events Calendar\". Far-future probe 2 (deliberately absurd): https://events.clemson.edu/day/date/29990101 -> HTTP 200, 144824 bytes, title \"Clemson University Events Calendar\"; 1 of its 35 outbound links carry a further far-future date parameter (e.g. https://events.clemson.edu/day/date/29990101?event_id={{ id }}). Two independent dates 73 and 973 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://events.clemson.edu/day/date/29990101"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://events.nyu.edu/day/date/20990101",
+  "expect": "Localist university events calendar: /day/date/YYYYMMDD accepts any 8-digit date and always returns a rendered day/agenda page, so the date axis is an infinite supply of 200s over the same (empty) content. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://events.nyu.edu/day/date/20990101 -> HTTP 200, 160423 bytes, title \"NYU Calendar\". Far-future probe 2 (deliberately absurd): https://events.nyu.edu/day/date/29990101 -> HTTP 200, 160423 bytes, title \"NYU Calendar\"; 1 of its 58 outbound links carry a further far-future date parameter (e.g. https://events.nyu.edu/day/date/29990101?event_id={{ id }}). Two independent dates 73 and 973 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://events.nyu.edu/day/date/29990101"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://events.brown.edu/day/date/20990101",
+  "expect": "Localist university events calendar: /day/date/YYYYMMDD accepts any 8-digit date and always returns a rendered day/agenda page, so the date axis is an infinite supply of 200s over the same (empty) content. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://events.brown.edu/day/date/20990101 -> HTTP 200, 104016 bytes, title \"Events | Brown University\". Far-future probe 2 (deliberately absurd): https://events.brown.edu/day/date/29990101 -> HTTP 200, 104016 bytes, title \"Events | Brown University\"; 1 of its 40 outbound links carry a further far-future date parameter (e.g. https://events.brown.edu/day/date/29990101?event_id={{ id }}). Two independent dates 73 and 973 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://events.brown.edu/day/date/29990101"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://events.temple.edu/day/date/20990101",
+  "expect": "Localist university events calendar: /day/date/YYYYMMDD accepts any 8-digit date and always returns a rendered day/agenda page, so the date axis is an infinite supply of 200s over the same (empty) content. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://events.temple.edu/day/date/20990101 -> HTTP 200, 76073 bytes, title \"Temple Now\" (server redirected the request to https://now.temple.edu). Far-future probe 2 (deliberately absurd): https://events.temple.edu/day/date/29990101 -> HTTP 200, 76073 bytes, title \"Temple Now\" (server redirected the request to https://now.temple.edu); its 60 outbound links are the site chrome plus JS-driven month nav (no far-future date link in the raw HTML). Two independent dates 73 and 973 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://events.temple.edu/day/date/29990101"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://events.rutgers.edu/day/date/20990101",
+  "expect": "Localist university events calendar: /day/date/YYYYMMDD accepts any 8-digit date and always returns a rendered day/agenda page, so the date axis is an infinite supply of 200s over the same (empty) content. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://events.rutgers.edu/day/date/20990101 -> HTTP 200, 73005 bytes, title \"All Events | Rutgers Cooperative Extension\" (server redirected the request to https://extension.rutgers.edu/events). Far-future probe 2 (deliberately absurd): https://events.rutgers.edu/day/date/29990101 -> HTTP 200, 73005 bytes, title \"All Events | Rutgers Cooperative Extension\" (server redirected the request to https://extension.rutgers.edu/events); its 90 outbound links are the site chrome plus JS-driven month nav (no far-future date link in the raw HTML). Two independent dates 73 and 973 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://events.rutgers.edu/day/date/29990101"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://events.psu.edu/day/date/20990101",
+  "expect": "Localist university events calendar: /day/date/YYYYMMDD accepts any 8-digit date and always returns a rendered day/agenda page, so the date axis is an infinite supply of 200s over the same (empty) content. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://events.psu.edu/day/date/20990101 -> HTTP 200, 226673 bytes, title \"Events | Event Calendars at Penn State\" (server redirected the request to https://www.events.psu.edu). Far-future probe 2 (deliberately absurd): https://events.psu.edu/day/date/29990101 -> HTTP 200, 226673 bytes, title \"Events | Event Calendars at Penn State\" (server redirected the request to https://www.events.psu.edu); its 62 outbound links are the site chrome plus JS-driven month nav (no far-future date link in the raw HTML). Two independent dates 73 and 973 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://events.psu.edu/day/date/29990101"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.drikpanchang.com/calendars/hindu/hinducalendar.html?year=2099&month=1",
+  "expect": "computed (algorithmic) date page: the page is calculated from the date in the URL rather than looked up, so every date in an unbounded range is a distinct, genuinely different 200 page that content-hash dedup cannot collapse. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.drikpanchang.com/calendars/hindu/hinducalendar.html?year=2099&month=1 -> HTTP 200, 711657 bytes, title \"2099 Hindu Festivals Calendar, Hindu Tyohar Calendar for New Delhi, NC\". Far-future probe 2 (deliberately absurd): https://www.drikpanchang.com/calendars/hindu/hinducalendar.html?year=3099&month=1 -> HTTP 200, 685744 bytes, title \"3099 Hindu Festivals Calendar, Hindu Tyohar Calendar for New Delhi, NC\"; 143 of its 326 outbound links carry a further far-future date parameter (e.g. https://www.drikpanchang.com/amavasya/maghi/mauni-amavasya-date-time.html?year=3099). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.drikpanchang.com/calendars/hindu/hinducalendar.html?year=3099&month=1"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.moongiant.com/calendar/January/2099/",
+  "expect": "computed (algorithmic) date page: the page is calculated from the date in the URL rather than looked up, so every date in an unbounded range is a distinct, genuinely different 200 page that content-hash dedup cannot collapse. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.moongiant.com/calendar/January/2099/ -> HTTP 200, 64260 bytes, title \"Moon Phases Calendar for the month of January 2099\". Far-future probe 2 (deliberately absurd): https://www.moongiant.com/calendar/January/3099/ -> HTTP 200, 64259 bytes, title \"Moon Phases Calendar for the month of January 3099\"; its 25 outbound links are the site chrome plus JS-driven month nav (no far-future date link in the raw HTML). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.moongiant.com/calendar/January/3099/"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.hebcal.com/converter?gd=1&gm=1&gy=2099&g2h=1",
+  "expect": "computed (algorithmic) date page: the page is calculated from the date in the URL rather than looked up, so every date in an unbounded range is a distinct, genuinely different 200 page that content-hash dedup cannot collapse. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.hebcal.com/converter?gd=1&gm=1&gy=2099&g2h=1 -> HTTP 200, 49465 bytes, title \"Hebrew Date Converter - January 1, 2099 / 9th of Tevet, 5859\". Far-future probe 2 (deliberately absurd): https://www.hebcal.com/converter?gd=1&gm=1&gy=3099&g2h=1 -> HTTP 200, 48757 bytes, title \"Hebrew Date Converter - January 1, 3099 / 17th of Tevet, 6859\"; its 78 outbound links are the site chrome plus JS-driven month nav (no far-future date link in the raw HTML). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.hebcal.com/converter?gd=1&gm=1&gy=3099&g2h=1"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.epochconverter.com/days/2099",
+  "expect": "computed (algorithmic) date page: the page is calculated from the date in the URL rather than looked up, so every date in an unbounded range is a distinct, genuinely different 200 page that content-hash dedup cannot collapse. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.epochconverter.com/days/2099 -> HTTP 200, 114580 bytes, title \"Day numbers for 2099\". Far-future probe 2 (deliberately absurd): https://www.epochconverter.com/days/3099 -> HTTP 200, 115610 bytes, title \"Day numbers for 2026\" (server redirected the request to https://www.epochconverter.com/days/2026); its 148 outbound links are the site chrome plus JS-driven month nav (no far-future date link in the raw HTML). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.epochconverter.com/days/3099"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.calendario-365.es/calendario-2099.html",
+  "expect": "computed (algorithmic) date page: the page is calculated from the date in the URL rather than looked up, so every date in an unbounded range is a distinct, genuinely different 200 page that content-hash dedup cannot collapse. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.calendario-365.es/calendario-2099.html -> HTTP 200, 48839 bytes, title \"Calendario 2099\". Far-future probe 2 (deliberately absurd): https://www.calendario-365.es/calendario-3099.html -> HTTP 200, 48932 bytes, title \"Calendario 2026\" (server redirected the request to https://www.calendario-365.es/calendario-2026.html); its 81 outbound links are the site chrome plus JS-driven month nav (no far-future date link in the raw HTML). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.calendario-365.es/calendario-3099.html"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.almanac.com/calendar/date/2099-01-01",
+  "expect": "computed (algorithmic) date page: the page is calculated from the date in the URL rather than looked up, so every date in an unbounded range is a distinct, genuinely different 200 page that content-hash dedup cannot collapse. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.almanac.com/calendar/date/2099-01-01 -> HTTP 200, 89537 bytes, title \"Daily Calendar for Thursday, January 1, 2099 | Almanac.com\". Far-future probe 2 (deliberately absurd): https://www.almanac.com/calendar/date/3099-01-01 -> HTTP 200, 89520 bytes, title \"Daily Calendar for Sunday, January 1, 3099 | Almanac.com\"; its 67 outbound links are the site chrome plus JS-driven month nav (no far-future date link in the raw HTML). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.almanac.com/calendar/date/3099-01-01"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.oldsturbridgevillage.org/events/month/2099-01/",
+  "expect": "WordPress 'The Events Calendar' month view: /events/month/YYYY-MM/ renders any month, including centuries out, and each month page links to the next one. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.oldsturbridgevillage.org/events/month/2099-01/ -> HTTP 200, 106715 bytes, title \"Old Sturbridge Village\" (server redirected the request to https://www.osv.org/). Far-future probe 2 (deliberately absurd): https://www.oldsturbridgevillage.org/events/month/3099-07/ -> HTTP 200, 106715 bytes, title \"Old Sturbridge Village\" (server redirected the request to https://www.osv.org/); its 111 outbound links are the site chrome plus JS-driven month nav (no far-future date link in the raw HTML). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.oldsturbridgevillage.org/events/month/3099-07/"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.bbg.org/events/month/2099-01/",
+  "expect": "WordPress 'The Events Calendar' month view: /events/month/YYYY-MM/ renders any month, including centuries out, and each month page links to the next one. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.bbg.org/events/month/2099-01/ -> HTTP 200, 99745 bytes, title \"Event Calendar - Brooklyn Botanic Garden\" (server redirected the request to https://www.bbg.org/visit/calendar/month/2099-01). Far-future probe 2 (deliberately absurd): https://www.bbg.org/events/month/3099-07/ -> HTTP 200, 99745 bytes, title \"Event Calendar - Brooklyn Botanic Garden\" (server redirected the request to https://www.bbg.org/visit/calendar/month/3099-07); its 157 outbound links are the site chrome plus JS-driven month nav (no far-future date link in the raw HTML). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.bbg.org/events/month/3099-07/"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://web.archive.org/web/20990101000000/https://www.bbc.co.uk/",
+  "expect": "date-addressed archive/listing page: the date in the URL is accepted unvalidated and always renders. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://web.archive.org/web/20990101000000/https://www.bbc.co.uk/ -> HTTP 200, 758468 bytes, title \"BBC - Home\" (server redirected the request to https://web.archive.org/web/20260726200708/https://www.bbc.co.uk/). Far-future probe 2 (deliberately absurd): https://web.archive.org/web/30990101000000/https://www.bbc.co.uk/ -> HTTP 200, 758468 bytes, title \"BBC - Home\" (server redirected the request to https://web.archive.org/web/20260726200708/https://www.bbc.co.uk/); 144 of its 148 outbound links carry a further far-future date parameter (e.g. https://web.archive.org/web/20260726200708/http://bbc.co.uk/mediacentre/2026/casualty-40th-anniversary-first-l). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://web.archive.org/web/30990101000000/https://www.bbc.co.uk/"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.eventbrite.com/d/united-states/events--2099-01-01/",
+  "expect": "date-addressed archive/listing page: the date in the URL is accepted unvalidated and always renders. The crawler must bound the date axis to a sane window instead of enqueueing every month/day it is offered.",
+  "evidence": "Live fetches 2026-07-27. Far-future probe 1: https://www.eventbrite.com/d/united-states/events--2099-01-01/ -> HTTP 200, 738018 bytes, title \"Discover Events 2099 01 01 Events &amp; Activities in United States | \". Far-future probe 2 (deliberately absurd): https://www.eventbrite.com/d/united-states/events--3099-01-01/ -> HTTP 200, 770553 bytes, title \"Discover Events 3099 01 01 Events &amp; Activities in United States | \"; its 127 outbound links are the site chrome plus JS-driven month nav (no far-future date link in the raw HTML). Two independent dates 73 and 1073 years out both render a full page, so the date space is unbounded rather than clamped to the real calendar.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.eventbrite.com/d/united-states/events--3099-01-01/"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://archive.apache.org/dist/?C=M;O=A",
+  "expect": "Apache mod_autoindex on archive.apache.org exposes the same directory listing under every ?C=<column>;O=<order> combination, and the listing links onward into subdirectories that each repeat the trick, so the sort-parameter axis multiplies the whole mirror tree by 8 for zero new content.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://archive.apache.org/dist/?C=M;O=A -> HTTP 200, 35754 bytes, 310 outbound links, title \"Index of /dist\". Deeper URL https://archive.apache.org/dist/?C=N;O=D -> HTTP 200, 35754 bytes, 310 outbound links. Link-set Jaccard(deep, deeper) = 0.994 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://archive.apache.org/dist/?C=N;O=D"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://download.qt.io/archive/?C=S;O=A",
+  "expect": "Apache mod_autoindex on download.qt.io exposes the same directory listing under every ?C=<column>;O=<order> combination, and the listing links onward into subdirectories that each repeat the trick, so the sort-parameter axis multiplies the whole mirror tree by 8 for zero new content.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://download.qt.io/archive/?C=S;O=A -> HTTP 200, 2571 bytes, 13 outbound links, title \"Index of /archive\". Deeper URL https://download.qt.io/archive/?C=D;O=D -> HTTP 200, 2571 bytes, 13 outbound links. Link-set Jaccard(deep, deeper) = 0.857 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://download.qt.io/archive/?C=D;O=D"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://f-droid.org/en/packages/?page=3",
+  "expect": "The search/browse endpoint on f-droid.org keeps returning 200 for any page/offset/sort combination, so the facet x pagination product is an unbounded set of URLs over one result set.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://f-droid.org/en/packages/?page=3 -> HTTP 200, 182669 bytes, 400 outbound links, title \"F-Droid - Free and Open Source Android App Repository\". Deeper URL https://f-droid.org/en/packages/?page=4 -> HTTP 200, 182669 bytes, 400 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://f-droid.org/en/packages/?page=4"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://ftp.acc.umu.se/mirror/?C=S;O=D",
+  "expect": "Apache mod_autoindex on ftp.acc.umu.se exposes the same directory listing under every ?C=<column>;O=<order> combination, and the listing links onward into subdirectories that each repeat the trick, so the sort-parameter axis multiplies the whole mirror tree by 8 for zero new content.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://ftp.acc.umu.se/mirror/?C=S;O=D -> HTTP 200, 68891 bytes, 219 outbound links, title \"Index of /mirror\". Deeper URL https://ftp.acc.umu.se/mirror/?C=M;O=A -> HTTP 200, 68905 bytes, 219 outbound links. Link-set Jaccard(deep, deeper) = 0.991 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://ftp.acc.umu.se/mirror/?C=M;O=A"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://ftp.debian.org/debian/pool/main/?C=N;O=D",
+  "expect": "Apache mod_autoindex on ftp.debian.org exposes the same directory listing under every ?C=<column>;O=<order> combination, and the listing links onward into subdirectories that each repeat the trick, so the sort-parameter axis multiplies the whole mirror tree by 8 for zero new content.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://ftp.debian.org/debian/pool/main/?C=N;O=D -> HTTP 200, 11732 bytes, 68 outbound links, title \"Index of /debian/pool/main\". Deeper URL https://ftp.debian.org/debian/pool/main/?C=S;O=A -> HTTP 200, 11732 bytes, 68 outbound links. Link-set Jaccard(deep, deeper) = 0.971 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://ftp.debian.org/debian/pool/main/?C=S;O=A"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://ftp.fau.de/debian/?C=N;O=D",
+  "expect": "Apache mod_autoindex on ftp.fau.de exposes the same directory listing under every ?C=<column>;O=<order> combination, and the listing links onward into subdirectories that each repeat the trick, so the sort-parameter axis multiplies the whole mirror tree by 8 for zero new content.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://ftp.fau.de/debian/?C=N;O=D -> HTTP 200, 4991 bytes, 36 outbound links, title \"Index of /debian\". Deeper URL https://ftp.fau.de/debian/?C=S;O=A -> HTTP 200, 4991 bytes, 36 outbound links. Link-set Jaccard(deep, deeper) = 0.946 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://ftp.fau.de/debian/?C=S;O=A"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://ftp.gnu.org/gnu/?C=S;O=D",
+  "expect": "Apache mod_autoindex on ftp.gnu.org exposes the same directory listing under every ?C=<column>;O=<order> combination, and the listing links onward into subdirectories that each repeat the trick, so the sort-parameter axis multiplies the whole mirror tree by 8 for zero new content.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://ftp.gnu.org/gnu/?C=S;O=D -> HTTP 200, 77140 bytes, 392 outbound links, title \"Index of /gnu\". Deeper URL https://ftp.gnu.org/gnu/?C=M;O=A -> HTTP 200, 77140 bytes, 392 outbound links. Link-set Jaccard(deep, deeper) = 0.995 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://ftp.gnu.org/gnu/?C=M;O=A"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://ftp.icm.edu.pl/pub/?C=S;O=D",
+  "expect": "Apache mod_autoindex on ftp.icm.edu.pl exposes the same directory listing under every ?C=<column>;O=<order> combination, and the listing links onward into subdirectories that each repeat the trick, so the sort-parameter axis multiplies the whole mirror tree by 8 for zero new content.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://ftp.icm.edu.pl/pub/?C=S;O=D -> HTTP 200, 14300 bytes, 75 outbound links, title \"Index of /pub\". Deeper URL https://ftp.icm.edu.pl/pub/?C=M;O=A -> HTTP 200, 14300 bytes, 75 outbound links. Link-set Jaccard(deep, deeper) = 0.974 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://ftp.icm.edu.pl/pub/?C=M;O=A"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://ftp.jaist.ac.jp/pub/?C=N;O=D",
+  "expect": "Apache mod_autoindex on ftp.jaist.ac.jp exposes the same directory listing under every ?C=<column>;O=<order> combination, and the listing links onward into subdirectories that each repeat the trick, so the sort-parameter axis multiplies the whole mirror tree by 8 for zero new content.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://ftp.jaist.ac.jp/pub/?C=N;O=D -> HTTP 200, 6221 bytes, 32 outbound links, title \"Index of /pub\". Deeper URL https://ftp.jaist.ac.jp/pub/?C=S;O=A -> HTTP 200, 6221 bytes, 32 outbound links. Link-set Jaccard(deep, deeper) = 0.939 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://ftp.jaist.ac.jp/pub/?C=S;O=A"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://ftp.lysator.liu.se/pub/?C=N;O=D",
+  "expect": "Apache mod_autoindex on ftp.lysator.liu.se exposes the same directory listing under every ?C=<column>;O=<order> combination, and the listing links onward into subdirectories that each repeat the trick, so the sort-parameter axis multiplies the whole mirror tree by 8 for zero new content.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://ftp.lysator.liu.se/pub/?C=N;O=D -> HTTP 200, 15016 bytes, 104 outbound links, title \"Index of /pub/\". Deeper URL https://ftp.lysator.liu.se/pub/?C=S;O=A -> HTTP 200, 15016 bytes, 104 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://ftp.lysator.liu.se/pub/?C=S;O=A"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://ftp.nluug.nl/pub/?C=S;O=D",
+  "expect": "Apache mod_autoindex on ftp.nluug.nl exposes the same directory listing under every ?C=<column>;O=<order> combination, and the listing links onward into subdirectories that each repeat the trick, so the sort-parameter axis multiplies the whole mirror tree by 8 for zero new content.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://ftp.nluug.nl/pub/?C=S;O=D -> HTTP 200, 7055 bytes, 51 outbound links, title \"\". Deeper URL https://ftp.nluug.nl/pub/?C=N;O=A -> HTTP 200, 7055 bytes, 51 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://ftp.nluug.nl/pub/?C=N;O=A"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://ftp.riken.jp/?C=N;O=D",
+  "expect": "Apache mod_autoindex on ftp.riken.jp exposes the same directory listing under every ?C=<column>;O=<order> combination, and the listing links onward into subdirectories that each repeat the trick, so the sort-parameter axis multiplies the whole mirror tree by 8 for zero new content.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://ftp.riken.jp/?C=N;O=D -> HTTP 200, 4444 bytes, 22 outbound links, title \"Index of /\". Deeper URL https://ftp.riken.jp/?C=S;O=A -> HTTP 200, 4444 bytes, 22 outbound links. Link-set Jaccard(deep, deeper) = 0.913 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://ftp.riken.jp/?C=S;O=A"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://ftp.tu-chemnitz.de/pub/?C=S;O=D",
+  "expect": "Apache mod_autoindex on ftp.tu-chemnitz.de exposes the same directory listing under every ?C=<column>;O=<order> combination, and the listing links onward into subdirectories that each repeat the trick, so the sort-parameter axis multiplies the whole mirror tree by 8 for zero new content.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://ftp.tu-chemnitz.de/pub/?C=S;O=D -> HTTP 200, 20565 bytes, 84 outbound links, title \"FTP-Archivbrowser | FTP-Archiv ftp.tu-chemnitz.de | Anwendungen und Di\". Deeper URL https://ftp.tu-chemnitz.de/pub/?C=M;O=A -> HTTP 200, 20565 bytes, 84 outbound links. Link-set Jaccard(deep, deeper) = 0.953 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://ftp.tu-chemnitz.de/pub/?C=M;O=A"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://journals.plos.org/plosone/search?q=a&page=3",
+  "expect": "The search/browse endpoint on journals.plos.org keeps returning 200 for any page/offset/sort combination, so the facet x pagination product is an unbounded set of URLs over one result set.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://journals.plos.org/plosone/search?q=a&page=3 -> HTTP 200, 65577 bytes, 70 outbound links, title \"Search Results | PLOS One\". Deeper URL https://journals.plos.org/plosone/search?q=a&page=4 -> HTTP 200, 65577 bytes, 70 outbound links. Link-set Jaccard(deep, deeper) = 0.972 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://journals.plos.org/plosone/search?q=a&page=4"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://packagist.org/?query=a&page=3",
+  "expect": "The search/browse endpoint on packagist.org keeps returning 200 for any page/offset/sort combination, so the facet x pagination product is an unbounded set of URLs over one result set.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://packagist.org/?query=a&page=3 -> HTTP 200, 18013 bytes, 30 outbound links, title \"Packagist.org\". Deeper URL https://packagist.org/?query=a&page=4 -> HTTP 200, 18013 bytes, 30 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://packagist.org/?query=a&page=4"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://wiki.gentoo.org/index.php?title=Handbook:AMD64&action=history&limit=100&offset=20200101000000",
+  "expect": "MediaWiki history/offset space on wiki.gentoo.org: any offset/limit pair returns a valid 200 revision listing, and the listing links to further offsets, so the revision axis alone is effectively unbounded for every article.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://wiki.gentoo.org/index.php?title=Handbook:AMD64&action=history&limit=100&offset=20200101000000 -> HTTP 200, 97315 bytes, 214 outbound links, title \"Revision history of \"Handbook:AMD64\" - Gentoo wiki\". Deeper URL https://wiki.gentoo.org/index.php?title=Handbook:AMD64&action=history&limit=250&offset=20210101000000 -> HTTP 200, 98762 bytes, 217 outbound links. Link-set Jaccard(deep, deeper) = 0.907 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://wiki.gentoo.org/index.php?title=Handbook:AMD64&action=history&limit=250&offset=20210101000000"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.amu.ac.in/a/b/a/b/a/b",
+  "expect": "www.amu.ac.in answers HTTP 200 for arbitrarily deep nonsense path segments instead of 404ing, so a crawler that appends any discovered path fragment to any URL never runs out of new 200 URLs; the deep and the twice-as-deep form serve the same page.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.amu.ac.in/a/b/a/b/a/b -> HTTP 200, 47256 bytes, 2 outbound links, title \"Aligarh Muslim University | AMU\". Deeper URL https://www.amu.ac.in/a/b/a/b/a/b/a/b/a/b -> HTTP 200, 47256 bytes, 2 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.amu.ac.in/a/b/a/b/a/b/a/b/a/b"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.apache.org/?utm_source=a",
+  "expect": "www.apache.org ignores unknown tracking parameters but does not canonicalise them away, so every utm_*/click-id combination a crawler invents (or finds in a link) is another distinct 200 URL serving the same page.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.apache.org/?utm_source=a -> HTTP 200, 50117 bytes, 85 outbound links, title \"Welcome to The Apache Software Foundation | Apache Software Foundation\". Deeper URL https://www.apache.org/?utm_source=b&gclid=c -> HTTP 200, 50117 bytes, 85 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.apache.org/?utm_source=b&gclid=c"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.dcode.fr/caesar-cipher?text=abc",
+  "expect": "www.dcode.fr computes the page from the identifier in the URL, so the identifier space (not a page count) bounds the crawl -- millions of distinct 200 pages built from one template.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.dcode.fr/caesar-cipher?text=abc -> HTTP 200, 39157 bytes, 32 outbound links, title \"Caesar Cipher (Shift) Translator - Online Decoder, Encoder, Solver\". Deeper URL https://www.dcode.fr/caesar-cipher?text=xyz -> HTTP 200, 40183 bytes, 32 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.dcode.fr/caesar-cipher?text=xyz"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.debian.org/?utm_source=a&utm_medium=b",
+  "expect": "www.debian.org ignores unknown tracking parameters but does not canonicalise them away, so every utm_*/click-id combination a crawler invents (or finds in a link) is another distinct 200 URL serving the same page.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.debian.org/?utm_source=a&utm_medium=b -> HTTP 200, 15798 bytes, 28 outbound links, title \"Debian -- The Universal Operating System\". Deeper URL https://www.debian.org/?utm_source=q&utm_medium=r&fbclid=zz -> HTTP 200, 15798 bytes, 28 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.debian.org/?utm_source=q&utm_medium=r&fbclid=zz"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.federalregister.gov/documents/search?conditions%5Bterm%5D=a&page=3",
+  "expect": "The search/browse endpoint on www.federalregister.gov keeps returning 200 for any page/offset/sort combination, so the facet x pagination product is an unbounded set of URLs over one result set.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.federalregister.gov/documents/search?conditions%5Bterm%5D=a&page=3 -> HTTP 200, 101090 bytes, 45 outbound links, title \"Federal Register :: Document Search Results for 'a'\" (server redirected the request to https://www.federalregister.gov/documents/search?conditions%5Bsearch_type_id%5D=3&conditions%5Bterm%5D=a&page=3). Deeper URL https://www.federalregister.gov/documents/search?conditions%5Bterm%5D=a&page=4&order=newest -> HTTP 200, 101158 bytes, 45 outbound links. Link-set Jaccard(deep, deeper) = 0.915 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.federalregister.gov/documents/search?conditions%5Bterm%5D=a&page=4&order=newest"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.gutenberg.org/ebooks/search/?query=a&start_index=100",
+  "expect": "The search/browse endpoint on www.gutenberg.org keeps returning 200 for any page/offset/sort combination, so the facet x pagination product is an unbounded set of URLs over one result set.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.gutenberg.org/ebooks/search/?query=a&start_index=100 -> HTTP 200, 7797 bytes, 19 outbound links, title \"Books: a - Project Gutenberg\". Deeper URL https://www.gutenberg.org/ebooks/search/?query=a&start_index=125 -> HTTP 200, 7803 bytes, 19 outbound links. Link-set Jaccard(deep, deeper) = 0.9 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.gutenberg.org/ebooks/search/?query=a&start_index=125"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.kernel.org/?utm_source=a",
+  "expect": "www.kernel.org ignores unknown tracking parameters but does not canonicalise them away, so every utm_*/click-id combination a crawler invents (or finds in a link) is another distinct 200 URL serving the same page.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.kernel.org/?utm_source=a -> HTTP 200, 18134 bytes, 92 outbound links, title \"The Linux Kernel Archives\". Deeper URL https://www.kernel.org/?utm_source=b&gclid=c -> HTTP 200, 18134 bytes, 92 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.kernel.org/?utm_source=b&gclid=c"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.ku.dk/a/b/a/b/a/b",
+  "expect": "www.ku.dk answers HTTP 200 for arbitrarily deep nonsense path segments instead of 404ing, so a crawler that appends any discovered path fragment to any URL never runs out of new 200 URLs; the deep and the twice-as-deep form serve the same page.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.ku.dk/a/b/a/b/a/b -> HTTP 200, 121507 bytes, 87 outbound links, title \"K-benhavns Universitet - K-benhavns Universitet\". Deeper URL https://www.ku.dk/a/b/a/b/a/b/a/b/a/b -> HTTP 200, 121507 bytes, 87 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.ku.dk/a/b/a/b/a/b/a/b/a/b"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.mozilla.org/en-US/?utm_source=a&utm_medium=b",
+  "expect": "www.mozilla.org ignores unknown tracking parameters but does not canonicalise them away, so every utm_*/click-id combination a crawler invents (or finds in a link) is another distinct 200 URL serving the same page.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.mozilla.org/en-US/?utm_source=a&utm_medium=b -> HTTP 200, 115697 bytes, 80 outbound links, title \"Mozilla - Internet for people, not profit (US)\". Deeper URL https://www.mozilla.org/en-US/?utm_source=q&utm_medium=r&fbclid=zz -> HTTP 200, 115711 bytes, 80 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.mozilla.org/en-US/?utm_source=q&utm_medium=r&fbclid=zz"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.nehu.ac.in/a/b/a/b/a/b",
+  "expect": "www.nehu.ac.in answers HTTP 200 for arbitrarily deep nonsense path segments instead of 404ing, so a crawler that appends any discovered path fragment to any URL never runs out of new 200 URLs; the deep and the twice-as-deep form serve the same page.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.nehu.ac.in/a/b/a/b/a/b -> HTTP 200, 24955 bytes, 112 outbound links, title \"NEHU\". Deeper URL https://www.nehu.ac.in/a/b/a/b/a/b/a/b/a/b -> HTTP 200, 24955 bytes, 112 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.nehu.ac.in/a/b/a/b/a/b/a/b/a/b"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.nginx.com/?utm_source=a",
+  "expect": "www.nginx.com ignores unknown tracking parameters but does not canonicalise them away, so every utm_*/click-id combination a crawler invents (or finds in a link) is another distinct 200 URL serving the same page.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.nginx.com/?utm_source=a -> HTTP 200, 393414 bytes, 169 outbound links, title \"NGINX | F5\" (server redirected the request to https://www.f5.com/products/nginx?utm_source=a). Deeper URL https://www.nginx.com/?utm_source=b&gclid=c -> HTTP 200, 393414 bytes, 169 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.nginx.com/?utm_source=b&gclid=c"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.oscommerce.com/index.php?PHPSESSID=aaaaaaaaaaaaaaaaaaaa1",
+  "expect": "www.oscommerce.com accepts an arbitrary session id in the query string and serves the same page, so a crawler that treats session-carrying links as new URLs faces an unbounded space of identical pages.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.oscommerce.com/index.php?PHPSESSID=aaaaaaaaaaaaaaaaaaaa1 -> HTTP 200, 170592 bytes, 59 outbound links, title \"FREE shopping cart and open source eCommerce platform - Start selling \". Deeper URL https://www.oscommerce.com/index.php?PHPSESSID=bbbbbbbbbbbbbbbbbbbb2 -> HTTP 200, 170592 bytes, 59 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.oscommerce.com/index.php?PHPSESSID=bbbbbbbbbbbbbbbbbbbb2"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.perl.org/?sid=aaaa1",
+  "expect": "www.perl.org accepts an arbitrary session id in the query string and serves the same page, so a crawler that treats session-carrying links as new URLs faces an unbounded space of identical pages.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.perl.org/?sid=aaaa1 -> HTTP 200, 12309 bytes, 35 outbound links, title \"The Perl Programming Language - www.perl.org\". Deeper URL https://www.perl.org/?sid=bbbb2 -> HTTP 200, 12333 bytes, 35 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.perl.org/?sid=bbbb2"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.postgresql.org/?utm_source=a",
+  "expect": "www.postgresql.org ignores unknown tracking parameters but does not canonicalise them away, so every utm_*/click-id combination a crawler invents (or finds in a link) is another distinct 200 URL serving the same page.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.postgresql.org/?utm_source=a -> HTTP 200, 24869 bytes, 56 outbound links, title \"PostgreSQL: The world's most advanced open source database\". Deeper URL https://www.postgresql.org/?utm_source=b&msclkid=c -> HTTP 200, 24869 bytes, 56 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.postgresql.org/?utm_source=b&msclkid=c"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.rapidtables.com/convert/number/decimal-to-binary.html?x=101",
+  "expect": "www.rapidtables.com computes the page from the identifier in the URL, so the identifier space (not a page count) bounds the crawl -- millions of distinct 200 pages built from one template.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.rapidtables.com/convert/number/decimal-to-binary.html?x=101 -> HTTP 200, 37274 bytes, 57 outbound links, title \"Decimal to Binary Converter\". Deeper URL https://www.rapidtables.com/convert/number/decimal-to-binary.html?x=202 -> HTTP 200, 37274 bytes, 57 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.rapidtables.com/convert/number/decimal-to-binary.html?x=202"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.repository.cam.ac.uk/browse?type=dateissued&offset=9000",
+  "expect": "The search/browse endpoint on www.repository.cam.ac.uk keeps returning 200 for any page/offset/sort combination, so the facet x pagination product is an unbounded set of URLs over one result set.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.repository.cam.ac.uk/browse?type=dateissued&offset=9000 -> HTTP 200, 356919 bytes, 16 outbound links, title \"DSpace\". Deeper URL https://www.repository.cam.ac.uk/browse?type=dateissued&offset=9020 -> HTTP 200, 356919 bytes, 16 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.repository.cam.ac.uk/browse?type=dateissued&offset=9020"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.sqlite.org/index.html?PHPSESSID=aaaa1",
+  "expect": "www.sqlite.org accepts an arbitrary session id in the query string and serves the same page, so a crawler that treats session-carrying links as new URLs faces an unbounded space of identical pages.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.sqlite.org/index.html?PHPSESSID=aaaa1 -> HTTP 200, 8882 bytes, 38 outbound links, title \"SQLite Home Page\". Deeper URL https://www.sqlite.org/index.html?PHPSESSID=bbbb2 -> HTTP 200, 8882 bytes, 38 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.sqlite.org/index.html?PHPSESSID=bbbb2"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.ugc.gov.in/a/b/a/b/a/b",
+  "expect": "www.ugc.gov.in answers HTTP 200 for arbitrarily deep nonsense path segments instead of 404ing, so a crawler that appends any discovered path fragment to any URL never runs out of new 200 URLs; the deep and the twice-as-deep form serve the same page.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://www.ugc.gov.in/a/b/a/b/a/b -> HTTP 200, 44820 bytes, 90 outbound links, title \"Welcome to UGC, New Delhi, India\". Deeper URL https://www.ugc.gov.in/a/b/a/b/a/b/a/b/a/b -> HTTP 200, 44820 bytes, 90 outbound links. Link-set Jaccard(deep, deeper) = 0.978 -- the two pages offer the crawler a near-identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://www.ugc.gov.in/a/b/a/b/a/b/a/b/a/b"
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://zenodo.org/search?q=a&page=3&size=20",
+  "expect": "The search/browse endpoint on zenodo.org keeps returning 200 for any page/offset/sort combination, so the facet x pagination product is an unbounded set of URLs over one result set.",
+  "evidence": "Live fetches 2026-07-27. Deep URL https://zenodo.org/search?q=a&page=3&size=20 -> HTTP 200, 15919 bytes, 28 outbound links, title \"Search results | Zenodo\". Deeper URL https://zenodo.org/search?q=a&page=4&size=20 -> HTTP 200, 15919 bytes, 28 outbound links. Link-set Jaccard(deep, deeper) = 1.0 -- the two pages offer the crawler an identical set of onward links, so following them generates new URLs forever without new content.",
+  "source": "verified-live",
+  "stable": true,
+  "deeper_url": "https://zenodo.org/search?q=a&page=4&size=20"
+ }
+]

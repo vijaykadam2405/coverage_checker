@@ -3,15 +3,14 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 import json
-from urllib.parse import parse_qsl, urlsplit
+from urllib.parse import urlsplit
 
 from crawler_coverage_auditor.analysis.coverage import coverage_summary, is_found, is_inventory_url
-from crawler_coverage_auditor.analysis.inventory_segments import _methods, archive_year
-from crawler_coverage_auditor.analysis.pagination_gaps import contiguous_ranges
+from crawler_coverage_auditor.analysis.inventory_segments import _methods, row_archive_year
 from crawler_coverage_auditor.analysis.root_cause import root_causes
-from crawler_coverage_auditor.discovery.pagination import numeric_page_parameter, pagination_series_key
-from crawler_coverage_auditor.validation.normalize import classify_parameter
+from crawler_coverage_auditor.discovery.pagination import numeric_page_parameter
 from crawler_coverage_auditor.analysis.inventory import inventory_breakdown, html_content_duplicates
+from crawler_coverage_auditor.analysis.discovery_coverage import discovery_coverage, filter_label
 
 TEXT_LABELS = {"FOUND_FULL": "Full content", "FOUND_MOSTLY_FULL": "Mostly full", "FOUND_PARTIAL_TEXT": "Partial content",
                "FOUND_VERY_PARTIAL_TEXT": "Very partial content", "TEXT_MISSING": "Text missing",
@@ -38,8 +37,7 @@ def grouped_coverage(rows: list[dict], grouper, name: str) -> list[dict]:
 
 
 def filter_state(row: dict) -> str:
-    return ", ".join(f"{key}={value}" for key, value in parse_qsl(urlsplit(row.get("normalized_url") or row["url"]).query)
-                     if classify_parameter(key) == "FILTER")
+    return filter_label(row)
 
 
 def section(row: dict) -> str:
@@ -89,42 +87,35 @@ def detail_row(row: dict) -> dict:
 
 
 def build_analysis(rows: list[dict], sections: dict, *, include_details=True) -> dict:
+    discovery = discovery_coverage(rows, sections)
     summary = coverage_summary(rows)
     valid = [row for row in rows if is_inventory_url(row) and row.get("page_type") != "IMAGE"]
     docs = [row for row in rows if row.get("page_type") == "DOCUMENT"]
     text_counts = Counter(TEXT_LABELS.get(row.get("text_status"), "Not checked") for row in valid if is_found(row) and row.get('page_type', 'HTML') == 'HTML')
     segments = []
     for label, group in [("HTML", [row for row in rows if row.get("page_type") == "HTML"]),
-                         ("Pagination", [row for row in rows if "PAGINATION" in _methods(row)]),
-                         ("Filters", [row for row in rows if filter_state(row)]),
-                         ("Archives", [row for row in rows if archive_year(row.get("normalized_url", ""))]),
+                         ("Pagination", discovery['groups']['Pagination']),
+                         ("Filters", discovery['groups']['Filters']),
+                         ("Archives", discovery['groups']['Archives']),
                          ("Documents", docs),
                          ("JavaScript / API", [row for row in rows if _methods(row) & {"JS_DISCOVERY", "API_DISCOVERY"}]),
                          ("Sitemap", [row for row in rows if "SITEMAP" in _methods(row)])]:
         value = coverage_summary(group)
         segments.append({"Area": label, "Valid URLs": value["expected_urls"], "Found": value["found_urls"], "Missing": value["missing_urls"],
-                         "Unverified": value["unverified_urls"], "Coverage %": value["url_coverage_percent"] if value["expected_urls"] else None})
-    series = []
-    for item in sections.get("pagination", []):
-        missing, found, unverified = [], [], []
-        for row in valid:
-            page = numeric_page_parameter(row.get("normalized_url", ""))
-            if page and pagination_series_key(row["normalized_url"], page[0]) == item["series_key"]:
-                (found if is_found(row) else missing if row.get("match_status") == "NOT_FOUND" else unverified).append(page[1])
-        series.append({"Series": item["template_url"], "Parameter": item["parameter_name"], "Observed maximum": item.get('observed_max'), "Website maximum": item.get("max_page") if item['status'] == 'VERIFIED' else None,
-                       "Maximum verified": item["status"] == "VERIFIED", "Found pages": len(found), "Missing pages": len(missing),
-                       "Unverified pages": len(unverified), "Missing ranges": ", ".join(str(start) if start == end else f"{start}–{end}" for start, end in contiguous_ranges(missing)),
-                       "Boundary status": item["status"], "Evidence": item.get("evidence")})
+                         "Unverified": value["unverified_urls"],
+                         "Coverage %": value["url_coverage_percent"] if value["expected_urls"] else None})
+    filters = grouped_coverage(rows, lambda row: filter_label(row, discovery['filter_names']) or
+                               ('URL-backed filter (state not recorded)' if _methods(row) & {'FILTER_GET', 'FILTER_BROWSER'} else None), 'Filter state')
     gaps = root_causes(rows)
-    for item in grouped_coverage(valid, lambda row: filter_state(row) or None, "Filter state"):
+    for item in filters:
         if item["Missing"] and item["Coverage %"] is not None and item["Coverage %"] < 80:
             gaps.append({"severity": "HIGH", "kind": "FILTER_GAP", "evidence": f"{item['Filter state']}: {item['Missing']} confirmed misses of {item['Valid URLs']} valid URLs ({item['Coverage %']}% coverage). Likely filter traversal gap; cause needs production log verification."})
     return {"summary": summary, "details": [detail_row(row) for row in rows] if include_details else [], "segments": segments,
             "inventory": inventory_breakdown(rows), "html_duplicates": html_content_duplicates(rows),
             "depth": grouped_coverage([row for row in rows if row.get('page_type') == 'HTML'], lambda row: row.get("navigation_depth") if row.get("navigation_depth") is not None else 'Unknown', "Depth"),
-            "years": grouped_coverage(rows, lambda row: archive_year(row.get("normalized_url", "")), "Year"),
+            "years": grouped_coverage(rows, row_archive_year, "Year"),
             "sections": grouped_coverage(rows, section, "Website section"),
-            "filter_states": grouped_coverage(rows, lambda row: filter_state(row) or None, "Filter state"),
-            "pagination": series, "content_counts": dict(text_counts), "documents": coverage_summary(docs), "gaps": gaps,
-            "filters_detected": len({(item["source_url"], item["control_name"]) for item in sections.get("filters", [])}),
+            "filter_states": filters, 'filter_controls': discovery['controls'], 'discovery_status': discovery['status'],
+            "pagination": discovery['pagination'], "content_counts": dict(text_counts), "documents": coverage_summary(docs), "gaps": gaps,
+            "filters_detected": len(discovery['controls']),
             "max_depth": max((row['navigation_depth'] for row in rows if row.get('navigation_depth') is not None), default=None)}

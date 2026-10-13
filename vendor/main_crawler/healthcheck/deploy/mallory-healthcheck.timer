@@ -1,0 +1,13 @@
+[Unit]
+Description=Run the Mallory crawler health check once a day
+
+[Timer]
+# 06:00 local time daily. Change to taste.
+OnCalendar=*-*-* 06:00:00
+# If the box was off at 06:00, run at next boot.
+Persistent=true
+# Spread load a little so it never lands exactly on another cron job.
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

@@ -26,6 +26,10 @@ class RenderedHandler(BaseHTTPRequestHandler):
               if(n>=3)document.querySelector('#more').remove();}</script></body></html>"""
         elif self.path == "/frame":
             body = "<a href='/deep/frame/item'>Iframe content</a>"
+        elif self.path == '/listing-one':
+            body = "<h1>Initial results</h1><button onclick=\"location.href='/listing-two'\">Next</button>"
+        elif self.path == '/listing-two':
+            body = '<h1>Final distinct results</h1>'
         elif self.path.startswith("/api/items"):
             from urllib.parse import parse_qs, urlsplit
             page = parse_qs(urlsplit(self.path).query)["page"][0]
@@ -53,6 +57,23 @@ def test_rendered_filters_load_more_api_and_iframes_are_collected():
         assert any(request.resource_type == "fetch" for request in result.network)
         assert {state["value"] for state in result.states} == {"2026", "2021"}
         assert any("DOM-only" in reason for reason in result.limitations)
+        assert not any(link.tag == 'pagination' for link in result.links)  # DOM-only Load More does not invent URLs.
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_browser_retains_pagination_evidence_for_independent_navigation():
+    server = ThreadingHTTPServer(('127.0.0.1', 0), RenderedHandler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    base = f'http://127.0.0.1:{server.server_port}'
+    async def explore():
+        async with BrowserExplorer(actions=4, sources={'RENDERED', 'LOAD_MORE'}) as browser:
+            return await browser.explore(base + '/listing-one')
+    try:
+        result = asyncio.run(explore())
+        assert not result.error
+        assert any(link.url == base + '/listing-two' and link.tag == 'pagination' for link in result.links)
     finally:
         server.shutdown()
         server.server_close()

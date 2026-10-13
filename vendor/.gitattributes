@@ -1,0 +1,4 @@
+# Preserve vendored Python/helper bytes rather than applying workspace autocrlf.
+main_crawler/**/*.py -text
+main_crawler/**/*.js -text
+main_crawler/**/*.json -text

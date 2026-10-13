@@ -1,0 +1,19 @@
+{
+  "_note": "Offline end-to-end batch — the crawler's bundled fixture URLs with correct job_type + entity. Dispatched via `run_once --test` or the admin 'Run offline test batch' button.",
+  "targets": [
+    { "url": "https://idrw.org/lt-k9-vajra-followon/", "job_type": "news", "target_entity": "LT",
+      "keywords": ["L&T", "K9 Vajra", "artillery"], "expected_record_types": ["competitive_signal", "company_event"] },
+    { "url": "https://economictimes.indiatimes.com/news/defence/adani-acquires-general-aeronautics/", "job_type": "news", "target_entity": "ADANI",
+      "keywords": ["Adani", "General Aeronautics", "UAV"], "expected_record_types": ["competitive_signal", "company_event"] },
+    { "url": "https://www.defensenews.com/global/2026/06/27/knds-caesar-nigeria/", "job_type": "news", "target_entity": "KNDS",
+      "keywords": ["KNDS", "CAESAR", "Nigeria", "artillery"], "expected_record_types": ["competitive_signal", "geo_footprint"] },
+    { "url": "https://mod.gov.in/tenders/mgs-155mm", "job_type": "tender", "target_entity": null,
+      "keywords": ["155mm", "mounted gun", "artillery"], "expected_record_types": ["tender"] },
+    { "url": "https://www.solargroup.com/news/nagastra-armenia-export/", "job_type": "profile", "target_entity": "SOLAR",
+      "keywords": ["Solar", "Nagastra", "Armenia", "loitering"], "expected_record_types": ["partnership", "geo_footprint"] },
+    { "url": "https://www.armyrecognition.com/caesar-6x6-specs", "job_type": "spec", "target_entity": "KNDS",
+      "keywords": ["CAESAR 6x6", "155mm"], "expected_record_types": ["competitive_signal"] },
+    { "url": "https://www.shephardmedia.com/news/ramjet-155mm-rheinmetall/", "job_type": "news", "target_entity": "RHEIN",
+      "keywords": ["ramjet", "155mm", "artillery"], "expected_record_types": ["innovation"] }
+  ]
+}

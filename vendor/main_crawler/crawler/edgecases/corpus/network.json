@@ -1,0 +1,485 @@
+[
+ {
+  "category": "dns_failure",
+  "url": "https://rdio.com/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sS --max-time 6 https://rdio.com/ -> curl: (6) Could not resolve host: rdio.com (exit 6); nslookup rdio.com -> '*** UnKnown can't find rdio.com: Server failed'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://grooveshark.com/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sS --max-time 6 https://grooveshark.com/ -> curl: (6) Could not resolve host: grooveshark.com (exit 6)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://path.com/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sS --max-time 6 https://path.com/ -> curl: (6) Could not resolve host: path.com (exit 6); reproduced on a second independent run",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://kozmo.com/",
+  "expect": "name exists in some resolver responses but has no usable A record; getaddrinfo-based clients get nothing to connect to",
+  "evidence": "curl -sS --max-time 6 https://kozmo.com/ -> curl: (6) Could not resolve host: kozmo.com (exit 6); nslookup kozmo.com returns only 'Name: kozmo.com' with no Address line (NODATA / no A record)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://webvan.com/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sS --max-time 6 https://webvan.com/ -> curl: (6) Could not resolve host: webvan.com (exit 6)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://beluga.im/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sS --max-time 6 https://beluga.im/ -> curl: (6) Could not resolve host: beluga.im (exit 6)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://secret.ly/",
+  "expect": "resolver cannot get an answer at all (not even a clean negative); crawler must still classify as dead after bounding resolver retries",
+  "evidence": "curl -sS --max-time 6 https://secret.ly/ -> curl: (6) Could not resolve host: secret.ly (exit 6); nslookup secret.ly -> 'DNS request timed out. timeout was 2 seconds.' then '*** UnKnown can't find secret.ly: Server failed'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://vark.com/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sS --max-time 6 https://vark.com/ -> curl: (6) Could not resolve host: vark.com (exit 6)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://pownce.com/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sS --max-time 6 https://pownce.com/ -> curl: (6) Could not resolve host: pownce.com (exit 6)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://cuil.com/",
+  "expect": "clean NXDOMAIN: authoritative answer says the name does not exist",
+  "evidence": "curl -sS --max-time 6 https://cuil.com/ -> curl: (6) Could not resolve host: cuil.com (exit 6); nslookup cuil.com -> '*** UnKnown can't find cuil.com: Non-existent domain'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://xobni.com/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sS --max-time 6 https://xobni.com/ -> curl: (6) Could not resolve host: xobni.com (exit 6)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://hunch.com/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sS --max-time 6 https://hunch.com/ -> curl: (6) Could not resolve host: hunch.com (exit 6)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://dodgeball.com/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sS --max-time 6 https://dodgeball.com/ -> curl: (6) Could not resolve host: dodgeball.com (exit 6)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://socialcam.com/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sS --max-time 6 https://socialcam.com/ -> curl: (6) Could not resolve host: socialcam.com (exit 6)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://picplz.com/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sS --max-time 6 https://picplz.com/ -> curl: (6) Could not resolve host: picplz.com (exit 6)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://slide.com/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sSI --max-time 8 https://slide.com/ -> curl: (6) Could not resolve host: slide.com (exit 6)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://face.com/",
+  "expect": "resolver fails before any TCP attempt; crawler must mark the host permanently dead, not retry",
+  "evidence": "curl -sSI --max-time 8 https://face.com/ -> curl: (6) Could not resolve host: face.com (exit 6)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://xk9qzjfmwplr7bhtdcva.com/",
+  "expect": "synthetic control: a syntactically valid, never-registered 20-char label; proves the clean-NXDOMAIN path independent of any real domain's history",
+  "evidence": "curl -sS --max-time 6 https://xk9qzjfmwplr7bhtdcva.com/ -> curl: (6) Could not resolve host: xk9qzjfmwplr7bhtdcva.com (exit 6); nslookup -> '*** UnKnown can't find xk9qzjfmwplr7bhtdcva.com: Non-existent domain'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://qz7mnbxvc4jklopwsyt2.com/",
+  "expect": "synthetic control: a syntactically valid, never-registered 20-char label; proves the clean-NXDOMAIN path independent of any real domain's history",
+  "evidence": "curl -sS --max-time 6 https://qz7mnbxvc4jklopwsyt2.com/ -> curl: (6) Could not resolve host: qz7mnbxvc4jklopwsyt2.com (exit 6); nslookup -> '*** UnKnown can't find qz7mnbxvc4jklopwsyt2.com: Non-existent domain'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://fjrtn8wplmxq5vzkbhcy.com/",
+  "expect": "synthetic control: a syntactically valid, never-registered 20-char label; proves the clean-NXDOMAIN path independent of any real domain's history",
+  "evidence": "curl -sS --max-time 6 https://fjrtn8wplmxq5vzkbhcy.com/ -> curl: (6) Could not resolve host: fjrtn8wplmxq5vzkbhcy.com (exit 6); nslookup -> '*** UnKnown can't find fjrtn8wplmxq5vzkbhcy.com: Non-existent domain'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://gowalla.com/",
+  "expect": "TCP connects but the server never sends an HTTP response; crawler's response-read timeout must fire or the worker hangs forever",
+  "evidence": "curl -sS --max-time 12 -w timing https://gowalla.com/ -> run1: curl: (28) Operation timed out after 12015 ms with 0 bytes received; run2: 12009 ms (connect=1.46s then hang, 0 bytes received)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://boo.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 12 https://boo.com/ -> run1: curl: (28) Connection timed out after 12012 ms; run2: 12009 ms; connect=0.000000 both runs (SYN never ACKed)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://pets.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 12 https://pets.com/ -> run1: curl: (28) Connection timed out after 12003 ms; run2: 12014 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://etoys.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 12 https://etoys.com/ -> run1: curl: (28) Connection timed out after 12010 ms; run2: 12007 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://formspring.me/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 12 https://formspring.me/ -> run1: curl: (28) Connection timed out after 12008 ms; run2: 12006 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://spock.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 12 https://spock.com/ -> run1: curl: (28) Connection timed out after 12012 ms; run2: 12013 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://imeem.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 12 https://imeem.com/ -> run1: curl: (28) Connection timed out after 12014 ms; run2: 12004 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://bump.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 8 https://bump.com/ -> run1: curl: (28) Connection timed out after 8002 ms; curl --max-time 12 run2: 12015 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://chacha.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 12 https://chacha.com/ -> run1: curl: (28) Connection timed out after 12002 ms; run2: 12004 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://ilike.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 12 https://ilike.com/ -> run1: curl: (28) Connection timed out after 12009 ms; run2: 12012 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://loopt.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 12 https://loopt.com/ -> run1: curl: (28) Connection timed out after 12015 ms; run2: 12013 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://qik.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 12 https://qik.com/ -> run1: curl: (28) Connection timed out after 12008 ms; run2: 12014 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://whrrl.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 10 https://whrrl.com/ -> run1: curl: (28) Connection timed out after 10009 ms; curl --max-time 12 run2: 12008 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://myyearbook.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 10 https://myyearbook.com/ -> run1: curl: (28) Connection timed out after 10010 ms; curl --max-time 8 run2: 8013 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://cinchcast.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 10 https://cinchcast.com/ -> run1: curl: (28) Connection timed out after 10007 ms; curl --max-time 8 run2: 8009 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://cloudkick.com/",
+  "expect": "TCP handshake itself never completes; crawler's connect-timeout must bound this or the worker hangs forever",
+  "evidence": "curl -sS --max-time 8 https://cloudkick.com/ -> run1: curl: (28) Connection timed out after 8006 ms; curl --max-time 12 run2: 12010 ms; connect=0.000000 both runs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://cliqset.com/",
+  "expect": "TCP connects but the server never sends an HTTP response; crawler's response-read timeout must fire or the worker hangs forever",
+  "evidence": "curl -sS --max-time 8 https://cliqset.com/ -> run1: curl: (28) Operation timed out after 8008 ms with 0 bytes received (connect=0.18s); curl --max-time 12 run2: 12011 ms (connect=1.01s, still 0 bytes received)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://postman-echo.com/delay/10",
+  "expect": "server deliberately delays ~10s before responding; a crawler with a shorter bound must record a timeout, one with a longer bound gets a slow-but-valid 200",
+  "evidence": "curl --max-time 6 -> curl: (28) Operation timed out after 6005 ms with 0 bytes received; curl --max-time 15 -> code=200 connect=0.0086 ttfb=10.244 total=10.244 (genuine ~10.2s server-side delay confirmed) | harness pins timeout_s=5 so the advertised delay actually exceeds the budget; at the default 20s this URL simply succeeds.",
+  "source": "verified-live",
+  "stable": true,
+  "timeout_s": 5
+ },
+ {
+  "category": "timeout",
+  "url": "https://httpbingo.org/delay/10",
+  "expect": "server deliberately delays ~10s before responding; a crawler with a shorter bound must record a timeout, one with a longer bound gets a slow-but-valid 200",
+  "evidence": "curl --max-time 15 -> code=200 connect=0.073 ttfb=10.444 total=10.444 (genuine ~10.4s delay). Used as the stable Go-based alternative since the original httpbin.org returned HTTP 503 on every request tested today, including a plain GET /get | harness pins timeout_s=5 so the advertised delay actually exceeds the budget; at the default 20s this URL simply succeeds.",
+  "source": "verified-live",
+  "stable": true,
+  "timeout_s": 5
+ },
+ {
+  "category": "conn_error",
+  "url": "https://httpstat.us/200?sleep=15000",
+  "expect": "server is asked to sleep 15s before answering; crawler must bound the wait -- a client-side timeout shorter than 15s fires cleanly, and even a generous wait can see the connection die before a clean response arrives",
+  "evidence": "measured 2026-07-24: does not sleep, it disconnects — RemoteProtocolError 'Server disconnected without sending a response.' Recategorised from timeout to conn_error to match what it actually does.",
+  "source": "verified-live",
+  "stable": true,
+  "timeout_s": 5
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://expired.badssl.com/",
+  "expect": "server cert's notAfter is long past; TLS handshake completes but certificate-expiry validation fails",
+  "evidence": "curl -sSI (no -k) -> curl: (35) schannel: next InitializeSecurityContext failed: SEC_E_CERT_EXPIRED (0x80090328) - The received certificate has expired; openssl s_client -> verify error:num=10:certificate has expired, notAfter=Apr 12 23:59:59 2015 GMT",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://wrong.host.badssl.com/",
+  "expect": "cert is valid and trusted but issued for a different hostname; hostname verification fails",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SNI or certificate check failed: SEC_E_WRONG_PRINCIPAL (0x80090322) - The target principal name is incorrect",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://self-signed.badssl.com/",
+  "expect": "cert is self-signed with no CA in any trust store; chain-of-trust validation fails",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SEC_E_UNTRUSTED_ROOT (0x80090325) - The certificate chain was issued by an authority that is not trusted",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://untrusted-root.badssl.com/",
+  "expect": "cert chains to a real but deliberately-untrusted private root CA; chain-of-trust validation fails",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SEC_E_UNTRUSTED_ROOT (0x80090325) - The certificate chain was issued by an authority that is not trusted",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://incomplete-chain.badssl.com/",
+  "expect": "server sends only the leaf cert and omits the required intermediate; an OpenSSL-based crawler cannot build the trust chain and fails closed",
+  "evidence": "openssl s_client -connect incomplete-chain.badssl.com:443 -servername incomplete-chain.badssl.com -> verify error:num=20:unable to get local issuer certificate; verify error:num=21:unable to verify the first certificate. NOTE: curl on this Windows/schannel host returns 200 OK because Windows auto-repairs the chain via AIA fetching -- a Linux/OpenSSL-based crawler (the common crawler stack) does not get that repair and fails closed, which is the behavior this URL is meant to test",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://revoked.badssl.com/",
+  "expect": "chain is otherwise valid but the leaf certificate has been revoked by its issuing CA; a revocation-checking client refuses the connection",
+  "evidence": "curl -sSI (no -k, schannel checks revocation by default) -> curl: (35) schannel: next InitializeSecurityContext failed: CRYPT_E_REVOKED (0x80092010) - The certificate is revoked. NOTE: plain openssl s_client (no -crl_check) does NOT flag this, since OpenSSL does not check revocation by default -- this is a real, verified, library-dependent difference worth encoding in the corpus",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://superfish.badssl.com/",
+  "expect": "cert chains to the real-world Superfish adware root CA (Lenovo 2015 incident), which is absent from standard trust stores",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SEC_E_UNTRUSTED_ROOT (0x80090325) - The certificate chain was issued by an authority that is not trusted",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://dh480.badssl.com/",
+  "expect": "server only offers a 480-bit Diffie-Hellman key exchange; modern TLS stacks refuse it as cryptographically too weak",
+  "evidence": "openssl s_client -> 'DH routines:DH_check_params_ex:modulus too small' after receiving a valid Let's Encrypt cert chain (chain itself is fine, key-exchange strength is the failure); curl -sSI (no -k) -> curl: (35) schannel: SEC_E_ILLEGAL_MESSAGE (0x80090326), fatal handshake alert",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://rc4.badssl.com/",
+  "expect": "server only offers the deprecated RC4 stream cipher; modern TLS libraries have removed RC4 and cannot negotiate it",
+  "evidence": "curl -sSI (no -k) -> curl: (35) schannel: SEC_E_ILLEGAL_MESSAGE (0x80090326); openssl s_client -cipher RC4 -> 'Call to SSL_CONF_cmd(-cipher, RC4) failed ... SSL_CTX_set_cipher_list:no cipher match' -- OpenSSL 3.5.5 refuses to even construct a ClientHello offering RC4",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://null.badssl.com/",
+  "expect": "server only offers a NULL (no-encryption) cipher suite; client must refuse rather than run HTTP over a plaintext channel labeled TLS",
+  "evidence": "openssl s_client -> 'ssl3_read_bytes:ssl/tls alert handshake failure ... SSL alert number 40'; curl -sSI (no -k) -> curl: (35) schannel: SEC_E_ILLEGAL_MESSAGE (0x80090326)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://www.cacert.org/",
+  "expect": "real, live, production CA whose own site's cert chains to a root absent from every major OS/browser trust store; default-trust clients reject it while the site is otherwise fully up",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SEC_E_UNTRUSTED_ROOT (0x80090325); openssl s_client -> verify error:num=19:self-signed certificate in certificate chain, subject=CN=www.cacert.org, issuer=CN=CAcert Class 3 Root; curl -sSIk (with -k) -> HTTP/1.1 200 OK, confirming the site is live and simply untrusted-by-default, not down",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://friendfeed.com/",
+  "expect": "defunct product's hostname now points at its acquirer's shared edge without its own certificate; served SAN does not cover this hostname, so hostname verification fails",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SEC_E_WRONG_PRINCIPAL; openssl s_client -verify_hostname friendfeed.com -> verify error:num=62:hostname mismatch, served cert subject=*.facebook.com (issuer DigiCert); curl -sSIk -> 301 to https://www.facebook.com/",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://posterous.com/",
+  "expect": "defunct product's hostname now points at a shared PaaS edge without its own certificate; served SAN does not cover this hostname, so hostname verification fails",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SEC_E_WRONG_PRINCIPAL; openssl s_client -verify_hostname posterous.com -> verify error:num=62:hostname mismatch, served cert subject=*.herokuapp.com; curl -sSIk -> HTTP/1.1 404 Not Found (host alive, just misconfigured)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://theranos.com/",
+  "expect": "domain now points at unrelated third-party infrastructure serving its own unrelated cert; hostname verification fails",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SEC_E_WRONG_PRINCIPAL; openssl s_client -verify_hostname theranos.com -> verify error:num=62:hostname mismatch, served cert subject=CN=trkpc.net; curl -sSIk -> HTTP/1.1 502 Bad Gateway",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://sparrowmailapp.com/",
+  "expect": "defunct product's hostname now points at its acquirer's shared edge without its own certificate; served SAN does not cover this hostname, so hostname verification fails",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SEC_E_WRONG_PRINCIPAL; openssl s_client -verify_hostname sparrowmailapp.com -> verify error:num=62:hostname mismatch, served cert subject=*.google.com; curl -sSIk -> 301 to a Google support page",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://geocities.com/",
+  "expect": "defunct product's hostname now points at its acquirer's shared edge without its own certificate; served SAN does not cover this hostname, so hostname verification fails",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SEC_E_WRONG_PRINCIPAL; openssl s_client -verify_hostname geocities.com -> verify error:num=62:hostname mismatch, served cert subject=CN=src1.yahoo.com",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://jaiku.com/",
+  "expect": "defunct product's hostname now points at its acquirer's shared edge without its own certificate; served SAN does not cover this hostname, so hostname verification fails",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SEC_E_WRONG_PRINCIPAL; openssl s_client -verify_hostname jaiku.com -> verify error:num=62:hostname mismatch, served cert subject=*.appspot.com",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://jambool.com/",
+  "expect": "defunct product's hostname now points at its acquirer's shared edge without its own certificate; served SAN does not cover this hostname, so hostname verification fails",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SEC_E_WRONG_PRINCIPAL; openssl s_client -verify_hostname jambool.com -> verify error:num=62:hostname mismatch, served cert subject=*.google.com",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://meebo.com/",
+  "expect": "defunct product's hostname now points at its acquirer's shared edge without its own certificate; served SAN does not cover this hostname, so hostname verification fails",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SEC_E_WRONG_PRINCIPAL; openssl s_client -verify_hostname meebo.com -> verify error:num=62:hostname mismatch, served cert subject=*.google.com",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://divide.com/",
+  "expect": "defunct product's hostname now points at its acquirer's shared edge without its own certificate; served SAN does not cover this hostname, so hostname verification fails",
+  "evidence": "curl -sSI (no -k) -> curl: (60) schannel: SEC_E_WRONG_PRINCIPAL; openssl s_client -verify_hostname divide.com -> verify error:num=62:hostname mismatch, served cert subject=*.google.com",
+  "source": "verified-live",
+  "stable": true
+ }
+]

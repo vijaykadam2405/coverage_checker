@@ -1,0 +1,306 @@
+[
+ {
+  "category": "rate_limit",
+  "url": "https://api.coingecko.com/api/v3/ping",
+  "expect": "Crawler gets HTTP 429 with a Retry-After header after a small burst and must back off rather than retry immediately.",
+  "evidence": "req1-5=200 OK; req6=429 Too Many Requests, Retry-After: 60; req7=429, Retry-After: 59; req8=429, Retry-After: 56 (10-req serial curl burst, no API key)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://query1.finance.yahoo.com/v8/finance/chart/AAPL",
+  "expect": "Non-browser requests are throttled immediately with 429 and a terse 'Edge: Too Many Requests' body; crawler must add browser-like headers or back off rather than hammering.",
+  "evidence": "req1 (single request, curl default UA, no prior burst) = HTTP/1.1 429 Too Many Requests; body='Edge: Too Many Requests'; Server: ATS",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://opentdb.com/api.php?amount=1",
+  "expect": "HTTP 200 but JSON body response_code:5 signals the documented per-IP rate limit (1 request/5 seconds); crawler must parse the body, not just the status code, to detect throttling.",
+  "evidence": "req1=200 {response_code:0,...}; req2=200 {response_code:5,result:[]}; req3=200 {response_code:0,...}; req4,5=200 {response_code:5,result:[]} (back-to-back curl calls, no delay)",
+  "source": "verified-live; documented at opentdb.com/api_config.php",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "url": "https://ipapi.co/8.8.8.8/json/",
+  "expect": "antibot wall on the first request",
+  "evidence": "403 cf-mitigated=challenge on request 1, 16 chars (2026-07-27); the row's original 429 no longer reproduces from this egress",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "url": "https://www.linkedin.com/in/satyanadella/",
+  "expect": "antibot wall on the first request",
+  "evidence": "HTTP 999 on request 1 (2026-07-27), 1,530 bytes yielding 0 chars - LinkedIn's block status, present before any burst",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "url": "https://www.reddit.com/r/all.json",
+  "expect": "antibot wall on the first request",
+  "evidence": "403 x8, server: snooserv, Retry-After: 0, 189,906 bytes yielding 143 chars: \"You've been blocked by network security.\" (2026-07-27) - an IP block, identical on every request",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "url": "https://old.reddit.com/r/all/.json",
+  "expect": "antibot wall on the first request",
+  "evidence": "403 x8, byte-for-byte identical to www.reddit.com/r/all.json (2026-07-27) - the same IP block",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "url": "https://www.zillow.com/homes/for_sale/",
+  "expect": "antibot wall on the first request",
+  "evidence": "403 PerimeterX via CloudFront on request 1 (2026-07-27), 35 chars: 'Access to this page has been denied'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "url": "https://www.glassdoor.com/Reviews/index.htm",
+  "expect": "antibot wall on the first request",
+  "evidence": "403 cf-mitigated=challenge on request 1 (2026-07-27), 'Security | Glassdoor - Humans only'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "url": "https://www.indeed.com/jobs?q=engineer",
+  "expect": "antibot wall on the first request",
+  "evidence": "403 cf-mitigated=challenge on request 1, 27 chars (2026-07-27) - a Cloudflare managed challenge, not a throttle: identical from the first request",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.github.com/users/octocat",
+  "expect": "Unauthenticated REST calls carry a live X-RateLimit-Remaining counter (60/hour cap); crawler must read this header and self-throttle before it reaches 0, where GitHub then returns 403/429.",
+  "evidence": "200 OK; X-RateLimit-Limit: 60; X-RateLimit-Remaining: 46; X-RateLimit-Used: 14 (measured live after ~14 cumulative unauthenticated requests this session)",
+  "source": "verified-live; documented at docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY",
+  "expect": "The shared public DEMO_KEY carries a small, live numeric quota surfaced via headers; crawler must throttle itself using these headers well before hitting 0.",
+  "evidence": "200 OK; X-Ratelimit-Limit: 10; X-Ratelimit-Remaining: 9 (single call, live header)",
+  "source": "verified-live; documented at api.nasa.gov",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.data.gov/ed/collegescorecard/v1/schools?api_key=DEMO_KEY&school.name=harvard",
+  "expect": "Same shared api.data.gov DEMO_KEY family as NASA; headers expose a small live quota that visibly decrements call-to-call.",
+  "evidence": "call1=200, X-Ratelimit-Limit: 10, X-Ratelimit-Remaining: 9; call2 (different query, moments later)=200, X-Ratelimit-Remaining: 8 -- confirmed live decrement across two calls",
+  "source": "verified-live; documented at api.data.gov",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "http://ip-api.com/json/8.8.8.8",
+  "expect": "Free-tier endpoint exposes remaining-requests and window-reset headers on every response; crawler should throttle using these rather than waiting to be hard-blocked.",
+  "evidence": "200 OK; X-Rl: 44; X-Ttl: 60 (44 requests remaining in a 60-second window; single call measured)",
+  "source": "verified-live; documented at ip-api.com/docs/",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=BTC-USDT",
+  "expect": "Public market-data endpoint exposes a live weight-based quota via headers; crawler must track gw-ratelimit-remaining to avoid an eventual 429.",
+  "evidence": "200 OK; gw-ratelimit-limit: 2000; gw-ratelimit-remaining: 1998; gw-ratelimit-reset: 30000 (single call, live headers)",
+  "source": "verified-live; documented in KuCoin API docs",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.discogs.com/database/search?q=test",
+  "expect": "Unauthenticated search calls are tracked against a documented 25-request/minute quota surfaced via headers that a crawler should watch.",
+  "evidence": "200 OK; x-discogs-ratelimit: 25; x-discogs-ratelimit-remaining: 25; x-discogs-ratelimit-used: 0 (single call, live headers)",
+  "source": "verified-live; documented at discogs.com/developers",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT",
+  "expect": "Every response carries a used-weight header counting toward Binance's documented 1200-weight/minute IP limit; a crawler ignoring this and exceeding it gets 429 and, if it persists, a 418 IP ban per Binance's published policy.",
+  "evidence": "200 OK; x-mbx-used-weight: 2; x-mbx-used-weight-1m: 2 (single call, live header); 429/418 escalation is Binance's documented policy, not itself triggered in this small test",
+  "source": "verified-live; documented at binance-docs.github.io",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://mock.codes/429",
+  "expect": "A controlled, always-on 429 response for exercising a crawler's handling of the exact 'Too Many Requests' status/retry logic without hammering a real service.",
+  "evidence": "req1 = HTTP/1.1 429 Too Many Requests (synthetic status-code test endpoint, returns the code named in the path by design)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.peacocktv.com/",
+  "expect": "Peacock detects non-US origin and redirects to a dedicated 'unavailable' page instead of serving any content.",
+  "evidence": "curl -sSL from India -> final URL https://www.peacocktv.com/unavailable (200); <title>Unavailable In Your Region</title>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.hulu.com/welcome",
+  "expect": "Hulu is not offered in India at all; Disney's own routing detects the India IP and redirects straight to Hotstar (Disney's India streaming brand) instead of Hulu.",
+  "evidence": "curl -sSL from India -> final URL https://www.hotstar.com/in (200); confirms Hulu's infra reroutes India traffic off-platform entirely rather than showing an error",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.paramountplus.com/",
+  "expect": "Paramount+ is not sold in India; visitors are routed to a generic international/select-your-country landing instead of the normal home page.",
+  "evidence": "curl -sSL from India -> final URL https://www.paramountplus.com/intl/ (200); page's own embedded strings include seo_global_page_title:'Paramount+ Global Home', seo_global_page_description:'Select your country to watch...', and 'Due to licensing restrictions, video is not available outside your country.'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.svtplay.se/",
+  "expect": "Sweden's public broadcaster auto-filters its catalogue for non-Sweden IPs and displays a visible geoblock banner instead of the full catalogue.",
+  "evidence": "200 OK; page HTML contains <aside id=\"geoblock-message-container\">...<span data-rt=\"geoblock-message\">Visar endast program som gar att se utanfor Sverige</span> (Swedish: 'Showing only programs viewable outside Sweden')",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.amcplus.com/",
+  "expect": "AMC+ redirects non-US visitors straight to a page whose URL and title both explicitly say 'geographic restriction.'",
+  "evidence": "curl -sSL from India -> final URL https://www.amcplus.com/pages/geographic-restriction (200); <title>AMC+ | Geographic Restriction - AMC Plus</title>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://pluto.tv/",
+  "expect": "Pluto TV redirects to a location-specific static page carrying an explicit, rendered 'not available in your location' message.",
+  "evidence": "curl -sSL from India -> final URL https://static-homepage-en.pluto.tv/plutotv-is-not-available (200); rendered body text: 'Pluto TV is not available in your location.'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.discoveryplus.com/",
+  "expect": "Discovery+ is not sold from the .com storefront in India; it redirects straight to the dedicated India storefront domain instead of showing the US service.",
+  "evidence": "curl -sSL from India -> final URL https://www.discoveryplus.in/ (200)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.britbox.com/us/",
+  "expect": "BritBox's US storefront detects the non-served IP and redirects to an explicit 'location not supported' page.",
+  "evidence": "curl -sSL from India -> final URL https://www.britbox.com/in/locationnotvalidated (200); <title>Location not Supported | BritBox</title>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.max.com/",
+  "expect": "HBO Max's own geo-availability check sets explicit country/city cookies and redirects to a country-named availability page confirming India is not a served market.",
+  "evidence": "curl -sSL https://www.max.com/geo-availability from India -> redirect chain www.max.com/geo-availability (301) -> www.hbomax.com/geo-availability (301) -> www.hbomax.com/geo-availability/india (200); Set-Cookie: countryCode=IN; city=PUNE; continent=AS",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.sundancenow.com/",
+  "expect": "Sundance Now (AMC Networks) rejects non-served-market visitors with an explicit unsupported-region page.",
+  "evidence": "403 Forbidden; <title>Unsupported Region | SUNDANCE NOW</title>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://acorn.tv/",
+  "expect": "Acorn TV (AMC Networks) rejects non-served-market visitors with an explicit unsupported-region page.",
+  "evidence": "302 redirect, final page 200; <title>Unsupported Region | Acorn TV</title>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.shudder.com/",
+  "expect": "Shudder (AMC Networks) returns 403 with an explicit plain-English country-block sentence in the body.",
+  "evidence": "403 Forbidden; full body text: 'Sorry, we are not available in your country'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.allblk.tv/",
+  "expect": "ALLBLK (AMC Networks) redirects to a static hosted page whose URL and title both explicitly reference a geo restriction.",
+  "evidence": "curl -sSL from India -> final URL https://rlje-static-assets.s3.amazonaws.com/allblk-pages/not-available/geo-restriction-eu.html (200); <title>Unsupported Region | ALLBLK</title>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://7plus.com.au/",
+  "expect": "Seven Network's CloudFront distribution states directly in its 403 body that it is configured to block the requester's country.",
+  "evidence": "403 ERROR; body: 'The Amazon CloudFront distribution is configured to block access from your country.'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://tubitv.com/",
+  "expect": "Tubi (Fox) redirects to a region gate whose title and body both explicitly say the service is not available in the visitor's area.",
+  "evidence": "curl -sSL from India -> final URL https://gdpr.tubi.tv/ (200); <title>Tubi is the largest free movie and TV streaming service in the US. We are not available in Europe due to changes in EU laws.</title>; body: \"We're Sorry... Unfortunately, we're not currently available in your area.\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.xumo.tv/",
+  "expect": "Xumo Play redirects to a page whose own internal route name is literally 'geo-block.'",
+  "evidence": "curl -sSL from India -> final URL https://play.xumo.com/geo-block (200); embedded Next.js JSON: {\"page\":\"/geo-block\",...}",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.tntdrama.com/",
+  "expect": "TNT's domestic site (and its sister truTV/TBS sites) redirect all three US cable-brand domains to one shared 'international' portal instead of domestic content.",
+  "evidence": "curl -sSL from India -> final URL https://www.international.tbs.com/ (200); identical redirect target independently confirmed from www.trutv.com and www.tbs.com; page's own siteDescription field: 'International portal for TBS/TNT/TRU TV.'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://viaplay.com/",
+  "expect": "Viaplay (Nordic/Baltic streaming) redirects to a region-tagged path and server-renders an explicit 'not available in this region' message.",
+  "evidence": "curl -sSL from India -> final URL https://viaplay.com/in/ (200); rendered body: <h2>Viaplay isn't available in this region yet.</h2>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.my5.tv/",
+  "expect": "Channel 5's My5 catch-up service redirects non-UK visitors to an explicit 'no access outside UK' page.",
+  "evidence": "curl -sSL from India -> final URL https://www.channel5.com/geo-restriction.html (200); <title>No access outside UK</title>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.pandora.com/",
+  "expect": "Pandora (US-only internet radio) redirects non-US visitors straight to a dedicated /restricted route instead of the normal homepage.",
+  "evidence": "curl -sSL from India -> final URL https://www.pandora.com/restricted (200). NOTE: weakest entry in this set -- the page is a client-rendered app shell, so no explanatory sentence is present in the raw HTML curl sees; the redirect-to-/restricted itself (only triggered for non-US IPs) is the proof, corroborated by Pandora's long-documented US-only availability.",
+  "source": "verified-live",
+  "stable": true
+ }
+]

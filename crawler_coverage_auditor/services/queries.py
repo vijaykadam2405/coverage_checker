@@ -17,6 +17,7 @@ from crawler_coverage_auditor.analysis.states import METHOD_LABELS, public_state
 from crawler_coverage_auditor.config import CAPTURE_TYPES, capture_category, resource_subtype
 from crawler_coverage_auditor.services.inventory import _connect_readonly, load_report_rows, load_run_sections
 from crawler_coverage_auditor.validation.site_session import SiteSessionStore
+from crawler_coverage_auditor.services.checkpoints import checkpoint_snapshot
 
 
 def _json(value, default=None):
@@ -43,6 +44,11 @@ def run(database, run_id):
     result = dict(row)
     result['config'] = _json(result.pop('config_json'))
     return result
+
+
+def checkpoint(database, run_id):
+    with closing(_connect_readonly(database)) as connection:
+        return checkpoint_snapshot(connection, run_id)
 
 
 def history(database, limit=100):
@@ -174,6 +180,7 @@ def summary(database, run_id, compact=False):
             counters['boundaries'] -= notes_count
             limits = [dict(row) for row in connection.execute(f'SELECT l.* {boundary_sql} AND NOT ({note_condition}) ORDER BY l.id DESC LIMIT 20', (run_id,))]
         return {'counts': {kind: item['eligible'] for kind, item in by_type.items()}, 'total': total['eligible'],
+                'checkpoint': checkpoint_snapshot(connection, run_id),
                 'metrics': total | metrics(total['eligible'], total['found'], total['missing'], total['not_tracked']), 'types': by_type,
                 'html_coverage': by_type['HTML'], 'hosts': hosts, 'health': extraction_health(connection, cte, run_id),
                 'counters': counters | {'queued': queued}, 'latest_event': _event(dict(latest)) if latest else None, 'processing_urls': processing,
@@ -223,7 +230,7 @@ def url_page(database, run_id, filters=None, page=1, page_size=50):
         cte = _cte(connection)
         scoped = _aggregate(connection, cte, run_id, where, args)
         host_where, host_args = _filters({'host': filters.get('host')})
-        host_summary = _aggregate(connection, cte, run_id, host_where, host_args)
+        host_summary = scoped if (where, args) == (host_where, host_args) else _aggregate(connection, cte, run_id, host_where, host_args)
         total = scoped['discovered']; pages = max(1, math.ceil(total / page_size)); page = min(max(1, page), pages)
         rows = connection.execute(cte + f'SELECT * FROM inventory WHERE {where} ORDER BY {sort} {order},id {order} LIMIT ? OFFSET ?',
             (run_id, *args, page_size, (page - 1) * page_size)).fetchall()
@@ -290,7 +297,14 @@ def activity(database, run_id, limit=80, after_id=0, severity='', stage='', kind
 def live_urls(database, run_id, limit=20, type='', host_filter='', errors=False, missing=False):
     filters = {'sort': 'updated', 'order': 'desc', 'type': type, 'host': host_filter,
                'corpus_status': 'failed' if errors else 'missing' if missing else 'all'}
-    return url_page(database, run_id, filters, page_size=limit)['items']
+    # Live activity only needs recent rows, not two whole-inventory aggregates
+    # on every poll. The inventory endpoint still returns its full counters.
+    where, args = _filters(filters)
+    with closing(_connect_readonly(database)) as connection:
+        rows = connection.execute(_cte(connection) + f'''SELECT * FROM inventory WHERE {where}
+            ORDER BY COALESCE(checked_at,fetched_at,discovered_at) DESC,id DESC LIMIT ?''',
+            (run_id, *args, limit)).fetchall()
+    return [_decorate(row) for row in rows]
 
 
 def sites(database):
@@ -342,5 +356,5 @@ def analysis(database, run_id):
         'max_browser_actions', 'max_filter_values', 'maximum_pagination_probe', 'browser_challenge_wait_seconds',
         'max_concurrency', 'website_delay_seconds', 'request_timeout_seconds', 'max_retries')}
     comparable = [item for item in history(database) if site_key(item['target_url']) == site_key(current['target_url']) and comparison(item) == comparison(current) and item['corpus_url'] == current['corpus_url']]
-    result['history'] = [{'Run': item['id'], 'Started': item['started_at'], **{key: value for key, value in summary(database, item['id'])['metrics'].items() if key in {'discovered', 'eligible', 'found', 'missing', 'unverified', 'verified_coverage'}}} for item in comparable[:12]]
+    result['history'] = [{'Run': item['id'], 'Started': item['started_at'], **{key: value for key, value in summary(database, item['id'], compact=True)['metrics'].items() if key in {'discovered', 'eligible', 'found', 'missing', 'unverified', 'verified_coverage'}}} for item in comparable[:12]]
     return result

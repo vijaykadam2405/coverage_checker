@@ -1,0 +1,597 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  Mallory — CRAWLER-ONLY stack (Layer 1). "We only build the crawler."
+#  Run:  docker compose -f docker-compose.crawler.yml up -d --build
+#
+#  Services (host ports):  postgres :5433 · minio :9000 (console :9001) · crawler-api :8099 · ingest :9090
+#  The crawler's dump = MinIO bucket `mallory-raw` (pdf blobs, written directly) +
+#  the ingest service, which lands each kept doc in Postgres `documents` and an ndjson audit.
+# ═══════════════════════════════════════════════════════════════════════════
+name: mallory-crawler
+
+services:
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-mallory}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-mallory123}
+    ports: ["9000:9000", "9001:9001"]
+    volumes: ["miniodata:/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "mc alias set h http://localhost:9000 ${MINIO_ROOT_USER:-mallory} ${MINIO_ROOT_PASSWORD:-mallory123} && mc ready h || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # One-shot: create the mallory-raw bucket (the crawler's blob dump), then exit.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_started
+    entrypoint: >
+      sh -c "until mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-mallory} ${MINIO_ROOT_PASSWORD:-mallory123}; do sleep 2; done &&
+             mc mb -p local/mallory-raw || true &&
+             mc anonymous set download local/mallory-raw || true &&
+             echo 'bucket ready'"
+    restart: "no"
+
+  # ── Postgres — holds ONLY the `documents` table (the crawler's structured dump, written by the
+  #    ingest landing). L2 runs SEPARATELY with its own DB; none of L2's ~35 analysis tables live here.
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mallory}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mallory}
+      POSTGRES_DB: mallory
+    ports: ["5433:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mallory}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Crawler API (8099) — paste jobs here; forwards docs to the ingest landing (+ optional L2) ──
+  crawler-api:
+    build: ./crawler
+    init: true                              # tini reaps zombie Chromium children
+    # The only service that was left on Docker's default (`no`) while every other one restarts.
+    # It is also the one doing the work: it aborted mid-crawl with SIGABRT (glibc "corrupted size
+    # vs. prev_size", a native heap fault, not OOM) 65 minutes into an 802-site run and simply
+    # stayed dead — dashboard red, crawl over, nothing retrying. A crash in native code cannot be
+    # caught in Python, so surviving one is a supervision setting, not a code change.
+    restart: unless-stopped
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      CRAWLER_API_PORT: "8099"
+      CRAWLER_ALLOW_NETWORK: "1"
+      CRAWLER_PREFER_FIXTURES: "0"
+      # ── Arming ───────────────────────────────────────────────────────────────────────────────
+      # Set (to the SAME value as the orchestrator's) and the crawl-STARTING routes refuse any
+      # request the orchestrator did not send. EMPTY = OPEN, exactly as before this existed. On
+      # rollout set the orchestrator's copy first, then this one. See crawler_api/app.py
+      # `require_armed`. Every scaled sibling `extends` this service, so they inherit it.
+      CRAWLER_ARM_TOKEN: ${CRAWLER_ARM_TOKEN:-}
+      # ── Fleet telemetry — OFF by default ─────────────────────────────────────────────────────
+      # The heartbeat existed to answer "which of my several machines is crawling what" from a
+      # separate dashboard at the centre. The crawler now runs ON the centre, so there is one node,
+      # its own dashboard already shows everything the fleet page did, and the fleet dashboard has
+      # been removed. Leaving the heartbeat on would keep writing fleet_nodes/fleet_samples rows
+      # that nothing reads.
+      #
+      # The writer is still here and still costs nothing when off: set FLEET_HEARTBEAT=1 and point
+      # FLEET_DSN at the centre if a second crawling machine is ever added. NAME EVERY MACHINE if
+      # you do — the default is the hostname, and two boxes cloned from one image share it.
+      MALLORY_NODE_ID: ${MALLORY_NODE_ID:-}
+      FLEET_DSN: ${FLEET_DSN:-}
+      FLEET_HEARTBEAT_S: ${FLEET_HEARTBEAT_S:-15}
+      FLEET_HEARTBEAT: ${FLEET_HEARTBEAT:-0}
+      # Needed for the push-backlog figure on the dashboard ("how much has this machine captured
+      # that the centre has NOT accepted yet") and for the local landing when the tunnel is down.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://mallory:mallory@postgres:5432/mallory}
+      DATA_CENTRE_DSN: ${DATA_CENTRE_DSN:-}
+      # Browser pool (async multi-tab engine — the sole engine).
+      CRAWLER_BROWSERS: "${CRAWLER_BROWSERS:-12}"
+      CRAWLER_TABS_PER_BROWSER: "${CRAWLER_TABS_PER_BROWSER:-16}"
+      # Tab pool — decouples httpx concurrency from Chromium tabs. In the legacy model one worker
+      # owns one tab, so a 97%-httpx crawl still launches BROWSERS*TABS Chromium tabs that only hold
+      # RAM (measured ~10GB of idle tabs on a crawl that renders 3% of pages), and cutting tabs to
+      # save RAM also cut httpx concurrency. With TAB_POOL=1, WORKERS_N tab-less workers pull the
+      # frontier and borrow a tab only for a real render — so httpx concurrency (WORKERS_N) is set
+      # independently of tab RAM (BROWSERS*TABS). For an httpx sweep: TAB_POOL=1, small BROWSERS/TABS
+      # (e.g. 6x8=48 tabs), WORKERS_N=256. Default OFF = unchanged one-worker-per-tab behaviour.
+      CRAWLER_TAB_POOL: "${CRAWLER_TAB_POOL:-0}"
+      CRAWLER_WORKERS_N: "${CRAWLER_WORKERS_N:-256}"
+      CRAWLER_WORKERS: "${CRAWLER_WORKERS:-1}"        # >1 = multi-process shard (cross-core for many sites)
+      # Big IO thread pool: httpx fetch/build/send run via to_thread; the default ~28-thread pool caps
+      # a whole-site httpx crawl regardless of tabs. This is the lever for keyword=false sweeps.
+      CRAWLER_IO_THREADS: "${CRAWLER_IO_THREADS:-256}"
+      # Adaptive render concurrency + RAM brake (governs RENDERS; httpx scales via IO_THREADS above).
+      CRAWLER_ADAPTIVE_CONCURRENCY: "${CRAWLER_ADAPTIVE_CONCURRENCY:-1}"
+      CRAWLER_CPU_TARGET: "${CRAWLER_CPU_TARGET:-90}"
+      CRAWLER_ADAPTIVE_MIN: "${CRAWLER_ADAPTIVE_MIN:-4}"
+      CRAWLER_ADAPTIVE_STEP: "${CRAWLER_ADAPTIVE_STEP:-2}"
+      CRAWLER_RAM_TARGET: "${CRAWLER_RAM_TARGET:-85}"
+      CRAWLER_RAM_HARD: "${CRAWLER_RAM_HARD:-92}"
+      # Cheap renders + finalizer pool.
+      CRAWLER_BLOCK_ASSETS: "${CRAWLER_BLOCK_ASSETS:-1}"
+      CRAWLER_NETWORKIDLE_MS: "${CRAWLER_NETWORKIDLE_MS:-1500}"
+      CRAWLER_FINALIZERS: "${CRAWLER_FINALIZERS:-32}"
+      CRAWLER_FINALIZE_QUEUE: "${CRAWLER_FINALIZE_QUEUE:-200}"
+      # Per-host politeness (adaptive across the batch's seed hosts; .gov/.mil forced to 1).
+      CRAWLER_HOST_CONCURRENCY_FLOOR: "${CRAWLER_HOST_CONCURRENCY_FLOOR:-3}"
+      CRAWLER_HOST_CONCURRENCY_CEIL: "${CRAWLER_HOST_CONCURRENCY_CEIL:-48}"
+      CRAWLER_HOST_DELAY: "${CRAWLER_HOST_DELAY:-0.3}"
+      # Max tabs allowed to QUEUE on one host's permit before further items are requeued instead of
+      # parking a tab. The permit wait is unbounded and runs inside the item watchdog, so without
+      # this a conc=1 host silently converts the tab pool into a waiting room (measured: 97% of item
+      # timeouts were on conc=1 hosts; one host parked 22 tabs for 240s each).
+      CRAWLER_HOST_QUEUE_MAX: "${CRAWLER_HOST_QUEUE_MAX:-2}"
+      # PER-HOST override of the line above, "host:n,host:n". The single global number is what let
+      # four hosts hold a 45,825-deep render queue with 197 give-ups in five minutes at a median
+      # wait of 42 minutes, while CamoFox sat at 16% CPU. Raising it globally would be reckless;
+      # raising it for hosts that demonstrably tolerate it is the whole point. Evidence for these
+      # five: across all twelve frontiers the number of pages ANY host has rate-limited us on is
+      # zero — no 429, no Retry-After, no rate_limited row. The 2 was a guess, not a response.
+      # A listed domain covers its subdomains (zf.com also lifts www.zf.com).
+      CRAWLER_HOST_QUEUE_MAX_HOSTS: "${CRAWLER_HOST_QUEUE_MAX_HOSTS:-zf.com:6,rtx.com:6,sncorp.com:6,winchester.com:6,safran-group.com:6}"
+      # Menu-accumulation cap: how many DEEP paths one host may contribute. rusbitech.ru produced
+      # 24,436 URLs with no repeated segment (invisible to every stateless trap rule) for 34 stored
+      # pages. 5,000 is 2.5x the deepest real site measured (safran, 2,002 at depth >= 6).
+      CRAWLER_HOST_DEEP_CAP: "${CRAWLER_HOST_DEEP_CAP:-5000}"
+      CRAWLER_HOST_DEEP_DEPTH: "${CRAWLER_HOST_DEEP_DEPTH:-6}"
+      # Per-HOST total of QUERY-variant URLs, on top of the per-path facet/pagination caps. Those
+      # are per (host,path) and cannot see a site with thousands of paths each taking its full
+      # allowance: shvabe.com hangs ?PAGEN_1=N on every news article, ~2,588 paths x ~18 = 42,010
+      # pending URLs without a single path exceeding 20. Largest genuine user measured across all
+      # twelve frontiers is gdbiw.com at 6,668, then wartsila at 2,121.
+      CRAWLER_HOST_QUERY_CAP: "${CRAWLER_HOST_QUERY_CAP:-10000}"
+      CRAWLER_HOST_BUSY_REQUEUE_S: "${CRAWLER_HOST_BUSY_REQUEUE_S:-3}"
+      # Wall-clock give-up for a batch that has drained to one blocked host. Without it the
+      # scheduler deflects the same items forever at ~0.1 pages/s and the batch never finishes;
+      # past this budget the remaining URLs are logged host_busy and the batch completes.
+      CRAWLER_HOST_DEFLECT_BUDGET_S: "${CRAWLER_HOST_DEFLECT_BUDGET_S:-180}"
+      # Per-item watchdog. Back to 240s: lowering it to 90 only made items abandon sooner without
+      # addressing WHY they were stuck (waiting on a render permit), and it discarded genuinely
+      # slow-but-working renders. The render permit knobs below are what free the tab.
+      CRAWLER_ITEM_TIMEOUT_S: "${CRAWLER_ITEM_TIMEOUT_S:-240}"
+      # Max concurrent renders ONE host may hold out of the global pool. Without this, a single
+      # render-heavy site takes every permit and starves every other host (measured: 99 item
+      # timeouts on one host in 3min, zero HTTP requests issued — all parked on the global gate).
+      CRAWLER_HOST_RENDER_MAX: "${CRAWLER_HOST_RENDER_MAX:-8}"
+      # How long an item waits for a render permit before being requeued instead of parking a tab.
+      CRAWLER_RENDER_WAIT_S: "${CRAWLER_RENDER_WAIT_S:-8}"
+      # Hosts forced to "careful" (concurrency 1 + patient timeout): .gov/.mil by default.
+      CRAWLER_CAREFUL_HOSTS: "${CRAWLER_CAREFUL_HOSTS:-.gov,.mil}"
+      # Per-host concurrency caps for weak/flaky no-bot servers (host=N,...) — light httpx, no render.
+      CRAWLER_HOST_CONCURRENCY_OVERRIDE: "${CRAWLER_HOST_CONCURRENCY_OVERRIDE:-}"
+      # Big-site fill: the per-host cap is frozen at batch start from the SEED host count, so when
+      # the small sites finish the surviving big hosts stay pinned there and the pool idles (6 of
+      # 256 workers on a 40k-page site). While work remains and the pool is under BUSY, grow the
+      # ACTIVE hosts toward tabs//active_hosts, capped at MAX. Growth-only; careful hosts exempt.
+      CRAWLER_HOST_FILL: "${CRAWLER_HOST_FILL:-1}"
+      CRAWLER_HOST_CONCURRENCY_MAX: "${CRAWLER_HOST_CONCURRENCY_MAX:-64}"
+      CRAWLER_HOST_FILL_BUSY: "${CRAWLER_HOST_FILL_BUSY:-0.75}"
+      CRAWLER_STRICT_DOMAIN: "${CRAWLER_STRICT_DOMAIN:-1}"
+      CRAWLER_FRONTIER: "${CRAWLER_FRONTIER:-dfs}"
+      CRAWLER_RENDER_MODE: "${CRAWLER_RENDER_MODE:-auto}"   # httpx-first; render only JS pages
+      CRAWLER_FORCE_INCREMENTAL: "${CRAWLER_FORCE_INCREMENTAL:-0}"  # 304-skip unchanged pages on every job
+      CRAWLER_AUTO_INTERACT: "${CRAWLER_AUTO_INTERACT:-1}"   # 0 = skip scroll/hover/load-more (cheaper renders)
+      CRAWLER_RESPECT_ROBOTS: "${CRAWLER_RESPECT_ROBOTS:-0}"
+      CRAWLER_IGNORE_HTTPS_ERRORS: "${CRAWLER_IGNORE_HTTPS_ERRORS:-1}"
+      # PDFs: fetch + store bytes only (L2 parses them). Extraction holds the GIL — keep OFF.
+      CRAWLER_PDF_EXTRACT: "${CRAWLER_PDF_EXTRACT:-0}"
+      CRAWLER_PDF_TABLES: "${CRAWLER_PDF_TABLES:-0}"
+      CRAWLER_ASSET_POOL: "${CRAWLER_ASSET_POOL:-24}"
+      # Circuit breaker + dead-host recovery (Wayback/CamoFox).
+      CRAWLER_HOST_HARD_FAILS: "${CRAWLER_HOST_HARD_FAILS:-6}"
+      CRAWLER_HOST_COOLDOWN_S: "${CRAWLER_HOST_COOLDOWN_S:-120}"
+      CRAWLER_PROXY_URL: "${CRAWLER_PROXY_URL:-}"
+      DVIDS_API_KEY: "${DVIDS_API_KEY:-}"
+      # C3 CamoFox stealth fallback (bring up with --profile camofox).
+      CAMOFOX_ENABLED: "${CAMOFOX_ENABLED:-1}"
+      # May be a COMMA-SEPARATED POOL of CamoFox servers. Hardcoded until 2026-08-31, which
+      # silently ignored CAMOFOX_URL in .env - the fleet kept aiming all 24 concurrent
+      # renders at one server while the operator believed seven were in use.
+      CAMOFOX_URL: "${CAMOFOX_URL:-http://camofox:9377}"
+      CAMOFOX_API_KEY: "${CAMOFOX_API_KEY:-mallory-camofox-key}"
+      # ── Commercial CAPTCHA solver (crawler/captcha_solver.py). OFF unless a provider + key are set;
+      # an empty key = null solver = no spend. Solves real reCAPTCHA/hCaptcha/Turnstile WIDGETS on
+      # target sites. It does NOT touch the Cloudflare managed challenge (that's the free coordinate
+      # click) or reCAPTCHA v3 / DataDome (a per-sitekey token can't solve those). Daily budget is a
+      # hard USD ceiling; per-solve cost cap defaults to $0.05.
+      CAPTCHA_PROVIDER: "${CAPTCHA_PROVIDER:-}"
+      CAPTCHA_API_KEY: "${CAPTCHA_API_KEY:-}"
+      CAPTCHA_DAILY_BUDGET_USD: "${CAPTCHA_DAILY_BUDGET_USD:-5}"
+      CAPTCHA_MAX_COST_USD: "${CAPTCHA_MAX_COST_USD:-0.05}"
+      # ── Image-text captcha OCR-solve (async_engine._solve_image_text_captcha). Distorted-text gates
+      # (ASP.NET CaptchaImage.axd etc.) are read with the LOCAL vision model — free, no provider. On by
+      # default; only fires on pages carrying a captcha image. host.docker.internal reaches host Ollama.
+      CRAWLER_CAPTCHA_OCR: "${CRAWLER_CAPTCHA_OCR:-1}"
+      CRAWLER_OCR_URL: "${CRAWLER_OCR_URL:-http://host.docker.internal:11434}"
+      CRAWLER_OCR_MODEL: "${CRAWLER_OCR_MODEL:-qwen2.5vl:7b}"
+      # ── C4 host solver (crawler/hostsolver.py). Cloudflare INTERACTIVE challenges never clear from
+      # inside Docker (llvmpipe is blocked; the host's real GPU passes), so an interactive wall is
+      # handed OUT to scripts/host_solver.py running on the Windows host. OFF unless the URL is set —
+      # a deployment without the host service records the wall and moves on, exactly as before. Start
+      # it with:  ucvenv/Scripts/python.exe scripts/host_solver.py   (listens on the host's :9390)
+      CRAWLER_HOST_SOLVER_URL: "${CRAWLER_HOST_SOLVER_URL:-}"
+      CRAWLER_HOST_SOLVER_TIMEOUT_S: "${CRAWLER_HOST_SOLVER_TIMEOUT_S:-180}"
+      # ── PAID egress access control (crawler/paid_proxy.py). All spend decisions read these. ──
+      # OFF unless BRIGHTDATA_ENABLED=1 *and* the host is in BRIGHTDATA_HOSTS *and* the daily cap
+      # has room *and* the free tiers were already tried. Any one of those failing = no spend.
+      BRIGHTDATA_ENABLED: "${BRIGHTDATA_ENABLED:-0}"
+      BRIGHTDATA_HOSTS: "${BRIGHTDATA_HOSTS:-}"           # comma-separated; EMPTY grants nothing
+      BRIGHTDATA_DAILY_REQUESTS: "${BRIGHTDATA_DAILY_REQUESTS:-500}"
+      CAMOFOX_PAID_URL: "${CAMOFOX_PAID_URL:-http://camofox-paid:9377}"
+      PAID_PROXY_USAGE_FILE: /app/data/paid_proxy_usage.json   # on crawlerdata: cap survives restarts
+      # C3 fresh-IP retry on a CDN IP-block (Akamai "Access Denied"). OFF by default: only useful once
+      # CamoFox egresses through a ROTATING proxy (residential gateway / PolyProxy w/ good upstreams),
+      # else fresh sessions reuse the same blocked IP. Flip to 1 after wiring a proxy. Free/datacenter
+      # proxies do NOT beat reputation blocks like war.gov — needs residential.
+      CRAWLER_C3_PROXY_RETRY: "${CRAWLER_C3_PROXY_RETRY:-0}"
+      CRAWLER_C3_PROXY_RETRIES: "${CRAWLER_C3_PROXY_RETRIES:-2}"
+      # Deferred C3 lane: blocked pages (WAF/403) go to a tab-less drainer pool instead of parking a
+      # tab-worker on the ~90s stealth render — so a WAF-blocked section (mbda /careers/) can't wedge
+      # the pool or stall the batch. C3 concurrency stays capped by CRAWLER_CAMOFOX_CONCURRENCY.
+      CRAWLER_DEFER_C3: "${CRAWLER_DEFER_C3:-1}"
+      # C3 lane width. MUST be raised together with the camofox service's MAX_SESSIONS/MAX_TABS_GLOBAL
+      # below — the engine semaphore is not the real ceiling; requests past the service's session cap
+      # just queue inside CamoFox. 12 ≈ 2x the old 6 and fits the host's RAM beside the Chromium pool.
+      CRAWLER_C3_WORKERS: "${CRAWLER_C3_WORKERS:-12}"
+      # How many CamoFox userIds THIS instance rotates through. camofox_client derives its userId
+      # prefix from the container hostname, so this multiplies by the fleet size: the default of 4
+      # across 12 instances is 48 distinct sessions against MAX_SESSIONS=28, and CamoFox then evicts
+      # and rebuilds browser contexts continuously. Keep it equal to CRAWLER_C3_WORKERS — a worker
+      # drives one tab at a time, so spare userIds buy nothing and only consume the session cap.
+      CRAWLER_CAMOFOX_POOL: "${CRAWLER_CAMOFOX_POOL:-2}"
+      CRAWLER_CAMOFOX_CONCURRENCY: "${CRAWLER_CAMOFOX_CONCURRENCY:-12}"
+      CRAWLER_C3_QUEUE: "${CRAWLER_C3_QUEUE:-2000}"
+      # Auto-careful: a host that refuses/resets/times-out this many times under load is dropped to
+      # concurrency 1 mid-crawl (and remembered for next run) — the SIPRI weak-host fix.
+      # 3 was too eager. MEASURED: under load 147 ordinary timeouts promoted hosts faster than
+      # they expired — the careful set went 453 -> 0 -> 62 within hours of being cleared, and
+      # 7 of i10's top 8 hosts were pinned at concurrency 1 while it burned 12.7 cores for 37
+      # fetches. That is a feedback loop: load causes timeouts, timeouts throttle hosts,
+      # throttled hosts make workers spin, spinning raises load.
+      CRAWLER_HOST_WEAK_FAILS: "${CRAWLER_HOST_WEAK_FAILS:-12}"
+      # How long an auto-careful mark lasts before it is re-tested. Without this line the knob
+      # exists in code and cannot be tuned from .env — the exact trap that has bitten this
+      # compose file repeatedly; see tests/test_env_knobs_are_wired.py.
+      CRAWLER_CAREFUL_TTL_H: "${CRAWLER_CAREFUL_TTL_H:-6}"
+      # needs-network-path final pass: after the crawl drains, retry WAF/IP-blocked URLs through a
+      # US/residential egress. Needs CRAWLER_C3_PROXY_RETRY=1 + a proxy; else it logs the count and
+      # leaves the URLs in crawl_pages for a future run.
+      CRAWLER_NETPATH_FINAL: "${CRAWLER_NETPATH_FINAL:-0}"
+      CRAWLER_NETPATH_MAX: "${CRAWLER_NETPATH_MAX:-5000}"
+      CRAWLER_NETPATH_DRAIN_S: "${CRAWLER_NETPATH_DRAIN_S:-600}"
+      # C1 hardening (Scrapling-derived) — all ON by default:
+      #  STEALTH        = drop the automation fingerprint (webdriver flag + init-script) on C1 Chromium
+      #  BLOCK_TRACKERS = abort known ad/analytics beacons at the wire (faster renders, less fingerprint)
+      #  IMPERSONATE    = cheap curl_cffi real-Chrome JA3 GET on a 401/403 before spending a browser/C3
+      CRAWLER_STEALTH: "${CRAWLER_STEALTH:-1}"
+      CRAWLER_BLOCK_TRACKERS: "${CRAWLER_BLOCK_TRACKERS:-1}"
+      CRAWLER_IMPERSONATE_FETCH: "${CRAWLER_IMPERSONATE_FETCH:-1}"
+      # DNS-over-HTTPS (opt-in): set a template to route Chromium DNS over HTTPS in SECURE mode (no
+      # plaintext fallback ⇒ no DNS leak behind a proxy). Empty = off. e.g. https://cloudflare-dns.com/dns-query
+      CRAWLER_DOH_TEMPLATE: "${CRAWLER_DOH_TEMPLATE:-}"
+      # Dev fetch-cache (off): replay the httpx path from disk so extraction/gate changes re-run offline.
+      CRAWLER_DEV_CACHE: "${CRAWLER_DEV_CACHE:-0}"
+      # No wall-clock chop: a crawl runs until the site is exhausted (frontier empty), max_pages is
+      # hit, or the operator hits Stop. Set to a positive seconds value only to re-arm a backstop for
+      # a known-runaway site.
+      CRAWLER_ENGINE_WALL_CLOCK_S: "${CRAWLER_ENGINE_WALL_CLOCK_S:-0}"
+      # Careful (.gov/.mil) pages via C3+VPN are slow (~160s/page): raise the idle-terminate window
+      # so a slow single seed page completes instead of the engine giving up mid-render. A cooling
+      # host also heartbeats this timer (CRAWLER_SLOT_HEARTBEAT_S), so it only fires on a true wedge.
+      CRAWLER_ENGINE_IDLE_S: "${CRAWLER_ENGINE_IDLE_S:-900}"
+      INGEST_BASE_URL: http://ingest:9090          # the ingest landing (Postgres + ndjson + dashboard)
+      MINIO_ENDPOINT: ${CRAWLER_MINIO_ENDPOINT:-minio:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-mallory}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-mallory123}
+      MINIO_BUCKET: ${MINIO_BUCKET:-mallory-raw}
+      MINIO_SECURE: ${MINIO_SECURE:-0}             # 1 = HTTPS/TLS (prod endpoint); 0 = plain http (local)
+    volumes: ["crawlerdata:/app/data"]       # crawl_history.sqlite (dedup / incremental memory)
+    ports: ["8099:8099"]
+    command: ["python", "run.py", "crawler-api"]
+
+  # ── Ingest landing (9090) — appends each kept doc to ndjson + serves the raw-pages dashboard ──
+  ingest:
+    build: ./crawler
+    init: true
+    restart: unless-stopped
+    mem_limit: 2g
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    environment:
+      # Persist each captured doc to the Postgres `documents` table (ingest_api.pgstore creates it on
+      # first write). Unset this to run ndjson-only (no Postgres).
+      DATABASE_URL: ${DATABASE_URL:-postgresql://mallory:mallory@postgres:5432/mallory}
+      MINIO_ENDPOINT: ${CRAWLER_MINIO_ENDPOINT:-minio:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-mallory}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-mallory123}
+      MINIO_BUCKET: ${MINIO_BUCKET:-mallory-raw}
+      MINIO_SECURE: ${MINIO_SECURE:-0}             # 1 = HTTPS/TLS (prod endpoint); 0 = plain http (local)
+      # Live Data dashboard polls the running batch from crawler-api.
+      CRAWLER_API_URL: ${CRAWLER_API_URL:-http://crawler-api:8099}
+      # How long the corpus rollups are cached. MEASURED at 1.07M documents: live_summary is a
+      # DISTINCT ON scan taking 33s, so the old 30s TTL meant it ran continuously and the
+      # dashboard's corpus tile timed out over a healthy database. Must stay above the query.
+      INGEST_ROLLUP_TTL_S: "${INGEST_ROLLUP_TTL_S:-300}"
+      # The corpus-wide dedup audit — 8m07s measured. An audit, not a live gauge.
+      INGEST_QUALITY_TTL_S: "${INGEST_QUALITY_TTL_S:-3600}"
+      # MinIO object count walks the whole bucket — 26.7s measured at ~100 GB. Same rule.
+      INGEST_MINIO_TTL_S: "${INGEST_MINIO_TTL_S:-300}"
+      # The SAME machine identity crawler-api uses. ingest is what actually writes the `documents`
+      # row, so without this the corpus would be stamped with the ingest CONTAINER's hostname
+      # instead of the machine that captured the page — and every node would look different from
+      # its own heartbeat. One stack per machine, one id, set once in .env.
+      MALLORY_NODE_ID: ${MALLORY_NODE_ID:-}
+      # OFF by default: data leaves this machine only when someone presses Push on the :8090
+      # dashboard, after a confirm naming the destination and the row count. Verify (next to it)
+      # shows what Push would do. Set PUSH_AUTO=1 only for an unattended node you want shipping
+      # on a timer.
+      PUSH_AUTO: ${PUSH_AUTO:-0}
+      PUSH_AUTO_EVERY_S: ${PUSH_AUTO_EVERY_S:-60}
+      PUSH_AUTO_LIMIT: ${PUSH_AUTO_LIMIT:-200}
+      # ── Data centre (your data-centre host) ────────────────────────────────────────────────────────
+      # Reached over the SSH tunnel in docker-compose.tunnel.yml, which forwards the server's
+      # Postgres to db-tunnel:5432 and its MinIO to db-tunnel:9000. There is no HTTP ingest API on
+      # the far side: the crawler normally writes into that Postgres directly, and when the tunnel
+      # is down a run lands in the LOCAL Postgres instead of being lost. "Push to data centre" on
+      # the :8090 dashboard copies that backlog across. Credentials are the PROD_* values from
+      # .env.deploy. Unset DATA_CENTRE_DSN = the button refuses rather than pushing into the void.
+      DATA_CENTRE_DSN: ${DATA_CENTRE_DSN:-}
+      # Set to 1 on a crawler deployed ON the centre, where DATABASE_URL above already points at
+      # the corpus. There is then no second database to push to and DATA_CENTRE_DSN is correctly
+      # unset — this is what stops the dashboard reporting that absence as a missing configuration.
+      CRAWLER_AT_CENTRE: ${CRAWLER_AT_CENTRE:-0}
+      DATA_CENTRE_MINIO: ${DATA_CENTRE_MINIO:-}
+      DATA_CENTRE_MINIO_KEY: ${DATA_CENTRE_MINIO_KEY:-}
+      DATA_CENTRE_MINIO_SECRET: ${DATA_CENTRE_MINIO_SECRET:-}
+      DATA_CENTRE_MINIO_BUCKET: ${DATA_CENTRE_MINIO_BUCKET:-mallory-raw}
+    volumes: ["ingestdata:/app/data"]        # output/ingested.ndjson (the doc dump)
+    ports: ["9090:9090"]
+    # REQUIRED. Without this the image's default CMD (run.py crawler-api, :8099) runs here instead,
+    # so nothing binds 9090: the dashboard is unreachable AND every crawl POST to the ingest lands
+    # nowhere. run.py cmd_serve hardcodes 9090, so the published port must match.
+    command: ["python", "run.py", "serve"]
+
+  # ── Orchestrator + operator dashboard (:8090) ─────────────────────────────────────────────────
+  # The screen an operator actually uses on a crawling machine: sources, schedule, category
+  # switches, run history — and "Verify data" / "Push to data centre". docker-compose.tunnel.yml
+  # already declares a depends_on for this service, so without it here `-f … -f tunnel` fails on an
+  # undefined service and the machine comes up with no dashboard at all.
+  orchestrator:
+    build: ./orchestrator
+    init: true
+    restart: unless-stopped
+    depends_on:
+      crawler-api:
+        condition: service_started
+    environment:
+      CRAWLER_API: http://crawler-api:8099        # compose service name, not localhost
+      # The arming secret sent on every crawl-starting POST (X-Mallory-Arm). Must equal the
+      # crawler-api value; empty sends nothing. Set HERE first, then on the instances.
+      CRAWLER_ARM_TOKEN: ${CRAWLER_ARM_TOKEN:-}
+      # The ingest landing owns Postgres `documents` + the MinIO bucket. The orchestrator has
+      # only its own SQLite control plane, so every "what did we actually capture" number on
+      # the dashboard is proxied from here instead of being guessed from its run history —
+      # including the Verify report and the Push button's backlog.
+      INGEST_API_URL: ${INGEST_API_URL:-http://ingest:9090}
+      DATABASE_URL: sqlite:////data/orchestrator.db   # named volume — SQLite-safe, survives rebuilds
+      SEED_DIR: /app/seed_data
+      SCHEDULER_TICK: "${SCHEDULER_TICK:-20}"
+      # -- the DAILY lane --------------------------------------------------------------------
+      # Instances (indices into CRAWLER_API_POOL) that run seed_data/daily_urls.txt: the defence
+      # news sites that publish several times a day and are worthless fetched a day late. Empty
+      # disables the lane entirely and every line of daily-lane code no-ops.
+      #
+      # PRIORITY mode (EXCLUSIVE=0, the default) is deliberate: these instances still OWN catalogue
+      # domains and work the gov / think-tank backlog between daily sweeps. Catalogue work bound
+      # for them is held only while a daily site is actually due, and a catalogue crawl already in
+      # flight is never interrupted -- so the day's first sweep can be late by up to the length of
+      # that crawl. daily.overdue() counts the sites that happened to, so the trade is visible
+      # instead of discovered. EXCLUSIVE=1 buys punctuality by leaving them idle once the list is
+      # clear, which on a fleet with a 200k-page backlog is the more expensive of the two.
+      CRAWLER_DAILY_INSTANCES: "${CRAWLER_DAILY_INSTANCES:-}"
+      CRAWLER_DAILY_EXCLUSIVE: "${CRAWLER_DAILY_EXCLUSIVE:-0}"
+      DAILY_TICK: "${DAILY_TICK:-60}"
+      # How many instances may crawl AT ONCE. It is a CPU budget, not a fleet size: 8 was derived
+      # from ~3.7 cores per instance on content-rich sites, against a 30-core budget.
+      #
+      # It is worth re-deriving when the WORKLOAD changes, because the cost per instance is not a
+      # constant. Measured while finishing the catalogue tail — sites that mostly time out rather
+      # than render — the whole fleet drew 3.1 cores, ~0.4 each, so 8 left the box at a tenth of its
+      # allowance while 161 sites waited. Raise it for a tail like that, put it back for a real
+      # crawl. 0 disables the cap entirely.
+      CRAWLER_MAX_BUSY_INSTANCES: "${CRAWLER_MAX_BUSY_INSTANCES:-8}"
+      # Due sites handed to ONE instance per tick. At 1, the fleet ran 12 politeness-throttled hosts
+      # with 32 tabs idle on each (measured: active=3) and sat in every site's tail between 20s
+      # ticks — 2-3 pages/s, against the 13-20 the first crawl held as many-site manual batches.
+      CRAWLER_JOBS_PER_INSTANCE: "${CRAWLER_JOBS_PER_INSTANCE:-1}"
+      # THE TIMERS ARE OPT-IN TOGGLES IN THE DASHBOARD, NOT ENV VARS (orchestrator policy.py):
+      # auto-refill, the autopilot, the autopilot's assign step, the scheduler tick and the daily
+      # re-pin are each an `auto:<name>` row in app_settings, OFF by default, switched from the
+      # Control panel (POST /api/control/auto) and hard-disabled by Stop. The two env vars below
+      # are only a boot-time hard OFF that keeps the loop from starting at all; leave them at 1 so
+      # the dashboard toggle is the one control.
+      CRAWLER_AUTO_REFILL: "${CRAWLER_AUTO_REFILL:-1}"
+      CRAWLER_AUTOPILOT: "${CRAWLER_AUTOPILOT:-1}"
+      DISPATCH_TIMEOUT: "${DISPATCH_TIMEOUT:-3600}"
+      # ── dashboard login (password + emailed OTP) ──────────────────────────────────────────
+      # OFF by default so a local dev stack stays open. Set DASH_AUTH=1 in .env to arm it; the
+      # service then REFUSES TO START unless the user, password and OTP addresses are all set,
+      # because a security control that silently fails open is worse than none.
+      #
+      # The password is referenced, never defaulted: a fallback here would be the real password
+      # of every deployment that forgot to override it.
+      DASH_AUTH: "${DASH_AUTH:-0}"
+      DASH_ADMIN_USER: "${DASH_ADMIN_USER:-}"
+      DASH_ADMIN_PASSWORD: "${DASH_ADMIN_PASSWORD:-}"
+      # Every address here gets the same code. Editing this list is how an address is added or
+      # revoked — no code change, no image rebuild.
+      DASH_OTP_EMAILS: "${DASH_OTP_EMAILS:-}"
+      DASH_SESSION_HOURS: "${DASH_SESSION_HOURS:-12}"
+      DASH_OTP_MINUTES: "${DASH_OTP_MINUTES:-10}"
+      # Mail goes straight to the recipient's MX — no provider, no account, no API key. These only
+      # set who it claims to be from. A relay is available but unset; see mailer.py.
+      DASH_MAIL_FROM: "${DASH_MAIL_FROM:-mallory-crawler@mssu.ac.in}"
+      DASH_MAIL_HELO: "${DASH_MAIL_HELO:-mallory.mssu.ac.in}"
+      DASH_SMTP_RELAY_HOST: "${DASH_SMTP_RELAY_HOST:-}"
+      DASH_SMTP_RELAY_PORT: "${DASH_SMTP_RELAY_PORT:-587}"
+      DASH_SMTP_RELAY_USER: "${DASH_SMTP_RELAY_USER:-}"
+      DASH_SMTP_RELAY_PASS: "${DASH_SMTP_RELAY_PASS:-}"
+    volumes: ["orchestratordata:/data"]
+    ports: ["8090:8090"]
+
+  # ── PAID C3 egress (Bright Data residential) — MVP: a handful of sites only ────────────────────
+  # A SECOND CamoFox, identical to `camofox` except it egresses through the paid proxy. Separate
+  # container because CamoFox takes its proxy from container env, so per-host routing is impossible
+  # inside one instance. The free `camofox` keeps serving everything else, unchanged.
+  #
+  # Nothing reaches this unless crawler.paid_proxy.allow() says so: master switch OFF by default,
+  # an explicit host allowlist (empty grants nothing), a hard daily request cap, and the caller must
+  # have already tried the free tiers. Adding a host to BRIGHTDATA_HOSTS IS the decision to spend.
+  #
+  #   docker compose --profile paid up -d camofox-paid
+  camofox-paid:
+    profiles: ["paid"]
+    image: ${CAMOFOX_IMAGE:-camofox-browser:local}
+    restart: unless-stopped
+    # 6 sessions x ~0.7g each needs headroom: at 4g this container thrashed and tab creation timed
+    # out 26 times in 5 minutes while succeeding once. Memory, not the target site, was the wall.
+    mem_limit: 6g
+    # Published so a host-side harvester can target THIS instance instead of competing with the
+    # main crawl for the shared camofox tab pool (measured: 13/16 tabs held, tab-create timeouts).
+    ports: ["${CAMOFOX_PAID_PORT:-9379}:9377"]
+    build:
+      context: ./vendor/camofox-browser
+      args:
+        ARCH: x86_64
+        CAMOUFOX_VERSION: "152.0.4"
+        CAMOUFOX_RELEASE: beta.28
+    environment:
+      CAMOFOX_PORT: "9377"
+      CAMOFOX_API_KEY: "${CAMOFOX_API_KEY:-mallory-camofox-key}"
+      MAX_OLD_SPACE_SIZE: "${CAMOFOX_HEAP_MB:-2048}"
+      MAX_SESSIONS: "${CAMOFOX_PAID_MAX_SESSIONS:-1}"     # small pool = a natural spend ceiling
+      MAX_TABS_GLOBAL: "${CAMOFOX_PAID_MAX_TABS:-2}"   # was 4; observed activeTabs=5 + 40 tab-create timeouts
+      SESSION_TIMEOUT_MS: "${CAMOFOX_SESSION_TIMEOUT_MS:-180000}"
+      TAB_INACTIVITY_MS: "${CAMOFOX_TAB_INACTIVITY_MS:-120000}"
+      # Bright Data backconnect gateway. Empty by default: with no credentials this container
+      # egresses direct, which is harmless — the gate is what stops traffic reaching it at all.
+      PROXY_STRATEGY: "${BRIGHTDATA_PROXY_STRATEGY:-}"
+      # MUST be set: camofox defaults to the "decodo" provider, which REWRITES the username into
+      # Decodo's scheme. Applied to a Bright Data username that produces a malformed login and the
+      # proxy refuses the connection (Firefox: NS_ERROR_PROXY_CONNECTION_REFUSED). "generic" passes
+      # the username through untouched, which is what Bright Data needs.
+      PROXY_PROVIDER: "${BRIGHTDATA_PROXY_PROVIDER:-brightdata}"
+      PROXY_BACKCONNECT_HOST: "${BRIGHTDATA_HOST:-}"
+      PROXY_BACKCONNECT_PORT: "${BRIGHTDATA_PORT:-22225}"
+      PROXY_USERNAME: "${BRIGHTDATA_USER:-}"
+      PROXY_PASSWORD: "${BRIGHTDATA_PASS:-}"
+      PROXY_COUNTRY: "${BRIGHTDATA_COUNTRY:-}"
+      PROXY_SESSION_DURATION_MINUTES: "${BRIGHTDATA_SESSION_MINUTES:-10}"
+      # Bright Data Web Unlocker MITMs TLS by design (that is how it defeats bot walls), presenting
+      # its own CA. CamoFox validates a proxy by fetching its public IP over https before launching
+      # the browser; Node rejects the intercepted cert, that check fails, and the container refuses
+      # every render with "Failed to get a public proxy IP address from any API endpoint."
+      # CamoFox exposes no HTTPS-ignore setting, so relax it at the Node layer. Scoped deliberately:
+      # this container exists ONLY to egress through that MITM proxy.
+      # Trust Bright Data's interception CA (see certs/README.md). This is the one that actually
+      # works: camoufox-js verifies the proxy by fetching its public IP over https before it will
+      # launch a browser, and Node's native fetch (undici) ignores NODE_TLS_REJECT_UNAUTHORIZED.
+      # Web Unlocker intercepts TLS, and camoufox-js probes the proxy's public IP with a 5s
+      # impit request that sets no ignoreTlsErrors — so the probe can never pass and the browser
+      # never launches ("Failed to get a public proxy IP address"). geoip only drives geolocation
+      # spoofing, and Web Unlocker does its own anti-bot work, so trade it for a working lane.
+      CAMOFOX_GEOIP: "${CAMOFOX_PAID_GEOIP:-1}"
+      NODE_EXTRA_CA_CERTS: /certs/brightdata_ca.crt
+      NODE_TLS_REJECT_UNAUTHORIZED: "0"
+    volumes:
+      - camofox-profiles:/home/node/.camofox/profiles
+      - ./certs:/certs:ro         # Bright Data interception CA (see certs/README.md)
+  camofox:
+    profiles: ["camofox"]
+    image: ${CAMOFOX_IMAGE:-camofox-browser:local}
+    restart: unless-stopped
+    mem_limit: 8g          # raised with MAX_SESSIONS 8->12: each stealth session is ~0.5-0.7g
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # so C3 can egress via a host-side proxy (Gluetun US VPN)
+    build:
+      context: ./vendor/camofox-browser
+      args:
+        ARCH: x86_64
+        CAMOUFOX_VERSION: "152.0.4"
+        CAMOUFOX_RELEASE: beta.28
+    environment:
+      CAMOFOX_PORT: "9377"
+      CAMOFOX_API_KEY: "${CAMOFOX_API_KEY:-mallory-camofox-key}"
+      MAX_OLD_SPACE_SIZE: "${CAMOFOX_HEAP_MB:-2048}"
+      MAX_SESSIONS: "${CAMOFOX_MAX_SESSIONS:-12}"
+      MAX_TABS_GLOBAL: "${CAMOFOX_MAX_TABS:-16}"
+      # Fingerprint coherence. Measured 2026-07-22 with geoip off + container-OS spoofing, the
+      # browser reported: UA "X11; Linux x86_64", hardwareConcurrency 2, screen 1440x810 and
+      # timezone America/Los_Angeles while the exit IP was in India. A timezone that contradicts
+      # the exit IP is one of the cheapest bot signals there is.
+      #   GEOIP=1 aligns timezone/locale/geolocation with the REAL exit IP (it was previously only
+      #           enabled when a proxy was set, so direct egress never got it).
+      #   OS=windows stops advertising Linux Firefox (~4% of desktops, and it contradicted the
+      #           harden plugin, which already reports os=windows).
+      # After: Windows UA, hardwareConcurrency 16, screen 2560x1440, tz Asia/Kolkata (matches IP).
+      # GEOIP defaults OFF-unless-proxied deliberately. Turning it on globally looked right (it
+      # aligns timezone/locale with the exit IP) but it makes every browser launch depend on
+      # downloading the MaxMind GeoLite DB from the GitHub API at runtime — and when that is rate
+      # limited the launch does not degrade, it FAILS: observed 2026-07-22,
+      # "camoufox launch attempt failed ... Failed to fetch releases from api.github.com after 5
+      # attempts", every /tabs call 500ing. A timezone mismatch lowers a bot score; a failed launch
+      # takes out C3 completely. Set to 1 only once the mmdb is baked into the image or cached.
+      CAMOFOX_GEOIP: "${CAMOFOX_GEOIP:-}"
+      # OS spoof is safe (no network) and fixes the Linux-Firefox tell + the harden-plugin conflict.
+      CAMOFOX_OS: "${CAMOFOX_OS:-windows}"
+      SESSION_TIMEOUT_MS: "${CAMOFOX_SESSION_TIMEOUT_MS:-180000}"
+      TAB_INACTIVITY_MS: "${CAMOFOX_TAB_INACTIVITY_MS:-120000}"
+      PROXY_STRATEGY: "${CAMOFOX_PROXY_STRATEGY:-}"
+      # round_robin mode: route every browser context through a single static upstream (e.g. a
+      # Gluetun/VPNGate US HTTP proxy on the host). host.docker.internal reaches the host's :8888.
+      PROXY_HOST: "${CAMOFOX_PROXY_RR_HOST:-}"
+      PROXY_PORTS: "${CAMOFOX_PROXY_RR_PORTS:-}"
+      PROXY_BACKCONNECT_HOST: "${CAMOFOX_PROXY_HOST:-}"
+      PROXY_BACKCONNECT_PORT: "${CAMOFOX_PROXY_PORT:-7000}"
+      PROXY_USERNAME: "${CAMOFOX_PROXY_USER:-}"
+      PROXY_PASSWORD: "${CAMOFOX_PROXY_PASS:-}"
+      PROXY_COUNTRY: "${CAMOFOX_PROXY_COUNTRY:-}"
+      PROXY_STATE: "${CAMOFOX_PROXY_STATE:-}"
+      PROXY_CITY: "${CAMOFOX_PROXY_CITY:-}"
+      PROXY_SESSION_DURATION_MINUTES: "${CAMOFOX_PROXY_SESSION_DURATION_MINUTES:-10}"
+      CAMOFOX_PERSISTENCE: "${CAMOFOX_PERSISTENCE:-1}"
+      CAMOFOX_EXTENSION_DIR: "/opt/camofox-extensions"
+      CAMOFOX_BUSTER_EXTENSION: "${CAMOFOX_BUSTER_EXTENSION:-/opt/camofox-extensions/buster.xpi}"
+      CAMOFOX_CRASH_REPORT_ENABLED: "${CAMOFOX_CRASH_REPORT_ENABLED:-false}"
+    volumes:
+      - camofox-profiles:/home/node/.camofox/profiles
+      - camofox-cookies:/home/node/.camofox/cookies
+      - camofox-extensions:/opt/camofox-extensions:ro
+    ports: ["9377:9377"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9377/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:           # postgres — the `documents` table (structured doc dump L2 reads)
+  miniodata:        # minio — pdf blobs (mallory-raw/doc/)
+  crawlerdata:      # crawler-api /app/data — crawl_history.sqlite (dedup + incremental recrawl memory)
+  ingestdata:       # ingest /app/data — output/ingested.ndjson (doc audit trail + dashboard)
+  orchestratordata: # orchestrator /data — orchestrator.db (sources, schedule, keywords, run history)
+  camofox-profiles: # persisted CamoFox browser sessions (cookies + localStorage)
+  camofox-cookies:  # Netscape cookie files for known domains
+  camofox-extensions: # Buster captcha solver .xpi and other Firefox extensions

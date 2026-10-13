@@ -1,0 +1,1141 @@
+[
+ {
+  "category": "pagination",
+  "variant": "numbered path (/page/N/)",
+  "url": "https://www.osnews.com/page/2/",
+  "expect": "Numbered path pager on a 27-year-old tech news archive with 1,786 real pages. The crawler must walk /page/N/ to 1786 and stop there: page 1787 is a hard 404, so the terminator is unambiguous and a crawler that keeps incrementing wastes exactly one request finding it.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. Fetched page 1, a middle page, the last page and the page AFTER the last. /page/1/ -> HTTP 200, 172,297 bytes, 20 <article> items, title 'OSnews - Exploring the Future of Computing'. /page/893/ -> HTTP 200, 146,054 bytes, 20 items, title '...- Page 893'. /page/1786/ -> HTTP 200, 136,021 bytes, only 15 items (a partial final page). /page/1787/ -> HTTP 404, 105,190 bytes, 1 item, title 'Page not found &#8211; OSnews - Page 1787'. Total = exactly 1,786 pages.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "numbered path (/page/N/), page 1 is a 404",
+  "url": "https://www.bleepingcomputer.com/page/2/",
+  "expect": "The same /page/N/ shape as the OSnews row but with a trap at BOTH ends: /page/1/ does not exist (the canonical first page is the site root), so a crawler that synthesises page 1 from the pager records a 404 as a dead page and may abandon the whole pager before it starts. The real range is 2..1269.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. /page/1/ -> HTTP 404, 50,913 bytes, 0 news items, title 'Page not found'. /page/635/ -> HTTP 200, 114,859 bytes, 21 items. /page/1269/ -> HTTP 200, 116,847 bytes, 21 items (last real page). /page/1270/ -> HTTP 404, 50,340 bytes, 0 items, title 'Page not found'. So the pager is bounded at 1,269 and page 1 is a 404 while pages 2..1269 are 200 -- both ends misbehave.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "numbered path (/page/N) with rel=next, no terminator until far out",
+  "url": "https://lobste.rs/page/2",
+  "expect": "A rel=\"next\"-annotated numbered path pager that keeps serving a full page of 25 stories thousands of pages deep. There is no 404 and no visible last-page number: the only end-of-data signal is that the item list finally comes back empty AND the rel=next link disappears. A crawler that stops only on a non-200 never stops here.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. /page/1 -> HTTP 200, 58,881 bytes, 25 story links (class=\"u-url\"), 1 rel=next. /page/1000 -> HTTP 200, 59,541 bytes, still 25 stories, still 1 rel=next. /page/2000 -> HTTP 200, 59,174 bytes, still 25 stories, still rel=next. /page/5000 -> HTTP 200 (NOT a 404), 3,733 bytes, 0 stories, 0 rel=next, 12 anchors -- an empty shell. The terminator is 'zero items + no rel=next', never a status code.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "numbered path (/page/N/), overrun serves a constant boilerplate page",
+  "url": "https://www.state.gov/press-releases/page/2/",
+  "expect": "US State Department press-release archive. Past the real end the server does not 404 and does not go empty -- it serves a byte-stable page that still contains 11 boilerplate result markers, so an 'is the page empty?' terminator misreads it as real content and the crawl runs on forever. Only the DROP from 51 items to a constant 11 distinguishes the end.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. /page/1/ -> HTTP 200, 220,264 bytes, 51 'collection-result' markers. /page/107/ -> HTTP 200, 220,424 bytes, 51 markers. /page/214/ -> HTTP 200, 215,816 bytes, 23 markers (partial last page). /page/215/ -> HTTP 200 (not 404), 213,572 bytes, 11 markers. Probing further out: /page/300/, /page/500/, /page/700/ and /page/1000/ all return HTTP 200 with 11 markers and 213,562-213,565 bytes -- a constant non-empty shell. Real content therefore ends at page 214.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "query ?page=N (Discourse), 400 past the end",
+  "url": "https://discuss.python.org/latest?page=2",
+  "expect": "Discourse topic list. Unlike most pagers the overrun is an explicit HTTP 400, not a 404 and not an empty 200 -- so a crawler whose retry policy treats 4xx-other-than-404 as a transient client error will retry the impossible page instead of ending the pager.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?page=0 -> HTTP 200, 299,932 bytes, 30 topic-list-item rows, 2 rel=next markers. ?page=1 -> HTTP 200, 304,134 bytes, 30 rows. ?page=3 -> HTTP 200, 306,390 bytes, 30 rows, title 'Page 4 - Discussions on Python.org'. ?page=9999 -> HTTP 400, 26,673 bytes, 0 rows, title 'Page Not Found - Discussions on Python.org'.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "query ?page=N (Discourse), second independent instance",
+  "url": "https://forum.djangoproject.com/latest?page=2",
+  "expect": "A second, unrelated Discourse forum confirming the HTTP-400-past-the-end behaviour is a platform property rather than one site's quirk -- so a crawler can rely on it, but only if 400 is bucketed as 'end of pager', not as 'retry me'.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?page=0 -> HTTP 200, 309,153 bytes, 30 topic-list-item rows, 2 rel=next markers. ?page=1 -> HTTP 200, 301,347 bytes, 30 rows. ?page=3 -> HTTP 200, 301,870 bytes, 30 rows, title 'Page 4 - Django Forum'. ?page=9999 -> HTTP 400, 28,394 bytes, 0 rows, title 'Page Not Found - Django Forum'. Byte-for-byte the same failure shape as discuss.python.org.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "query ?page=N with rel=next, UK government open-data catalogue",
+  "url": "https://data.gov.uk/search?page=2",
+  "expect": "UK national open-data catalogue search. The pager is machine-readable (rel=next in the head) and the end is an empty 200 rather than an error, so 'follow rel=next until it is absent' is the only correct rule here.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?page=1 -> HTTP 200, 159,894 bytes, 20 result blocks, 2 rel=next markers, 0 rel=prev, title 'Search directory - National Data Library'. ?page=2 -> HTTP 200, 159,280 bytes, 20 results, rel=next AND rel=prev present. ?page=1000 -> HTTP 200, 161,578 bytes, still 20 results. ?page=99999 -> HTTP 200, 143,506 bytes, 0 results (measured on two separate occasions; a third attempt timed out, so this host is slow at extreme offsets and must not be treated as failed).",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "query ?page=N, exact bounded pager (36 pages)",
+  "url": "https://www.contractsfinder.service.gov.uk/Search/Results?page=2",
+  "expect": "UK government procurement notices -- a small, exactly bounded result set, which is the clean control case for the pagination class: 35 full pages, one partial last page, then an empty page. A crawler that gets this wrong gets every larger pager wrong too.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?page=1 -> HTTP 200, 198,515 bytes, 20 result rows. ?page=18 -> HTTP 200, 200,311 bytes, 20 rows. ?page=36 -> HTTP 200, 183,991 bytes, 11 rows (partial last page). ?page=37 -> HTTP 200 (not an error), 165,734 bytes, 0 rows, 30 anchors (chrome only). Total = 36 pages, 711 notices.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "query ?page=N zero-based, US DOJ publications list (579 pages)",
+  "url": "https://www.ojp.gov/library/publications/list?page=2",
+  "expect": "US Office of Justice Programs publications listing -- a real government document catalogue of the kind this crawler targets. The pager is ZERO-based, so a crawler that starts at page=1 silently skips the first 25 records of every such listing.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?page=0 -> HTTP 200, 133,028 bytes, 25 views-row records, 2 rel=next markers. ?page=289 -> HTTP 200, 181,130 bytes, 25 records, rel=next still present. ?page=579 -> HTTP 200, 87,942 bytes, only 5 records and 0 rel=next -- the last page. ?page=580 -> HTTP 200, 68,597 bytes, 0 records. Total = pages 0..579 (580 pages, ~14,480 publications).",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "query ?page=N zero-based (Drupal), empty 200 past the end",
+  "url": "https://news.mit.edu/topic/artificial-intelligence2?page=2",
+  "expect": "MIT News topic archive on Drupal. Zero-based again, and the overrun page is a well-formed HTTP 200 with the correct <title> and 92 navigation anchors but zero articles -- the exact shape that fools a 'did the fetch succeed?' terminator into crawling forever.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?page=0 -> HTTP 200, 94,034 bytes, 135 'term-page--news-article' markers, 1 rel=next. ?page=1 -> HTTP 200, 95,041 bytes, 135 markers. ?page=50 -> HTTP 200, 93,736 bytes, 135 markers, rel=next still present. ?page=9999 -> HTTP 200, 67,260 bytes, 0 markers, 0 rel=next, 92 anchors, and the SAME title 'Artificial intelligence | MIT News | Massachusetts Institute of Technology'.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "query ?page=N with NO terminator found (unbounded)",
+  "url": "https://www.gov.uk/search/all?page=2",
+  "expect": "The unbounded-pager trap. GOV.UK's site-wide search serves a full page of 50 results at page 50,000 exactly as it does at page 1, with no rel=next, no total, no 404 and no empty page anywhere I could reach. There is no in-band way to know when to stop, so a crawler MUST impose its own page cap on this shape or the frontier never drains.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?page=1 -> HTTP 200, 111,234 bytes, 50 'gem-c-document-list__item' results, 0 rel=next. ?page=2 -> HTTP 200, 110,675 bytes, 50 results. ?page=500 and ?page=501 -> HTTP 200, 50 results each. ?page=1000, ?page=5000, ?page=10000 and ?page=50000 -> ALL HTTP 200 with exactly 50 results (112,285 and 112,773 bytes at 10000 and 50000, i.e. genuinely different bodies, not a cached clone). No terminating page was found at any depth probed.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "JSON API ?page=N&per_page=N, HTTP 400 past the end",
+  "url": "https://crates.io/api/v1/crates?page=2&per_page=10",
+  "expect": "The Rust package registry index. Same JSON ?page= shape as the Zenodo row but on unrelated infrastructure, and it carries an explicit meta.total in the body -- so this row is where a crawler should be reading the total instead of probing for the end.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?page=1&per_page=10 -> HTTP 200, 9,283 bytes, 10 \"newest_version\" records. ?page=2 -> HTTP 200, 8,945 bytes, 10 records. ?page=100 -> HTTP 200, 9,211 bytes, 10 records. ?page=99999&per_page=10 -> HTTP 400, 146 bytes, 0 records.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "JSON API ?page=N, page count published as nbPages",
+  "url": "https://hn.algolia.com/api/v1/search?query=python&page=2",
+  "expect": "Algolia-backed Hacker News search. The response publishes nbPages=50 and nbHits=540,844 in the same body -- the two numbers CONTRADICT each other (50 pages x 20 hits = 1,000 reachable of 540,844 matching). A crawler that trusts nbHits to size the job over-plans by 540x; the number it must obey is nbPages.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?page=0 -> HTTP 200, 29,466 bytes, 20 objectID hits. ?page=1 -> HTTP 200, 24,037 bytes, 20 hits. ?page=49 -> HTTP 200, 20,117 bytes, 20 hits (last page with data). ?page=50 -> HTTP 200 (not an error), 642 bytes, 0 hits. Fetching ?page=49 and reading the metadata directly: nbPages=50, nbHits=540844, hitsPerPage=20, page=49 -- so exactly 1,000 of 540,844 hits are reachable.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "JSON API ?page=N, hard 25-page cap then HTTP 400",
+  "url": "https://api.stackexchange.com/2.3/questions?site=stackoverflow&page=2&pagesize=5",
+  "expect": "Stack Exchange API without a key: the pager is capped at 25 pages and page 26 is an HTTP 400, not an empty result. The cap is a quota, not the end of the data, so 'reached the last page' and 'was cut off' are different outcomes the crawler must record differently.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?page=1&pagesize=5 -> HTTP 200, 3,639 bytes, 5 question_id items. ?page=2 -> HTTP 200, 3,549 bytes, 5 items. ?page=25 -> HTTP 200, 3,372 bytes, 5 items (last allowed page). ?page=26 -> HTTP 400, 110 bytes, 0 items.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "Link: rel=next/prev/last header, hard 1000-result cap then HTTP 422",
+  "url": "https://api.github.com/search/repositories?q=crawler&per_page=5&page=2",
+  "expect": "The pager lives ENTIRELY in the Link response header -- there is nothing in the body to parse -- and the last page is announced by that header dropping rel=\"next\" and keeping rel=\"first\". Beyond it the API returns HTTP 422 with a plain-English explanation, while the same body still reports total_count=135,749. A crawler that sizes the crawl from total_count plans 27,150 pages and gets 200.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?per_page=5&page=1 -> HTTP 200, 31,903 bytes, 5 repos. ?page=2 -> HTTP 200, 30,727 bytes, 5 repos; Link header reads '<...page=1>; rel=\"prev\", <...page=3>; rel=\"next\", <...page=200>; rel=\"last\"'. ?page=200 -> HTTP 200, 31,698 bytes, 5 repos; Link header now reads only '<...page=199>; rel=\"prev\", <...page=1>; rel=\"first\"' -- rel=next is GONE, which is the end-of-pager signal. ?page=201 -> HTTP 422, 148 bytes, body {\"message\":\"Only the first 1000 search results are available\"}. total_count in every response = 135749.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "XHR endpoint behind a 'load more' front-end (WordPress REST)",
+  "url": "https://www.osnews.com/wp-json/wp/v2/posts?page=2&per_page=5",
+  "expect": "The JSON endpoint the site's own infinite-scroll/load-more front-end calls. It is not linked from any <a href>, so it is only reachable by a crawler that captures XHR or knows the WordPress convention -- and it publishes the exact page count in a response HEADER, which is the cheapest correct way to bound a WordPress pager.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?page=1&per_page=5 -> HTTP 200, 46,624 bytes, 5 posts. ?page=2 -> HTTP 200, 45,574 bytes, 5 posts; response headers 'X-WP-Total: 35670' and 'X-WP-TotalPages: 7134', plus Link '<...page=1&per_page=5>; rel=\"prev\", <...page=3&per_page=5>; rel=\"next\"'. ?page=7134 -> HTTP 200, 33,752 bytes, 5 posts (the last page the header promised). ?page=7135 -> HTTP 400, 146 bytes, 0 posts. The header's page count was exactly right.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "offset ?skip=N (page-size stepped), empty 200 past the end",
+  "url": "https://export.arxiv.org/list/cs.LG/recent?skip=50&show=50",
+  "expect": "arXiv listing pages are addressed by RECORD OFFSET, not page number: the crawler has to add the page size to skip= rather than increment a counter, and if it guesses the step wrong it either duplicates or silently drops records. Overrun is a 200 with zero entries.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?skip=0&show=50 -> HTTP 200, 82,514 bytes, 51 arXiv identifiers. ?skip=50&show=50 -> HTTP 200, 84,091 bytes, 50 identifiers. ?skip=100&show=50 -> HTTP 200, 89,682 bytes, 51 identifiers. ?skip=999999&show=50 -> HTTP 200 (not an error), 8,870 bytes, 0 identifiers, 34 anchors. The page-1 body itself advertises skip values 0..150, i.e. the step is the show= value.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "offset ?from=N that SILENTLY CLAMPS to 0 past the end (infinite loop)",
+  "url": "https://registry.npmjs.org/-/v1/search?text=crawler&size=10&from=10",
+  "expect": "The worst offset failure mode there is. An offset past the end of the result set does NOT error and does NOT return empty -- it silently re-serves the FIRST page. A crawler that walks from=0,10,20,... and stops on 'empty or error' never stops, and every request past the end re-ingests the same 10 records, so the crawl loops and the store fills with duplicates.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. The API reports total=3474 for this query. ?from=0&size=10 -> HTTP 200, 9,292 bytes, 10 packages. ?from=10 -> HTTP 200, 8,698 bytes, 10 packages. ?from=3470 -> HTTP 200, 3,956 bytes, 4 packages (the genuine tail of 3,474). ?from=99999 -> HTTP 200, 9,292 bytes, 10 packages -- and the package names are IDENTICAL to from=0: ['crawler','fdir','x-ray-crawler','js-crawler','@types/crawler','@qualweb/crawler','json-crawl','@blocklet/crawler','@datafast/ai-crawl','@ckeditor/ckeditor5-dev-web-crawler'] in both responses. Compared field by field on two separate runs.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "offset ?skip=N with an explicit numeric cap, HTTP 400 past it",
+  "url": "https://api.fda.gov/drug/label.json?limit=5&skip=10",
+  "expect": "openFDA (US FDA) drug-label API. The offset window is capped at exactly 25,000 out of 260,986 matching records and the boundary is announced in plain text in a 400 body. This is the 'the API will not let you have all of it' case: the crawler must record the crawl as CAPPED, not as complete, or the corpus silently misses 90% of the collection.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. meta.results.total = 260986 in every successful response. ?limit=5&skip=0 -> HTTP 200, 52,474 bytes, 5 results. ?skip=10 -> HTTP 200, 566,539 bytes, 5 results. ?skip=24995 -> HTTP 200, 136,982 bytes, 5 results. ?skip=25000 -> HTTP 200, 17,605 bytes, 5 results (the last allowed offset). ?skip=25005 -> HTTP 400, 95 bytes, body {'code': 'BAD_REQUEST', 'message': 'Skip value must 25000 or less.'}. So 25,005 of 260,986 records are reachable and 235,981 are not.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "offset ?offset=N with a cap, and an endOfRecords flag that never turns true",
+  "url": "https://api.gbif.org/v1/occurrence/search?limit=5&offset=10",
+  "expect": "GBIF biodiversity occurrence search. The body carries an endOfRecords boolean that a crawler would reasonably use as its terminator -- but it is still false at the very last reachable offset, because the API's 100,001-record window ends long before the 3.9-billion-record result set does. The flag answers 'is this the end of the DATA', not 'is this the end of what you may FETCH'.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. count = 3907483649 in every response. ?limit=5&offset=0 -> HTTP 200, 28,477 bytes, 5 results, endOfRecords=false. ?offset=10 -> HTTP 200, 28,488 bytes, 5 results, endOfRecords=false. ?offset=99995 -> HTTP 200, 35,295 bytes, 5 results, endOfRecords STILL false. ?offset=100000 -> HTTP 400, 41 bytes, body is the plain string 'Max offset of 100001 exceeded: 100000 + 5'.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "cursor ?cursor=* whose TOKEN STOPS CHANGING while the results advance",
+  "url": "https://api.crossref.org/works?rows=2&cursor=*",
+  "expect": "Crossref deep paging, and the nastiest cursor shape in this set. After the first hop the next-cursor token becomes CONSTANT -- every subsequent page hands back the same token -- while the records genuinely advance, because the token names a server-side scroll whose position is held server-side. A crawler that dedupes the frontier by URL sees the second and third requests as the same URL, drops them, and stops after two pages out of 184.9 million records.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. Followed the cursor chain three hops, twice. Hop 1 (cursor=*) -> HTTP 200, 32,093 bytes, DOIs ['10.1007/978-3-658-17671-6_18-1','10.1007/978-3-031-23161-2_300726'], next-cursor 'DnF1ZXJ5VGhlbkZldGNoJAAAAAAR...'. Hop 2 (that cursor) -> HTTP 200, 27,597 bytes, DIFFERENT DOIs ['10.1016/b978-0-08-102696-0.00020-8','10.1007/978-3-031-28170-9_6'], next-cursor IDENTICAL to the one just used. Hop 3 (same cursor again) -> HTTP 200, 27,531 bytes, DIFFERENT DOIs again ['10.1007/978-981-16-8679-5_306','10.1007/978-981-15-1636-8_42'], next-cursor still identical. message.total-results = 184,882,060 on every hop. Both runs returned the same DOIs in the same positions, so the advance is deterministic and the token really is constant.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "cursor ?cursor=* with a genuinely advancing opaque token",
+  "url": "https://api.openalex.org/works?per-page=2&cursor=*",
+  "expect": "OpenAlex deep paging -- the well-behaved cursor, and the control against which the Crossref row's constant token is a defect. The token is base64 and opaque, must be URL-encoded before reuse (it ends in '='), and changes on every hop.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?per-page=2&cursor=* -> HTTP 200, 33,840 bytes, meta.count = 322,129,452, meta.next_cursor = 'IlsxMDAuMCwgMzE4NTc4LCAnaHR0cHM6Ly9vcGVuYWxleC5vcmcvVzE3NzU3NDkxNDQnXSI='. Fetching that cursor (percent-encoded to ...XSI%3D) -> HTTP 200, 32,176 bytes, meta.next_cursor = 'IlsxMDAuMCwgMjI1NDAzLCAnaHR0cHM6Ly9vcGVuYWxleC5vcmcvVzIxMjg2MzU4NzInXSI=' -- a DIFFERENT token, i.e. the cursor advances. Confirmed on two runs.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "cursor delivered as a full next URL in links.next",
+  "url": "https://api.datacite.org/dois?page[size]=2&page[cursor]=1",
+  "expect": "DataCite DOI registry. The cursor is not a bare token to splice into a template -- the API hands back a complete, already-percent-encoded next URL under links.next. A crawler that re-encodes it (double-encoding the %5B of page[cursor]) breaks the chain, and the seed URL's own square brackets are unencoded, so the two forms of the same URL must normalise to one frontier entry.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. ?page[size]=2&page[cursor]=1 -> HTTP 200, 6,093 bytes, meta.total = 132,619,875, links.next = 'https://api.datacite.org/dois?page%5Bcursor%5D=MTI5OTc2MjE4OTAwMCwxMC41Mjg0LzEwMDAxNDA&page%5Bsize%5D=2'. Fetching that URL verbatim -> HTTP 200, 6,061 bytes, links.next = 'https://api.datacite.org/dois?page%5Bcursor%5D=MTI5OTc2OTg5MjAwMCwxMC41Mjg0LzEwMDAxNDQ&page%5Bsize%5D=2' -- a different cursor, so the chain advances. Confirmed on two runs.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "cursorMark=* (Solr deep paging)",
+  "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=crawler&format=json&pageSize=5&cursorMark=*",
+  "expect": "Europe PMC (EMBL-EBI) literature search -- Solr-style cursorMark deep paging, a third cursor dialect on a European public-sector host. The parameter name is neither 'cursor' nor 'after', the seed value is the literal '*', and the returned mark contains '==' which must be percent-encoded on reuse.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. cursorMark=* -> HTTP 200, 4,037 bytes, hitCount = 3713, nextCursorMark = 'AoIIQGiujyg1NTA2OTI3OA=='. Fetching cursorMark=AoIIQGiujyg1NTA2OTI3OA%3D%3D -> HTTP 200, 4,394 bytes, nextCursorMark = 'AoIIQFMN0ig1NDYxNDQwNA==' -- different, so the chain advances; hitCount unchanged at 3713 on both hops. Confirmed on two runs.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "rel=next ONLY, in <head>, no numbered pager anywhere (Sphinx)",
+  "url": "https://docs.python.org/3/tutorial/index.html",
+  "expect": "A documentation sequence whose ONLY pagination is <link rel=\"next\"> in the document head -- there is no numbered pager, no ?page=, and no next-page text in the body a link extractor would find. A crawler that only harvests <a href> from the body loses the ordering entirely and can never tell it has reached the end of a chapter sequence.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. Followed the rel=next chain from the seed, twice, resolving each <link rel=\"next\"> href against its own page: 22 hops, identical both runs, every hop HTTP 200 and every hop a DIFFERENT URL. The chain runs index.html -> appetite.html -> interpreter.html -> introduction.html -> controlflow.html -> datastructures.html -> modules.html -> inputoutput.html -> errors.html -> classes.html -> stdlib.html -> stdlib2.html -> venv.html -> whatnow.html -> interactive.html -> floatingpoint.html -> appendix.html, and then CROSSES OUT OF /tutorial/ into /using/index.html -> cmdline -> unix -> configure -> windows (next: mac.html). The chain therefore does not stop at the section boundary, which is itself the scoping problem this row pins down.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "rel=next ONLY, second Sphinx instance (kernel.org)",
+  "url": "https://www.kernel.org/doc/html/latest/",
+  "expect": "The same head-only rel=next mechanism on unrelated infrastructure, seeded at a documentation ROOT rather than mid-chapter -- so the first hop leaves the index page and enters the content, which is where a crawler that treats the seed as page 1 of a numbered pager goes wrong.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. Followed the rel=next chain 6 hops, twice, identical both runs, all HTTP 200, all distinct URLs: /doc/html/latest/ -> /process/development-process.html -> /process/1.Intro.html -> /process/2.Process.html -> /process/3.Early-stage.html -> /process/4.Coding.html (whose own rel=next is /process/5.Posting.html). Titles advance in step ('The Linux Kernel documentation', 'A guide to the Kernel Development Process', '1. Introduction', '2. How the development process works', '3. Early-stage planning', '4. Getting the code right').",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "variant": "rel=next chain with an END: last page has rel=prev and no rel=next",
+  "url": "https://docs.djangoproject.com/en/stable/intro/tutorial01/",
+  "expect": "A rel=next chain that TERMINATES, so it is the row that proves the end-of-chain rule rather than just the advance rule. It also redirects: the seed says /en/stable/ and every page in the chain is served from /en/6.0/, so the crawler's frontier must dedupe the aliased and the resolved form or it walks the same 10 pages twice.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True); every page count below was fetched TWICE and was identical both times. Seed https://docs.djangoproject.com/en/stable/intro/tutorial01/ resolves to https://docs.djangoproject.com/en/6.0/intro/tutorial01/. Followed rel=next 10 hops, twice, identical both runs, all HTTP 200: tutorial01 -> tutorial02 -> tutorial03 -> tutorial04 -> tutorial05 -> tutorial06 -> tutorial07 -> tutorial08 -> reusable-apps -> whatsnext (titles 'Writing your first Django app, part 1..8', 'Advanced tutorial: How to write reusable apps', 'What to read next'), with whatsnext pointing on to /intro/contributing/.",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "url": "https://www.lua.org/",
+  "defect": "charset declared ONLY as iso-8859-1 in <meta> (no charset on the HTTP header) and the bytes really are Latin-1, not UTF-8; 13 unclosed tags",
+  "expect": "The transport sends a bare 'text/html' with no charset, so the only encoding declaration is a <meta> inside the body -- and unlike most such pages this one actually contains a byte that is illegal UTF-8, so guessing UTF-8 does not merely risk being wrong, it fails. lxml is perfectly happy with the document, which is the point: a clean parse is not proof of a correct decode.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 2,036 bytes, 88 lines, content-type 'text/html' with NO charset parameter. DOCTYPE 'HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"'. The document's <meta> declares charset=iso-8859-1. bytes.decode('utf-8') RAISES UnicodeDecodeError: 'utf-8' codec can't decode byte 0xea in position 1710: invalid continuation byte. lxml reported 0 errors. Tag-balance walk: 13 unclosed (<li> x8, <td> x4, <p> x1), 0 stray closes, 0 mismatched. Title still parses as 'The Programming Language Lua'; 10 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.fourmilab.ch/",
+  "defect": "XHTML 1.0 FRAMESET document (all content in <frame>, only 1 <a href> on the page); iso-8859-1 body that is not valid UTF-8",
+  "expect": "A frameset document: the DOCTYPE is XHTML 1.0 Frameset, there is no <body> content to extract and the entire site hangs off <frame src=...> attributes that an <a href> link extractor never looks at. The crawler sees a 1.7 KB page with one link and concludes the site is a dead end. The body is also Latin-1 and not decodable as UTF-8.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 1,711 bytes, 36 lines. DOCTYPE 'html PUBLIC \"-//W3C//DTD XHTML 1.0 Frameset//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd\"'. <meta> charset iso-8859-1. bytes.decode('utf-8') RAISES UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe2 in position 525: invalid continuation byte. lxml reported 0 errors; tag census found <frameset> x1. Tag-balance walk: 0 unclosed, 0 stray, 0 mismatched -- a structurally VALID document that still yields only 1 parsed <a href>, and the title 'Fourmilab'.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "http://www.dansdata.com/",
+  "defect": "18 unescaped '&'; end tags for elements never opened (</b> x4 at least); a stray </div>; iso-8859-1 declared against a STRICT HTML 4.01 DOCTYPE",
+  "expect": "A long-running hand-maintained review site that declares HTML 4.01 STRICT -- the DTD that forbids exactly what the page does. The defects are the classic entity ones: bare ampersands inside href values and character references missing their semicolon, both of which corrupt the URLs a crawler extracts if the parser resynchronises badly.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 39,969 bytes, 857 lines, content-type 'text/html' with NO charset; <meta> declares iso-8859-1. DOCTYPE 'HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"' (STRICT). lxml reported 23 errors: 'line 108: htmlParseEntityRef: no name', 'line 166: Unexpected end tag : b', 'line 226: Unexpected end tag : b', 'line 354: Unexpected end tag : b', 'line 391: Unexpected end tag : b', 'line 544: htmlParseEntityRef: expecting \\';\\'' (three times on that one line). 18 unescaped '&'. Tag-balance walk: 1 stray close (</div>), 0 mismatched, 0 unclosed. Legacy tags <center> x1, <big> x2. Title parses as \"Dan's Data - PC hardware and gadget reviews!\"; 218 links parsed. NOTE: this host READ-TIMES-OUT when fetched inside a concurrent burst; on four unhurried sequential fetches it returned HTTP 200 with 39,969 bytes every time. Crawl it politely.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.cs.jhu.edu/~jason/",
+  "defect": "charset CONFLICT (HTTP header UTF-8 vs <meta> iso-8859-1); 55 unclosed tags; 4 stray end tags; table nesting crossed",
+  "expect": "Two defect classes stacked: the transport and the document disagree about the encoding, AND the table markup is crossed -- </td>, </tr> and </table> appear with nothing matching open, while <table> and <code> are closed by the wrong tag. The crossed table is the defect that makes a parser drop table CONTENT while still reporting success.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 22,754 bytes, 416 lines. Content-Type header: 'text/html; charset=UTF-8'. Document <meta> charset: 'iso-8859-1'. The two disagree, measured in the same response on two separate fetches. DOCTYPE 'HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\"'. lxml reported 2 errors: 'line 105: Unexpected end tag : p', 'line 343: Unexpected end tag : font'. Tag-balance walk: 55 unclosed (<li> x52, <td>, <tr>, <p>), 4 stray closes (</td>, </tr>, </table>, </font>), 2 mismatched (<code>, <table>). Legacy <font> x18. Title parses as 'Jason Eisner - Home Page (JHU)'; 91 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://homepages.inf.ed.ac.uk/wadler/",
+  "defect": "261 unclosed tags (<li> x254); an invented </lu> end tag; charset conflict (header UTF-8 vs <meta> ISO-8859-1); 24 unescaped '&'",
+  "expect": "The deepest unclosed nesting in this batch: 254 list items are opened and never closed, so a parser that requires balance collapses an 589-link academic bibliography into one node. It also carries an end tag </lu> for an element that has never existed in any HTML version -- a typo for </ul> that the parser must ignore rather than resynchronise on.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 85,030 bytes, 2,045 lines. Content-Type header 'text/html; charset=UTF-8'; document <meta> charset 'ISO-8859-1' -- they disagree. DOCTYPE 'html PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"'. lxml reported 24 errors: 'line 340: Unexpected end tag : p', 'line 546: Tag video invalid', 'line 547: Tag source invalid', 'line 548: Tag source invalid', 'line 552: htmlParseEntityRef: expecting \\';\\'' (four times on that line). Tag-balance walk: 261 unclosed (<li> x254, <p> x7), 3 stray closes (</p>, </li>, and </lu> -- a tag that does not exist), 1 mismatched (<a>). 24 unescaped '&'. Legacy <center> x6. Title parses as \"Philip Wadler's home page\"; 589 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.stat.berkeley.edu/~aldous/",
+  "defect": "no DOCTYPE; no </html>; 68 unclosed tags; a stray </head> in the middle of the document; an unparseable attribute name; 1 bare '<' in text",
+  "expect": "A hand-written academic page that closes </head> a second time partway down the body, which throws a tree-builder back into head context and can strand everything after it. Combined with 68 unclosed tags and an attribute the tokenizer cannot even name, this is a tree-building AND tokenizing failure in one document.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 20,328 bytes, 631 lines, content-type 'text/html' with NO charset and NO <meta> charset. NO <!DOCTYPE>. </body> is present, </html> is NOT (0 occurrences). lxml reported 4 errors: 'line 14: Unexpected end tag : p', 'line 508: Unexpected end tag : p', 'line 577: error parsing attribute name', 'line 621: Unexpected end tag : p'. Tag-balance walk: 68 unclosed (<p> x39, <li> x29), 2 stray closes (</head>, </p>), 2 mismatched (<a> x2). 1 bare '<' in text. Legacy <font> x3. Title still parses as \"David Aldous's Home Page\"; 84 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.cs.virginia.edu/~robins/",
+  "defect": "no DOCTYPE; <body> opened in the wrong place; 67 unclosed tags including <body> itself; 9 <center>",
+  "expect": "The <body> start tag is misplaced, so the parser has to decide where the document body actually begins before it can attribute any content to it -- and <body> is then still open at EOF along with 31 table cells and 35 paragraphs. A parser that fails the <body> placement attributes the whole page to <head> and extracts no text at all.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 16,203 bytes, 330 lines, content-type 'text/html' with NO charset and NO <meta> charset. NO <!DOCTYPE>. lxml reported 3 errors: 'line 4: htmlParseStartTag: misplaced <body> tag', 'line 74: htmlParseEntityRef: expecting \\';\\'', 'line 314: Unexpected end tag : a'. Tag-balance walk: 67 unclosed (<p> x35, <td> x31, and <body> x1 still open at EOF), 1 stray close (</a>), 2 mismatched (<a> x2). Legacy <center> x9, <font> x1. Title parses as 'Gabriel Robins'; 100 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.cs.yale.edu/homes/spielman/",
+  "defect": "no DOCTYPE; no </html>; duplicate id attributes ('desc', 'teach' redefined); stray </body> mid-document; 5 anchors closed by the wrong tag",
+  "expect": "Duplicate id values plus a </body> that appears before the document is finished. The duplicate ids are the defect that breaks id-based extraction silently -- a selector that expects one match gets several and a crawler that keys content by id overwrites it -- while the early </body> tempts a parser to stop reading.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 17,515 bytes, 419 lines, content-type 'text/html' with NO charset and NO <meta> charset. NO <!DOCTYPE>; </body> present, </html> absent (0 occurrences). lxml reported 21 errors: 'line 111: ID desc already defined', 'line 116: ID desc already defined', 'line 222: htmlParseEntityRef: expecting \\';\\'', 'line 223: htmlParseEntityRef: expecting \\';\\'', 'line 230: ID teach already defined', 'line 231: ID teach already defined', 'line 233: ID teach already defined', 'line 249: Unexpected end tag : li'. Tag-balance walk: 16 unclosed (<li> x12, <p> x3, <a> x1), 3 stray closes (</li>, </a>, </body>), 5 mismatched (<a> x5). Title parses as 'Daniel A. Spielman'; 132 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://cs.nyu.edu/~mohri/",
+  "defect": "no DOCTYPE; <html> AND <head> start tags both misplaced; 35 unclosed tags; duplicate id; a character reference with no name",
+  "expect": "The document's own <html> and <head> start tags are in the wrong place, which is as early as a structural error can occur -- everything the parser does afterwards depends on recovering from it. A crawler must still get the 23 links and the title off this page.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 4,755 bytes, 148 lines, content-type 'text/html; charset=UTF-8', <meta> charset UTF-8. NO <!DOCTYPE>. lxml reported 5 errors: 'line 2: htmlParseStartTag: misplaced <html> tag', 'line 4: htmlParseStartTag: misplaced <head> tag', 'line 66: Unexpected end tag : em', 'line 97: htmlParseEntityRef: no name', 'line 122: ID courses already defined'. Tag-balance walk: 35 unclosed (<p> x18, <li> x11, <td> x5, <tr> x1), 1 stray close (</em>), 3 mismatched (<span> x3). Title parses as 'Mehryar Mohri'; 23 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.cs.utah.edu/~elb/",
+  "defect": "no DOCTYPE; 11 stray </a> end tags with no matching open; 31 unclosed tags; entity references missing their semicolon",
+  "expect": "Eleven closing anchor tags that close nothing. Every one of them is a chance for a parser to close the WRONG anchor and re-parent the link text, which silently mis-attributes href values -- the crawler ends up with links whose anchor text belongs to a different link.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 16,467 bytes, 328 lines, content-type 'text/html' with NO charset and NO <meta> charset. NO <!DOCTYPE>. lxml reported 13 errors: 'line 37: Unexpected end tag : a', 'line 73: htmlParseEntityRef: expecting \\';\\'' (twice on that line), 'line 236: Unexpected end tag : a', 'line 241: Unexpected end tag : a', 'line 246: Unexpected end tag : a', 'line 256: Unexpected end tag : a', 'line 260: Unexpected end tag : a'. Tag-balance walk: 31 unclosed (<li> x20, <p> x8, <dt> x3), 11 stray closes (</a> x11), 0 mismatched. Title parses as 'Erik Brunvand'; 64 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "http://sites.math.rutgers.edu/~zeilberg/",
+  "defect": "16 unescaped '&' plus a decimal character reference missing its semicolon; 18 unclosed tags; a <dl> closed by the wrong tag",
+  "expect": "A very long-lived mathematician's index page. The headline defect is entity handling at volume: sixteen bare ampersands and a numeric character reference written without its terminating semicolon, which a strict parser rejects and a lenient one has to guess the end of.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 25,545 bytes, 698 lines, content-type 'text/html' with NO charset; <meta> declares utf-8. DOCTYPE is the bare HTML5 'html'. lxml reported 19 errors: 'line 43: htmlParseCharRef: missing semicolon', 'line 103: htmlParseEntityRef: expecting \\';\\'' (twice), 'line 118: Unexpected end tag : li', 'line 189: htmlParseEntityRef: expecting \\';\\'', 'line 190: ...', 'line 260: ...', 'line 261: ...'. 16 unescaped '&'. Tag-balance walk: 18 unclosed (<li> x13, <dd> x4, <p> x1), 1 stray close (</li>), 1 mismatched (<dl>). Title parses as 'Doron Zeilberger'; 165 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "http://www.eng.auburn.edu/~agrawvd/",
+  "defect": "an ATTRIBUTE parsed as a tag name ('<align=left>'); misplaced <body>; no DOCTYPE; no </html>; <a> closed by </i>",
+  "expect": "The most instructive tokenizer failure here: a malformed start tag makes the parser read the attribute text 'align=left' as an ELEMENT NAME, so a bogus element enters the tree and stays open to EOF. Any code that walks the element tree by name now has a node that cannot exist.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 18,882 bytes, 350 lines, content-type 'text/html' with NO charset and NO <meta> charset. NO <!DOCTYPE>; </body> present, </html> absent (0 occurrences). lxml reported 8 errors: 'line 20: htmlParseStartTag: misplaced <body> tag', 'line 45: Unexpected end tag : a', 'line 76: htmlParseEntityRef: no name', 'line 169: Opening and ending tag mismatch: a and i', 'line 188: htmlParseEntityRef: no name', 'line 252: htmlParseEntityRef: no name', 'line 285: error parsing attribute name', 'line 285: Tag align invalid'. Tag-balance walk: 4 unclosed and one of them is literally named 'align=left'; 2 stray closes (</a>, </body>); 5 mismatched (<h5> x3, <a>, <i>). 8 unescaped '&'. Legacy <center> x5. Title parses as 'Vishwani Agrawal'; 86 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.cs.cmu.edu/~quake/triangle.html",
+  "defect": "no DOCTYPE; a DUPLICATED attribute on one tag ('align' redefined); 28 unclosed tags",
+  "expect": "The duplicate-attribute case: one element carries the same attribute twice, so which value wins is parser-dependent. This is the quiet version of the class -- lxml raises exactly one error and the tag-balance walk still finds 28 unclosed elements, so 'only one parser error' is not a measure of how sound a document is.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 7,248 bytes, 190 lines, content-type 'text/html' with NO charset and NO <meta> charset. NO <!DOCTYPE>. lxml reported exactly 1 error: 'line 15: Attribute align redefined'. Tag-balance walk: 28 unclosed (<li> x27, <tr> x1), 0 stray closes, 0 mismatched. Legacy <font> x4, <tt> x1. Title still parses (with an embedded newline) as 'Triangle: A Two-Dimensional Quality Mesh Generator and Delaunay Triangulator'; 43 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://math.berkeley.edu/~ribet/",
+  "defect": "lxml reports ZERO errors while the tag-balance walk finds 26 unclosed tags; DOCTYPE declares HTML 4.01 Transitional but no charset is declared anywhere while the body has 21 non-ASCII bytes",
+  "expect": "The deliberate negative control for this whole category. libxml2's HTML parser is silent -- 0 errors -- yet the document leaves 13 list items and 12 definition descriptions open, and declares no charset in either the header or a <meta> despite containing non-ASCII bytes. 'The parser reported no errors' must never be used as the definition of well-formed.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 4,315 bytes, 118 lines, content-type 'text/html; charset=UTF-8' but NO <meta> charset in the document, and 21 non-ASCII bytes present. DOCTYPE 'HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\"'. lxml reported 0 errors. Tag-balance walk nevertheless found 26 unclosed (<li> x13, <dd> x12, <p> x1), 0 stray closes, 0 mismatched. Legacy <tt> x1. Title parses as 'Kenneth A. Ribet'; 35 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "http://www.scs.stanford.edu/~dm/",
+  "defect": "<s> closed by </tt>; a stray </tt>; iso-8859-1 <meta> with no charset on the header; legacy <font> x14, <tt> x9, <center>",
+  "expect": "Crossed inline nesting in its smallest form -- <s> is opened and </tt> closes it -- plus a non-ASCII author name that only decodes correctly if the <meta> charset is honoured. A small page, so the failure is easy to attribute when a parser change breaks it.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 4,059 bytes, 156 lines, content-type 'text/html' with NO charset parameter; <meta> declares iso-8859-1. DOCTYPE 'HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\"'. lxml reported 2 errors: 'line 28: Opening and ending tag mismatch: s and tt', 'line 28: Unexpected end tag : tt'. Tag-balance walk: 1 unclosed (<p>), 1 stray close (</tt>), 1 mismatched (<tt>). Legacy <font> x14, <tt> x9, <center> x1. Title parses as 'David Mazieres' (with the non-ASCII 'e-acute' in the source); 12 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "http://www.tldp.org/",
+  "defect": "tag soup: 21 stray end tags (</font> x16), 19 mismatched nestings, nonstandard <nobr>, HTML 3.2 DOCTYPE, charset conflict (header utf-8 vs <meta> iso-8859-1), a stray </script>",
+  "expect": "The worst-nested document in this batch and the closest analogue to the corpus's textfiles.com row. Sixteen </font> tags close elements that were never opened and sixteen <font> elements are closed by something else, so the parser has to resynchronise repeatedly across the whole page. It also declares HTML 3.2 -- a 1997 DTD -- while the transport and the meta disagree about the character set.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 10,087 bytes, 317 lines. Content-Type header 'text/html; charset=utf-8'; document <meta> declares iso-8859-1 -- they disagree. DOCTYPE 'HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\"'. lxml reported 43 errors: 'line 55: Tag nobr invalid', 'line 58: Unexpected end tag : b', 'line 61: Unexpected end tag : b', 'line 64: Opening and ending tag mismatch: a and font', 'line 64: Unexpected end tag : font', 'line 67: Opening and ending tag mismatch: a and font', 'line 67: Unexpected end tag : font', 'line 70: Opening and ending tag mismatch: a and font'. Tag-balance walk: 21 stray end tags (</font> x16, </b> x2, </i>, </script>, </p>), 19 mismatched nestings (<font> x16, <nobr>, <div>, <table>), 2 unclosed (<td>, <tr>). Legacy <font> x28, <nobr> x5. Title still parses as 'The Linux Documentation Project'; 33 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "http://www.paulgraham.com/articles.html",
+  "defect": "111,820-character single line; 236 <font> tags; no DOCTYPE and no charset declared anywhere; 11 unescaped '&'; 1 bare '<'",
+  "expect": "A 118 KB index of essays laid out entirely in <font> tags, with 95% of the document on ONE physical line. Nothing declares the encoding -- not the header, not a meta -- and the page carries a bare '<' in text plus 11 bare ampersands, so the tokenizer has to make a judgement call inside a line it cannot chunk.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 118,453 bytes across only 70 lines, longest line 111,820 characters. Content-type 'text/html' with NO charset parameter and NO <meta> charset in the document. NO <!DOCTYPE>. lxml reported 2 errors, both deep inside that one line: 'line 14 column 110021: htmlParseEntityRef: no name' and 'line 14 column 110562: htmlParseEntityRef: no name'. 11 unescaped '&', 1 bare '<' in text. Legacy tag census: <font> x236. Tag-balance walk: 0 unclosed, 0 stray, 0 mismatched. Title parses as 'Essays'; 238 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.mod.gov.in/",
+  "defect": "obsolete <marquee>; a stray </div>; <span> closed by the wrong tag; HTML5 elements rejected by libxml2's HTML parser; 24,414-char longest line",
+  "expect": "India's Ministry of Defence -- a live government site of exactly the type this crawler targets -- built with an obsolete <marquee> scroller, a stray </div> and crossed <span> nesting. The lxml errors are the modern kind (libxml2's HTML parser predates HTML5 and rejects <header>, <time> and <footer> outright), so the crawler must not treat 'unknown tag' as 'broken page'.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 96,112 bytes, 1,015 lines, longest line 24,414 chars, content-type 'text/html; charset=UTF-8', <meta> charset utf-8, 17,655 non-ASCII bytes (the body decodes as valid UTF-8). DOCTYPE is the bare HTML5 'html'. lxml reported 10 errors: 'line 95: Tag header invalid', 'line 238: htmlParseEntityRef: no name', 'line 622: Tag time invalid', 'line 624: Tag time invalid', 'line 626: Tag time invalid', 'line 628: Tag time invalid', 'line 630: Tag time invalid', 'line 728: Tag footer invalid'. Tag-balance walk: 1 stray close (</div>), 1 mismatched (<span>), 0 unclosed. Legacy <marquee> x1. Title parses as 'Home | Ministry of Defence'; 150 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.isro.gov.in/",
+  "defect": "68 lxml errors, most of them character references with no name; 38 unescaped '&'; HTML5 <video>/<track>/<main>/<nav>/<section> rejected by the HTML parser",
+  "expect": "The Indian Space Research Organisation's live site: a 317 KB government page whose entity handling is broken in 68 separate places. It pairs with the Ministry of Defence row to show the same defect class across two independent Indian government stacks.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 317,193 bytes, 5,746 lines, longest line only 352 chars, content-type 'text/html; charset=UTF-8', <meta> charset utf-8, 528 non-ASCII bytes. DOCTYPE is the bare HTML5 'html'. lxml reported 68 errors: 'line 51: htmlParseEntityRef: no name', 'line 53: htmlParseEntityRef: no name', 'line 181: htmlParseEntityRef: no name', 'line 222: Tag video invalid', 'line 223: Tag track invalid', 'line 232: Tag main invalid', 'line 235: Tag nav invalid', 'line 372: Tag section invalid'. 38 unescaped '&'. Tag-balance walk: 1 unclosed (<p>), 0 stray, 0 mismatched. Title parses as 'Indian Space Research Organisation'; 273 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.presidency.ucsb.edu/",
+  "defect": "196 unescaped '&' in a document whose DOCTYPE is XHTML+RDFa 1.0 (XML rules) but which is served as text/html; 26,642-char longest line",
+  "expect": "The American Presidency Project -- a large academic archive of exactly the government-document kind this crawler harvests. It declares XHTML+RDFa 1.0, an XML-based DTD under which 196 unescaped ampersands are hard errors, yet it is served as text/html so an XML parser must NOT be used on it. Choosing a parser by DOCTYPE gets this wrong.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 62,432 bytes, 508 lines, longest line 26,642 chars, content-type 'text/html; charset=utf-8', <meta> charset utf-8, 45 non-ASCII bytes. DOCTYPE 'html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" \"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\"'. 196 unescaped '&' -- each one is well-formedness-fatal under the declared XML DTD. lxml's HTML parser reported 21 errors, all HTML5-element rejections: 'line 47: Tag section invalid', 'line 53: Tag section invalid', 'line 78: Tag nav invalid', 'line 94: Tag section invalid', 'line 109: Tag section invalid', 'line 114: Tag section invalid', 'line 130: Tag section invalid', 'line 145: Tag section invalid'. Tag-balance walk: 0 unclosed, 0 stray, 0 mismatched. Title parses as 'Welcome to The American Presidency Project | The American Presidency Project'; 51 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.udn.com/",
+  "defect": "3,017 unescaped '&' and 26 bare '<' in a 74,725-non-ASCII-byte Chinese document; 16,821-char longest line",
+  "expect": "The highest unescaped-ampersand count in this batch, on a large multibyte (Traditional Chinese) page. The entity-recovery path and the multibyte-decoding path have to work simultaneously: a parser that resynchronises on '&' byte-wise can land mid-character inside a three-byte UTF-8 sequence and corrupt the text it is trying to rescue.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 389,023 bytes, 5,126 lines, longest line 16,821 chars, content-type 'text/html; charset=UTF-8' agreeing with the <meta> charset. 74,725 non-ASCII bytes (the body decodes as valid UTF-8). 3,017 unescaped '&' and 26 bare '<' in text. DOCTYPE is the bare HTML5 'html'. lxml reported 100 errors ({CEIL}): 'line 227: htmlParseEntityRef: expecting \\';\\'' (four times on that line), 'line 799: Tag header invalid', 'line 1022: Tag section invalid', 'line 1048: Tag nav invalid', 'line 1049: htmlParseEntityRef: expecting \\';\\''. Tag-balance walk: 1 mismatched (<section>), 0 stray, 0 unclosed. 33 HTML tags inside <script> bodies. Title parses as the Chinese string beginning '聯合新聞網'; 528 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.mail.ru/",
+  "defect": "89 bare '<' in text and 1,880 unescaped '&'; 92,105-char longest line; only 22 links survive the parse out of a 410 KB document",
+  "expect": "The extraction-loss case. 410 KB of Cyrillic HTML with 89 bare '<' characters that are not tag starts and 1,880 bare ampersands, and after recovery the parser yields just 22 <a href> elements -- the document is nominally parsed but almost nothing useful comes out. A crawler stores this page as a success and gets nearly no frontier from it.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 410,319 bytes across only 312 lines, longest line 92,105 chars, content-type 'text/html; charset=utf-8' agreeing with the <meta>. 48,428 non-ASCII bytes (valid UTF-8). 89 bare '<' in text -- the highest measured here -- and 1,880 unescaped '&'. lxml reported 100 errors ({CEIL}): 'line 77: htmlParseEntityRef: expecting \\';\\'' (five separate columns on that one line), 'line 82: htmlParseEntityRef: expecting \\';\\'' (twice), 'line 259: Tag svg invalid'. Tag-balance walk: 0 unclosed, 0 stray, 0 mismatched. 40 HTML tags inside <script> bodies. Title parses (Cyrillic) as 'Mail: Почта, Облако, ...'; only 22 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.chosun.com/",
+  "defect": "TWO </body> end tags in one document; 3,115 unescaped '&'; a 1,042,216-character single line inside a 3.4 MB body",
+  "expect": "Two closing </body> tags is the defect that matters here: a parser or a chunker that treats the first </body> as the end of the document discards everything after it, and this page puts 2,489 links on both sides of that boundary. Wrapped in the largest single line in this batch -- over a million characters.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 3,376,644 bytes across 231 lines, longest line 1,042,216 characters, content-type 'text/html; charset=utf-8'. The body contains </body> TWICE and </html> once. 342,666 non-ASCII bytes (valid UTF-8 Korean). 3,115 unescaped '&' and 14 bare '<'. lxml reported 100 errors ({CEIL}), all attributed to line 114 because that is the giant line: 'Tag header invalid', 'Tag nav invalid', 'Tag svg invalid', 'Tag path invalid', 'Tag g invalid'. 286 HTML tags inside <script> bodies. Title parses as the Korean string '조선일보 - 1등 디지털뉴스'; 2,489 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.sina.com.cn/",
+  "defect": "HTML close tags embedded inside <script> bodies (dozens of 'Element script embeds close tag' errors); 588 unescaped '&'; 47 bare '<'; 12 anchors closed by the wrong tag",
+  "expect": "The script-CDATA case at volume: the JavaScript on this page contains literal HTML close tags, so any parser that terminates <script> on the first '</' rather than on '</script' ends the script element early and then parses JavaScript source as markup. 972 links come off this page and a mis-terminated script poisons all of them.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 403,166 bytes, 5,331 lines, longest line 16,713 chars, content-type 'text/html' with NO charset parameter; <meta> declares utf-8. 38,191 non-ASCII bytes (valid UTF-8). 588 unescaped '&', 47 bare '<'. DOCTYPE is the bare HTML5 'html'. lxml reported 100 errors ({CEIL}) dominated by one message: 'line 23: Element script embeds close tag', 'line 52: Element script embeds close tag' (repeated at columns 135, 3926, 3940, 3944, 3983, 4403, 4417 of that single line). Tag-balance walk: 13 mismatched (<a> x12, <div>), 1 unclosed (<li>), 0 stray. 60 HTML tags inside <script> bodies. Title parses as '新浪网'; 972 links parsed. NOTE: this host RESETS the connection (WinError 10054) when fetched inside a concurrent burst or immediately after a previous fetch -- it answered 200 with these exact counts on two unhurried fetches; crawl it politely.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.aajtak.in/",
+  "defect": "close tags inside <script> plus a stray </script> with nothing open; 192 unescaped '&'; 39 bare '<'; 122,084-char longest line",
+  "expect": "Both halves of the <script> problem in one document: scripts that embed close tags AND a </script> end tag for which no <script> is open. Between them the parser can both end a script too early and end the WRONG script, on a 738 KB Hindi page whose 616 links depend on getting it right.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 737,813 bytes, 3,304 lines, longest line 122,084 chars, content-type 'text/html; charset=UTF-8', <meta> charset utf-8, 76,368 non-ASCII bytes (valid UTF-8; the Devanagari title decodes cleanly). 192 unescaped '&', 39 bare '<'. lxml reported 100 errors ({CEIL}): 'line 104: Element script embeds close tag', 'line 105: Element script embeds close tag', 'line 106: Element script embeds close tag', 'line 124: Element script embeds close tag', 'line 184: htmlParseEntityRef: expecting \\';\\'' (three columns), 'line 205: Unexpected end tag : script'. Tag-balance walk: 1 stray close (</script>), 0 mismatched, 0 unclosed. 27 HTML tags inside <script> bodies. Title parses as 'Hindi news, ... Hindi Samachar, ...'; 616 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.kompas.com/",
+  "defect": "307 unescaped '&', 22 bare '<', character references with no name, and 128 HTML tags inside <script> bodies",
+  "expect": "Indonesia's largest news site. Notable because it is a LATIN-script page with only 6 non-ASCII bytes yet still carries 307 bare ampersands and 22 bare '<' -- proving the entity defects in this batch are not an artefact of multibyte content, they are just how the HTML is generated.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 384,717 bytes, 6,684 lines, longest line 9,976 chars, content-type 'text/html; charset=UTF-8', <meta> charset utf-8, only 6 non-ASCII bytes in the whole document. 307 unescaped '&' and 22 bare '<'. DOCTYPE is the bare HTML5 'html'. lxml reported 100 errors ({CEIL}): 'line 403: htmlParseEntityRef: expecting \\';\\'' (twice), 'line 718: htmlParseEntityRef: expecting \\';\\'', 'line 789: htmlParseEntityRef: no name', 'line 1080: htmlParseEntityRef: expecting \\';\\'' (twice), 'line 1691: Element script embeds close tag', 'line 1714: Element script embeds close tag'. Tag-balance walk: 1 mismatched (<a>), 0 stray, 0 unclosed. 128 HTML tags inside <script>. Title parses as 'Berita Terkini Hari Ini, Kabar Akurat Terpercaya - Kompas.com'; 477 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.nikkansports.com/",
+  "defect": "3 stray </div> end tags; <a> and <section> closed by the wrong tag; 149 unescaped '&'; 190 HTML tags inside <script> bodies",
+  "expect": "Structural damage on a live Japanese site: three </div> tags close nothing, and both an <a> and a <section> are closed by a different tag. Stray </div> is the specific defect that unbalances the layout tree and re-parents whole blocks, so text and links end up attributed to the wrong section of the page.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 199,745 bytes, 4,184 lines, longest line 5,676 chars, content-type 'text/html; charset=UTF-8', <meta> charset UTF-8, 25,092 non-ASCII bytes (valid UTF-8). 149 unescaped '&', 9 bare '<'. DOCTYPE is the bare HTML5 'html'. lxml reported 100 errors ({CEIL}): 'line 696: htmlParseEntityRef: expecting \\';\\'', 'line 927: Element script embeds close tag', 'line 941: Element script embeds close tag' (three columns), 'line 945: Element script embeds close tag', 'line 954: Element script embeds close tag', 'line 966: Element script embeds close tag'. Tag-balance walk: 3 stray closes (</div> x3), 2 mismatched (<a>, <section>), 0 unclosed. 190 HTML tags inside <script>. Title parses as '日刊スポーツ : nikkansports.com'; 407 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.thestar.com.my/",
+  "defect": "stray </li> and </ul> with nothing open; <ul> closed by the wrong tag; 105 unescaped '&'; 20 bare '<'; scripts embedding close tags",
+  "expect": "Broken LIST nesting specifically: a </li> and a </ul> that close nothing, plus a <ul> closed by something else. Lists are where navigation and article links live, so this is the defect that costs a crawler its frontier rather than just its text.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 314,533 bytes, 4,753 lines, longest line 2,525 chars, content-type 'text/html; charset=UTF-8', <meta> charset utf-8, only 17 non-ASCII bytes. 105 unescaped '&' and 20 bare '<'. DOCTYPE is the bare HTML5 'html'. lxml reported 94 errors: 'line 66: htmlParseEntityRef: expecting \\';\\'', 'line 150: Element script embeds close tag' (two columns), 'line 151: Element script embeds close tag', 'line 152: Element script embeds close tag', 'line 153: Element script embeds close tag' (two columns), 'line 154: Element script embeds close tag'. Tag-balance walk: 2 stray closes (</li>, </ul>), 1 mismatched (<ul>), 0 unclosed. 65 HTML tags inside <script>. Title parses as 'The Star | Malaysia News: National, Regional and World News'; 259 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.folha.uol.com.br/",
+  "defect": "an invented </spam> end tag; </head> closed mid-document then <body> misplaced; 12 <path> elements closed by the wrong tag; 12,412 lines",
+  "expect": "A typo'd end tag (</spam> for </span>) alongside a document that closes </head> in the middle and then opens <body> in the wrong place -- the two errors together mean the parser's idea of where head ends and body begins is wrong AND it has an element name that does not exist. Brazil's largest newspaper, so this is live production HTML.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 887,433 bytes, 12,412 lines, longest line 32,518 chars, content-type 'text/html' with NO charset parameter; <meta> declares utf-8. 2,649 non-ASCII bytes (valid UTF-8). 28 unescaped '&', 1 bare '<'. DOCTYPE is the bare HTML5 'html'. lxml reported 100 errors ({CEIL}): 'line 160: Tag svg invalid', 'line 161: Tag path invalid', 'line 525: Unexpected end tag : head', 'line 527: htmlParseStartTag: misplaced <body> tag', 'line 567: Tag header invalid', 'line 579: Tag svg invalid', 'line 580: Tag path invalid', 'line 603: Tag svg invalid'. Tag-balance walk: 1 stray end tag -- </spam>, an element that has never existed -- and 14 mismatched (<path> x12, <span>, <div>), 0 unclosed. 159 HTML tags inside <script>. Title parses as 'Noticias de hoje do Brasil e do Mundo | Folha de S.Paulo'; 681 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "url": "https://www.mofa.gov.tw/",
+  "defect": "273 unescaped '&' concentrated in a handful of very long lines; 70,497 non-ASCII bytes; 1,777 links to extract through the damage",
+  "expect": "Taiwan's Ministry of Foreign Affairs. The interesting property is scale of EXTRACTION: 1,777 links have to survive 273 broken entity references and 100 parser errors on a 311 KB Traditional Chinese page. A parser that drops a subtree on entity failure loses hundreds of URLs at once, and unlike the small academic rows the loss is invisible in a spot check.",
+  "evidence": "measured 2026-07-27 (two fetches, every count below identical both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) -- quoting its error_log verbatim -- AND an html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 311,017 bytes, 1,593 lines, longest line 13,423 chars, content-type 'text/html; charset=utf-8' agreeing with the <meta>. 70,497 non-ASCII bytes (valid UTF-8). 273 unescaped '&', 3 bare '<'. DOCTYPE is the bare HTML5 'html'. lxml reported 100 errors ({CEIL}), overwhelmingly entity failures clustered on a few lines: 'line 804 column 165: htmlParseEntityRef: expecting \\';\\'', 'line 807 columns 1252 and 1376', 'line 808 columns 270, 580, 697, 805, 911' -- all the same message. Tag-balance walk: 0 unclosed, 0 stray, 0 mismatched (the nesting is clean; the entities are not). 60 HTML tags inside <script>. Title parses as '中華民國外交部全球資訊網'; 1,777 links parsed.",
+  "category": "broken_html",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real"
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.ansible.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Acquisition redirect that INJECTS a campaign query parameter (intcmp=...) the seed never had, so the canonical URL stored for this page is not a pure relocation of the seed and two crawls that strip or keep that parameter differently will store the page twice.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.redhat.com/en/ansible-collaborative?intcmp=7015Y000003t7aWQAQ. Final HTTP 200 at https://www.redhat.com/en/ansible-collaborative?intcmp=7015Y000003t7aWQAQ, 442,902 bytes, title 'Ansible Collaborative'. Registered domain changed ansible.com -> redhat.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 1, redirect kinds 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.redhat.com/en/ansible-collaborative?intcmp=7015Y000003t7aWQAQ",
+  "final_host": "www.redhat.com",
+  "seed_registered_domain": "ansible.com",
+  "final_registered_domain": "redhat.com",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.redhat.com/en/ansible-collaborative?intcmp=7015Y000003t7aWQAQ"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.bea.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Four hops, and hop 1 is a SCHEME DOWNGRADE: an https:// seed is sent to an http:// URL before hop 2 puts it back on https. A crawler that refuses https->http stops dead here; one that follows must not then mark the whole chain insecure. Hops 3 and 4 are RELATIVE Location headers that only resolve correctly against the already-changed host.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> http://www.oracle.com/bea/index.html; 301 -> https://www.oracle.com/bea/index.html; 301 -> /bea/; 301 -> /java/weblogic/. Final HTTP 200 at https://www.oracle.com/java/weblogic/, 55,098 bytes, title 'Weblogic Server | Oracle'. Registered domain changed bea.com -> oracle.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 4, redirect kinds 301 -> 301 -> 301 -> 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.oracle.com/java/weblogic/",
+  "final_host": "www.oracle.com",
+  "seed_registered_domain": "bea.com",
+  "final_registered_domain": "oracle.com",
+  "redirect_kind": "301 -> 301 -> 301 -> 301",
+  "hops": 4,
+  "status": 200,
+  "chain": [
+   "301 -> http://www.oracle.com/bea/index.html",
+   "301 -> https://www.oracle.com/bea/index.html",
+   "301 -> /bea/",
+   "301 -> /java/weblogic/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.ca.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. The simplest shape in this batch and the baseline the multi-hop rows are compared against: one 301, root to root, a whole company's domain retired into the acquirer's.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.broadcom.com/. Final HTTP 200 at https://www.broadcom.com/, 47,890 bytes, title 'Broadcom Inc. | Connecting Everything'. Registered domain changed ca.com -> broadcom.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 1, redirect kinds 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.broadcom.com/",
+  "final_host": "www.broadcom.com",
+  "seed_registered_domain": "ca.com",
+  "final_registered_domain": "broadcom.com",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.broadcom.com/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.coreos.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. THREE registered domains in two hops: coreos.com -> openshift.com -> redhat.com. A crawler that re-anchors its scope on the FIRST cross-domain hop scopes itself to openshift.com and then treats the real destination as off-site. Scope must follow the chain to the end, not to the first change.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.openshift.com/; 301 -> https://www.redhat.com/en/technologies/cloud-computing/openshift. Final HTTP 200 at https://www.redhat.com/en/technologies/cloud-computing/openshift, 1,003,988 bytes, title 'Red Hat OpenShift'. Registered domain changed coreos.com -> redhat.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 2, redirect kinds 301 -> 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.redhat.com/en/technologies/cloud-computing/openshift",
+  "final_host": "www.redhat.com",
+  "seed_registered_domain": "coreos.com",
+  "final_registered_domain": "redhat.com",
+  "redirect_kind": "301 -> 301",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.openshift.com/",
+   "301 -> https://www.redhat.com/en/technologies/cloud-computing/openshift"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.deepmind.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. The destination sits on a BRAND TLD: the whole registered domain is 'deepmind.google', where 'google' is the public suffix. A scope check written as 'compare the last two labels' reads the destination as being under the .google suffix and mis-scopes it; only a real Public Suffix List lookup gets this right. It is also a 302 (temporary), so the destination must not be persisted as the seed's canonical URL.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 302 -> https://deepmind.google/. Final HTTP 200 at https://deepmind.google/, 233,401 bytes, title 'Google DeepMind'. Registered domain changed deepmind.com -> deepmind.google (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 1, redirect kinds 302.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://deepmind.google/",
+  "final_host": "deepmind.google",
+  "seed_registered_domain": "deepmind.com",
+  "final_registered_domain": "deepmind.google",
+  "redirect_kind": "302",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "302 -> https://deepmind.google/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.siebel.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. An acquired product line whose old domain still resolves two decades later. Hop 1 lands on a deep legacy path ending in index.html and hop 2 rewrites it to a modern directory URL -- so the destination the first redirect advertises is not the one that serves the page, and a crawler that records the intermediate Location as canonical stores a URL that immediately redirects again.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.oracle.com/us/products/applications/siebel/index.html; 301 -> https://www.oracle.com/applications/siebel/. Final HTTP 200 at https://www.oracle.com/applications/siebel/, 100,620 bytes, title 'Siebel CRM applications | CX | Oracle'. Registered domain changed siebel.com -> oracle.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 2, redirect kinds 301 -> 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.oracle.com/applications/siebel/",
+  "final_host": "www.oracle.com",
+  "seed_registered_domain": "siebel.com",
+  "final_registered_domain": "oracle.com",
+  "redirect_kind": "301 -> 301",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.oracle.com/us/products/applications/siebel/index.html",
+   "301 -> https://www.oracle.com/applications/siebel/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.exacttarget.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. The old domain is carried forward INSIDE the destination's query string (d=www.exacttarget.com), and it appears unencoded on hop 1 and percent-encoded on hops 2 and 3 -- so the same destination has two spellings and a frontier that does not normalise percent-encoding will enqueue it twice. Hop 2 is a relative Location.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.salesforce.com/products/marketing-cloud/email-marketing/?d=www.exacttarget.com/&internal=true; 301 -> /marketing/engagement/?d=www.exacttarget.com%2F&internal=true; 302 -> https://www.salesforce.com/marketing/engagement/?d=www.exacttarget.com%2F&internal=true&bc=OTH. Final HTTP 200 at https://www.salesforce.com/marketing/engagement/?d=www.exacttarget.com%2F&internal=true&bc=OTH, 571,247 bytes, title 'Engagement Marketing Platform. | Salesforce'. Registered domain changed exacttarget.com -> salesforce.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 3, redirect kinds 301 -> 301 -> 302.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.salesforce.com/marketing/engagement/?d=www.exacttarget.com%2F&internal=true&bc=OTH",
+  "final_host": "www.salesforce.com",
+  "seed_registered_domain": "exacttarget.com",
+  "final_registered_domain": "salesforce.com",
+  "redirect_kind": "301 -> 301 -> 302",
+  "hops": 3,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.salesforce.com/products/marketing-cloud/email-marketing/?d=www.exacttarget.com/&internal=true",
+   "301 -> /marketing/engagement/?d=www.exacttarget.com%2F&internal=true",
+   "302 -> https://www.salesforce.com/marketing/engagement/?d=www.exacttarget.com%2F&internal=true&bc=OTH"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.genzyme.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Three registered domains (genzyme.com -> sanofigenzyme.com -> sanofi.com) and then two further RELATIVE in-site relocations, so the path the crawler finally stores has nothing in common with the seed. The final title still arrives HTML-escaped ('Diseases &amp; Conditions'), which is what the crawler will store unless it unescapes.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.sanofigenzyme.com/; 301 -> https://www.sanofi.com/en/your-health/specialty-care; 301 -> /en/your-health/medicines; 301 -> /en/patients/understanding-diseases-conditions. Final HTTP 200 at https://www.sanofi.com/en/patients/understanding-diseases-conditions, 188,240 bytes, title 'Understanding Diseases &amp; Conditions | Sanofi'. Registered domain changed genzyme.com -> sanofi.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 4, redirect kinds 301 -> 301 -> 301 -> 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.sanofi.com/en/patients/understanding-diseases-conditions",
+  "final_host": "www.sanofi.com",
+  "seed_registered_domain": "genzyme.com",
+  "final_registered_domain": "sanofi.com",
+  "redirect_kind": "301 -> 301 -> 301 -> 301",
+  "hops": 4,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.sanofigenzyme.com/",
+   "301 -> https://www.sanofi.com/en/your-health/specialty-care",
+   "301 -> /en/your-health/medicines",
+   "301 -> /en/patients/understanding-diseases-conditions"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.harris.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A defence-industry merger, and the only 307 in this batch -- a status-code allowlist written as (301, 302, 303, 308) drops this seed on the floor. Hop 2 is a GEO redirect chosen from the client IP, so the final URL and title differ by where the crawler runs; the registered-domain change is invariant, the landing path is not.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 307 -> https://www.l3harris.com; 302 -> https://www.l3harris.com/en-in/india?regional_redirect=en-in. Final HTTP 200 at https://www.l3harris.com/en-in/india?regional_redirect=en-in, 133,932 bytes, title 'India | L3Harris® Fast. Forward.'. Registered domain changed harris.com -> l3harris.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 2, redirect kinds 307 -> 302.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.l3harris.com/en-in/india?regional_redirect=en-in",
+  "final_host": "www.l3harris.com",
+  "seed_registered_domain": "harris.com",
+  "final_registered_domain": "l3harris.com",
+  "redirect_kind": "307 -> 302",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "307 -> https://www.l3harris.com",
+   "302 -> https://www.l3harris.com/en-in/india?regional_redirect=en-in"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.hortonworks.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A merger where hop 1 crosses the registered domain to the APEX (cloudera.com) and hop 2 is same-domain (apex -> www). A crawler that stops inspecting after the first cross-domain hop anchors its scope on 'cloudera.com' and then has to decide whether 'www.cloudera.com' is in scope -- the host string differs, the eTLD+1 does not.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://cloudera.com; 301 -> https://www.cloudera.com/. Final HTTP 200 at https://www.cloudera.com/, 135,729 bytes, title 'Cloudera | The hybrid platform for data &amp; AI'. Registered domain changed hortonworks.com -> cloudera.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 2, redirect kinds 301 -> 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.cloudera.com/",
+  "final_host": "www.cloudera.com",
+  "seed_registered_domain": "hortonworks.com",
+  "final_registered_domain": "cloudera.com",
+  "redirect_kind": "301 -> 301",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "301 -> https://cloudera.com",
+   "301 -> https://www.cloudera.com/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.hotmail.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A twenty-year-old consumer brand retired into a different registered domain, and the destination is a SUBDOMAIN (outlook.live.com) whose eTLD+1 is live.com -- not 'outlook.live.com'. A scope rule that compares full hostnames sees a third distinct host here and refuses to crawl it.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://outlook.live.com/owa/; 302 -> https://outlook.live.com/mail/. Final HTTP 200 at https://outlook.live.com/mail/, 14,102 bytes, title 'Outlook'. Registered domain changed hotmail.com -> live.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 2, redirect kinds 301 -> 302.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://outlook.live.com/mail/",
+  "final_host": "outlook.live.com",
+  "seed_registered_domain": "hotmail.com",
+  "final_registered_domain": "live.com",
+  "redirect_kind": "301 -> 302",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "301 -> https://outlook.live.com/owa/",
+   "302 -> https://outlook.live.com/mail/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.ing-diba.de/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A German bank rebrand on a ccTLD. The eTLD+1 comparison has to work on .de as well as .com, and the two domains share a label ('ing') so a scope check written as substring or prefix matching wrongly calls this same-domain and never notices the change.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.ing.de/. Final HTTP 200 at https://www.ing.de/, 59,427 bytes, title 'Willkommen bei Deutschlands beliebtester Bank – ING'. Registered domain changed ing-diba.de -> ing.de (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 1, redirect kinds 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.ing.de/",
+  "final_host": "www.ing.de",
+  "seed_registered_domain": "ing-diba.de",
+  "final_registered_domain": "ing.de",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.ing.de/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.leonardocompany.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A defence-prime rebrand where the FIRST TWO hops are same-domain (locale then path) and only hop 3 crosses. A crawler that inspects only hop 1 sees no domain change at all and anchors its scope to the dead domain. Hop 1 is also a 302 while hops 2-3 are 301, so the chain mixes temporary and permanent semantics.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 302 -> https://www.leonardocompany.com/en; 301 -> https://www.leonardocompany.com/en/home; 301 -> https://www.leonardo.com/en/home. Final HTTP 200 at https://www.leonardo.com/en/home, 670,855 bytes, title 'Aerospace, Defence and Security'. Registered domain changed leonardocompany.com -> leonardo.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 3, redirect kinds 302 -> 301 -> 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.leonardo.com/en/home",
+  "final_host": "www.leonardo.com",
+  "seed_registered_domain": "leonardocompany.com",
+  "final_registered_domain": "leonardo.com",
+  "redirect_kind": "302 -> 301 -> 301",
+  "hops": 3,
+  "status": 200,
+  "chain": [
+   "302 -> https://www.leonardocompany.com/en",
+   "301 -> https://www.leonardocompany.com/en/home",
+   "301 -> https://www.leonardo.com/en/home"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.medimmune.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. The DEAD-END rebrand: the redirect is real and the destination returns HTTP 200, but the page is an acquirer's 'Website Decommissioned' parking notice, not content. Re-anchoring scope here recruits a host called parkedpage.astrazeneca.com whose entire purpose is to have nothing on it -- the crawler must notice that a 200 with 8 KB and a decommissioning title is not a successful acquisition of the seed's content.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 302 -> https://parkedpage.astrazeneca.com/. Final HTTP 200 at https://parkedpage.astrazeneca.com/, 8,490 bytes, title 'AstraZeneca - Website Decommissioned'. Registered domain changed medimmune.com -> astrazeneca.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 1, redirect kinds 302.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://parkedpage.astrazeneca.com/",
+  "final_host": "parkedpage.astrazeneca.com",
+  "seed_registered_domain": "medimmune.com",
+  "final_registered_domain": "astrazeneca.com",
+  "redirect_kind": "302",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "302 -> https://parkedpage.astrazeneca.com/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.mesosphere.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. TWO successive rebrands compressed into one chain: mesosphere.com renamed itself d2iq.com, which was then acquired by nutanix.com. Three registered domains, and the final page's own title states the second rebrand, so this is the row where the crawler's stored provenance is three names deep.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://d2iq.com/; 301 -> https://www.nutanix.com/d2iq. Final HTTP 200 at https://www.nutanix.com/d2iq, 178,512 bytes, title 'D2iQ joins Nutanix, DKP becomes NKP'. Registered domain changed mesosphere.com -> nutanix.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 2, redirect kinds 301 -> 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.nutanix.com/d2iq",
+  "final_host": "www.nutanix.com",
+  "seed_registered_domain": "mesosphere.com",
+  "final_registered_domain": "nutanix.com",
+  "redirect_kind": "301 -> 301",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "301 -> https://d2iq.com/",
+   "301 -> https://www.nutanix.com/d2iq"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.nest.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Hop 1 is same-domain (www stripped) and only hop 2 crosses, so a crawler that checks only the first hop sees nothing. The destination also carries a BARE query key with no value ('&GoogleNest') alongside three utm_* parameters -- a query normaliser that assumes every key has an '=' mangles the URL, and one that strips utm_* produces a different canonical URL than one that does not.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://nest.com/; 301 -> https://store.google.com/us/category/connected_home?hl=en-US&GoogleNest&utm_source=nest_redirect&utm_medium=google_oo&utm_campaign=homepage. Final HTTP 200 at https://store.google.com/us/category/connected_home?hl=en-US&GoogleNest&utm_source=nest_redirect&utm_medium=google_oo&utm_campaign=homepage, 2,539,345 bytes, title 'Smart Homes start with Google Nest'. Registered domain changed nest.com -> google.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 2, redirect kinds 301 -> 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://store.google.com/us/category/connected_home?hl=en-US&GoogleNest&utm_source=nest_redirect&utm_medium=google_oo&utm_campaign=homepage",
+  "final_host": "store.google.com",
+  "seed_registered_domain": "nest.com",
+  "final_registered_domain": "google.com",
+  "redirect_kind": "301 -> 301",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "301 -> https://nest.com/",
+   "301 -> https://store.google.com/us/category/connected_home?hl=en-US&GoogleNest&utm_source=nest_redirect&utm_medium=google_oo&utm_campaign=homepage"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.netbeans.org/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A project donated to a foundation, so the whole project moved under someone else's registered domain as a subdomain. Hop 1's Location header ends in a DOUBLE SLASH ('netbeans.apache.org//') -- a crawler that does not collapse duplicate slashes stores '//' and '/' as two different URLs for the same page.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://netbeans.apache.org//; 301 -> https://netbeans.apache.org/front/main/index.html. Final HTTP 200 at https://netbeans.apache.org/front/main/index.html, 13,297 bytes, title 'Welcome to Apache NetBeans'. Registered domain changed netbeans.org -> apache.org (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 2, redirect kinds 301 -> 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://netbeans.apache.org/front/main/index.html",
+  "final_host": "netbeans.apache.org",
+  "seed_registered_domain": "netbeans.org",
+  "final_registered_domain": "apache.org",
+  "redirect_kind": "301 -> 301",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "301 -> https://netbeans.apache.org//",
+   "301 -> https://netbeans.apache.org/front/main/index.html"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.pardot.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A second acquired brand converging on the SAME acquirer as the exacttarget.com row -- two different seeds landing inside one destination domain, which the crawler must not enqueue as two separate scopes. The final hop appends a tracking parameter (bc=OTH) that the previous hop did not have.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.salesforce.com/products/marketing-cloud/marketing-automation/?redirect=pardot.com; 301 -> /marketing/b2b-automation/?redirect=pardot.com; 302 -> https://www.salesforce.com/marketing/b2b-automation/?redirect=pardot.com&bc=OTH. Final HTTP 200 at https://www.salesforce.com/marketing/b2b-automation/?redirect=pardot.com&bc=OTH, 599,182 bytes, title 'B2B Marketing Automation Platform | Salesforce'. Registered domain changed pardot.com -> salesforce.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 3, redirect kinds 301 -> 301 -> 302.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.salesforce.com/marketing/b2b-automation/?redirect=pardot.com&bc=OTH",
+  "final_host": "www.salesforce.com",
+  "seed_registered_domain": "pardot.com",
+  "final_registered_domain": "salesforce.com",
+  "redirect_kind": "301 -> 301 -> 302",
+  "hops": 3,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.salesforce.com/products/marketing-cloud/marketing-automation/?redirect=pardot.com",
+   "301 -> /marketing/b2b-automation/?redirect=pardot.com",
+   "302 -> https://www.salesforce.com/marketing/b2b-automation/?redirect=pardot.com&bc=OTH"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.praxair.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A merger of equals where the surviving brand is 'Linde' but the domain the seed actually lands on is the REGIONAL one, lindeus.com -- not linde.com. The registered domain that scope must anchor to is the one the redirect actually produced, not the one the brand name suggests.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.lindeus.com/. Final HTTP 200 at https://www.lindeus.com/, 625,768 bytes, title 'Leading global industrial gases and engineering company | Linde'. Registered domain changed praxair.com -> lindeus.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 1, redirect kinds 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.lindeus.com/",
+  "final_host": "www.lindeus.com",
+  "seed_registered_domain": "praxair.com",
+  "final_registered_domain": "lindeus.com",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.lindeus.com/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.rheinmetall-defence.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A defence contractor consolidating a product-line domain into its corporate one. Hop 1's Location has NO trailing slash (bare origin) and hop 2 is a bare RELATIVE path ('/de') that only resolves correctly against the already-changed host -- resolve it against the seed host and the crawler fetches rheinmetall-defence.com/de instead.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.rheinmetall.com; 302 -> /de. Final HTTP 200 at https://www.rheinmetall.com/de, 404,422 bytes, title 'Internationaler Technologiekonzern für Sicherheit und Verteidigung | Rheinmetall'. Registered domain changed rheinmetall-defence.com -> rheinmetall.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 2, redirect kinds 301 -> 302.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.rheinmetall.com/de",
+  "final_host": "www.rheinmetall.com",
+  "seed_registered_domain": "rheinmetall-defence.com",
+  "final_registered_domain": "rheinmetall.com",
+  "redirect_kind": "301 -> 302",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.rheinmetall.com",
+   "302 -> /de"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.saabgroup.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A defence prime's domain consolidation. The two domains share the 'saab' label, so a scope check that compares the second-level label alone calls this same-domain and a check on the full host calls it a change -- the answers differ, which is exactly why the eTLD+1 rule has to be written down.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.saab.com/. Final HTTP 200 at https://www.saab.com/, 203,719 bytes, title 'Saab | Keeping people and society safe'. Registered domain changed saabgroup.com -> saab.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 1, redirect kinds 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.saab.com/",
+  "final_host": "www.saab.com",
+  "seed_registered_domain": "saabgroup.com",
+  "final_registered_domain": "saab.com",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.saab.com/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.shire.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A cross-border pharmaceutical acquisition. The Location header is a BARE ORIGIN with no path and no trailing slash ('https://www.takeda.com'), so the final URL the crawler records has an empty path -- it must canonicalise that to '/' or the same page will be re-fetched under two spellings.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.takeda.com. Final HTTP 200 at https://www.takeda.com, 675,274 bytes, title 'Takeda Pharmaceuticals: Global Homepage'. Registered domain changed shire.com -> takeda.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 1, redirect kinds 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.takeda.com",
+  "final_host": "www.takeda.com",
+  "seed_registered_domain": "shire.com",
+  "final_registered_domain": "takeda.com",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.takeda.com"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.softlayer.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. The chain OPENS with a 302 (temporary) that crosses the registered domain and then continues with two 301s inside the new domain. A crawler that persists the destination as canonical only on a 301 has to decide what the mixed chain means; hop 1 also lands on the apex (ibm.com) before hop 2 moves to www.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 302 -> https://ibm.com/cloud; 301 -> https://www.ibm.com/cloud; 301 -> https://www.ibm.com/products/cloud. Final HTTP 200 at https://www.ibm.com/products/cloud, 278,224 bytes, title 'IBM Cloud products'. Registered domain changed softlayer.com -> ibm.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 3, redirect kinds 302 -> 301 -> 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.ibm.com/products/cloud",
+  "final_host": "www.ibm.com",
+  "seed_registered_domain": "softlayer.com",
+  "final_registered_domain": "ibm.com",
+  "redirect_kind": "302 -> 301 -> 301",
+  "hops": 3,
+  "status": 200,
+  "chain": [
+   "302 -> https://ibm.com/cloud",
+   "301 -> https://www.ibm.com/cloud",
+   "301 -> https://www.ibm.com/products/cloud"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.suntrust.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A bank merger that created a brand-new name from two old ones, so neither old domain survives. Bare-origin Location again (no trailing slash).",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.truist.com. Final HTTP 200 at https://www.truist.com, 257,344 bytes, title 'Truist Bank | Checking, Savings, Lending, and Financial Services'. Registered domain changed suntrust.com -> truist.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 1, redirect kinds 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.truist.com",
+  "final_host": "www.truist.com",
+  "seed_registered_domain": "suntrust.com",
+  "final_registered_domain": "truist.com",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.truist.com"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.symantec.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Hop 2 is a RELATIVE Location that also SILENTLY FIXES A TYPO in the path ('cyber-security' -> 'cybersecurity'), so the URL the first redirect advertised is not the URL that finally serves the page. The landing page is a deep product path, not a section root, so re-anchoring scope to www.broadcom.com admits an enormous corporate site the seed never asked for.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.broadcom.com/products/cyber-security; 301 -> /products/cybersecurity. Final HTTP 200 at https://www.broadcom.com/products/cybersecurity, 48,280 bytes, title 'Symantec™ Enterprise Cloud Cyber Security'. Registered domain changed symantec.com -> broadcom.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 2, redirect kinds 301 -> 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.broadcom.com/products/cybersecurity",
+  "final_host": "www.broadcom.com",
+  "seed_registered_domain": "symantec.com",
+  "final_registered_domain": "broadcom.com",
+  "redirect_kind": "301 -> 301",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.broadcom.com/products/cyber-security",
+   "301 -> /products/cybersecurity"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.tkk.fi/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A university MERGER (Helsinki University of Technology folded into Aalto University) on a Finnish ccTLD, landing on a language-prefixed path rather than the site root. The corpus already holds cs.tut.fi -> tuni.fi; this is an independent Finnish merger with a different acquirer, confirming the pattern is not one institution's quirk.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.aalto.fi/fi. Final HTTP 200 at https://www.aalto.fi/fi, 165,480 bytes, title 'Aalto-yliopisto'. Registered domain changed tkk.fi -> aalto.fi (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 1, redirect kinds 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.aalto.fi/fi",
+  "final_host": "www.aalto.fi",
+  "seed_registered_domain": "tkk.fi",
+  "final_registered_domain": "aalto.fi",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.aalto.fi/fi"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.total.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A pure corporate rebrand, and the destination is the APEX domain with NO www -- so the crawler's scope root is 'totalenergies.com' while the seed's was 'www.total.com'. Code that assumes a www host on both sides of the comparison, or that adds www when normalising, gets a host that does not answer.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://totalenergies.com/. Final HTTP 200 at https://totalenergies.com/, 113,029 bytes, title 'TotalEnergies - integrated multi-energy company | TotalEnergies.com'. Registered domain changed total.com -> totalenergies.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 1, redirect kinds 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://totalenergies.com/",
+  "final_host": "totalenergies.com",
+  "seed_registered_domain": "total.com",
+  "final_registered_domain": "totalenergies.com",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://totalenergies.com/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.uta.fi/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. The OTHER half of the Tampere merger: the corpus already holds cs.tut.fi (the technical university) -> tuni.fi, and this is the University of Tampere's own domain converging on the same destination. Two independent seed domains resolving into one scope is the case where a crawler must not enqueue tuni.fi twice. Hop 1 is a permanent 301, hop 2 a temporary 302 for the language path.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.tuni.fi/; 302 -> https://www.tuni.fi/fi. Final HTTP 200 at https://www.tuni.fi/fi, 172,465 bytes, title 'Ihminen ratkaisee | Tampereen yliopisto ja TAMK'. Registered domain changed uta.fi -> tuni.fi (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 2, redirect kinds 301 -> 302.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.tuni.fi/fi",
+  "final_host": "www.tuni.fi",
+  "seed_registered_domain": "uta.fi",
+  "final_registered_domain": "tuni.fi",
+  "redirect_kind": "301 -> 302",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.tuni.fi/",
+   "302 -> https://www.tuni.fi/fi"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.wachovia.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A 2008-crisis bank acquisition whose redirect is still live seventeen years later -- the counter-example to the assumption that old rebrand redirects have all been switched off. Clean single hop, root to root.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://www.wellsfargo.com/. Final HTTP 200 at https://www.wellsfargo.com/, 125,013 bytes, title 'Wells Fargo Bank | Financial Services & Online Banking'. Registered domain changed wachovia.com -> wellsfargo.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 1, redirect kinds 301.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.wellsfargo.com/",
+  "final_host": "www.wellsfargo.com",
+  "seed_registered_domain": "wachovia.com",
+  "final_registered_domain": "wellsfargo.com",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.wellsfargo.com/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.xamarin.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope -- the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. An acquired developer product folded into a SUBDOMAIN of the acquirer (dotnet.microsoft.com, eTLD+1 microsoft.com) and then locale-prefixed by a relative 302. The final path is a deep leaf; re-anchoring scope to microsoft.com from a single acquired product page would pull one of the largest sites on the web into the frontier.",
+  "evidence": "measured 2026-07-27, follow_redirects=True, verify=True, two runs, identical both times: 301 -> https://dotnet.microsoft.com/apps/xamarin; 302 -> /en-us/apps/xamarin. Final HTTP 200 at https://dotnet.microsoft.com/en-us/apps/xamarin, 214,617 bytes, title 'Mobile development with Xamarin | .NET'. Registered domain changed xamarin.com -> microsoft.com (eTLD+1 compared with tldextract 5.1.3 against its bundled Public Suffix List snapshot). Hop count 2, redirect kinds 301 -> 302.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://dotnet.microsoft.com/en-us/apps/xamarin",
+  "final_host": "dotnet.microsoft.com",
+  "seed_registered_domain": "xamarin.com",
+  "final_registered_domain": "microsoft.com",
+  "redirect_kind": "301 -> 302",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "301 -> https://dotnet.microsoft.com/apps/xamarin",
+   "302 -> /en-us/apps/xamarin"
+  ]
+ }
+]

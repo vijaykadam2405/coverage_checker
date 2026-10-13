@@ -1,0 +1,164 @@
+name: CI
+
+# WHY THIS EXISTS
+# 1,337 test functions existed for three weeks with nothing running them. In that window at least
+# two regressions reached the 12-instance fleet that the suite already covered — a NameError that
+# silently killed the auto-refill watcher, and an assertion broken by an improvement to the code it
+# was pinning. The whole suite runs in ~90 seconds. That was the entire gap: not coverage, not
+# capability, just nobody running it.
+
+on:
+  push:
+    branches: [Layer-1, main]
+  pull_request:
+  workflow_dispatch:
+
+# NEVER ADD `DATABASE_URL` TO THIS FILE.
+#
+# Several suites are guarded with `skipif(not os.environ.get("DATABASE_URL"))` and
+# `pytest.importorskip("psycopg")` precisely because they call dedupe/delete paths with apply=True.
+# An unscoped run of those once deleted production corpus rows while wearing a unit test's name.
+# With no DATABASE_URL they skip themselves, which is the only reason this workflow is safe to run
+# against a repo whose tests can talk to a real store. The runner also has no route to the data
+# centre, but that is a second line of defence, not the first.
+env:
+  PYTHONUNBUFFERED: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── fast static checks: no dependencies, no install, seconds ────────────────
+  guards:
+    name: guards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Every test file is actually run by pytest
+        # The repo writes suites as t_* functions behind a `main()`, so a missing
+        # `def test_*_suite()` wrapper means pytest collects nothing and reports green. Sixteen
+        # files once ran zero assertions this way.
+        run: python ci/guard_test_entrypoints.py crawler/tests orchestrator/tests
+
+      - name: Generated compose matches its generator
+        # docker-compose.scale.yml is generated. Hand-editing it, or changing the generator without
+        # regenerating, silently gives the fleet a different shape than the file claims.
+        run: python scripts/gen_scale_compose.py --check 12 docker-compose.scale.yml
+
+      - name: Everything compiles
+        # Catches a syntax error before it is scp'd to the box and rebuilt into 12 containers.
+        run: python -m compileall -q crawler/crawler crawler/crawler_api crawler/ingest_api orchestrator/src scripts
+
+  # ── the suite ───────────────────────────────────────────────────────────────
+  tests:
+    name: tests (${{ matrix.suite }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [crawler, orchestrator]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          if [ "${{ matrix.suite }}" = "crawler" ]; then
+            # No `playwright install` — the suite drives fakes, and 692 tests pass without a
+            # browser binary. Downloading Chromium would add minutes for nothing.
+            pip install -r crawler/requirements.txt pytest
+          else
+            pip install -e "./orchestrator[dev]"
+          fi
+
+      - name: Run suite (known failures deselected)
+        working-directory: ${{ matrix.suite }}
+        run: |
+          list="../ci/known_failures_${{ matrix.suite }}.txt"
+          args=()
+          while IFS= read -r id; do
+            [ -n "$id" ] && args+=(--deselect "$id")
+          done < "$list"
+          echo "deselecting $(grep -c . "$list") known failure(s)"
+          pytest tests -q -p no:cacheprovider "${args[@]}"
+
+  # ── the quarantine, visible but never blocking ──────────────────────────────
+  # These fail in a clean room today: most want an orchestrator schema that only exists on a
+  # machine that has run the app, one is an ordering-pollution failure that passes alone, one is a
+  # stale source pin. Running them here on purpose means the list gets NOTICED when it turns green,
+  # instead of quietly outliving the bug it documents. It must only ever shrink.
+  quarantine:
+    name: quarantine (${{ matrix.suite }}, non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [crawler, orchestrator]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          if [ "${{ matrix.suite }}" = "crawler" ]; then
+            pip install -r crawler/requirements.txt pytest
+          else
+            pip install -e "./orchestrator[dev]"
+          fi
+      - name: Run only the known failures
+        working-directory: ${{ matrix.suite }}
+        run: |
+          mapfile -t ids < "../ci/known_failures_${{ matrix.suite }}.txt"
+          [ ${#ids[@]} -eq 0 ] && { echo "quarantine empty — delete this job"; exit 0; }
+          pytest -q -p no:cacheprovider "${ids[@]}" || true
+          echo
+          echo "Any test passing above should be deleted from ci/known_failures_${{ matrix.suite }}.txt"
+
+  # ── pollution detector, nightly rather than per-push ────────────────────────
+  # test_refill_cap_does_not_drain_the_fleet passes alone and fails inside the full run: some other
+  # module leaves state behind. Running every file in its own process finds that class, but costs
+  # ~145 interpreter starts, so it does not belong on the push path.
+  isolation:
+    name: isolation (nightly)
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [crawler, orchestrator]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          if [ "${{ matrix.suite }}" = "crawler" ]; then
+            pip install -r crawler/requirements.txt pytest
+          else
+            pip install -e "./orchestrator[dev]"
+          fi
+      - name: Each file alone, then compare with the full run
+        working-directory: ${{ matrix.suite }}
+        run: |
+          fails=0
+          for f in tests/test_*.py; do
+            pytest "$f" -q -p no:cacheprovider --tb=no >/dev/null 2>&1 || { echo "alone-FAIL $f"; fails=$((fails+1)); }
+          done
+          echo "$fails file(s) fail in isolation"

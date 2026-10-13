@@ -1,0 +1,83 @@
+[
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://www.google.com/recaptcha/api2/demo",
+  "expect": "captcha markup present in raw HTML \u2014 crawler must identify the type and sitekey",
+  "evidence": "HTTP 200, 2884 bytes; markers: g-recaptcha | data-sitekey=\"6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://patrickhlauke.github.io/recaptcha/",
+  "expect": "captcha markup present in raw HTML \u2014 crawler must identify the type and sitekey",
+  "evidence": "HTTP 200, 405 bytes; markers: www.google.com/recaptcha/api.js | g-recaptcha | data-sitekey=\"6Ld2sf4SAAAAAKSgzs0Q13IZhY02Pyo31S2jgOB5\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_invisible",
+  "url": "https://2captcha.com/demo/recaptcha-v2-invisible",
+  "expect": "captcha markup present in raw HTML \u2014 crawler must identify the type and sitekey",
+  "evidence": "HTTP 200, 222568 bytes; markers: g-recaptcha | data-sitekey=\"6LdO5_IbAAAAAAeVBL9TClS19NUTt5wswEb3Q7C5\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://2captcha.com/demo/recaptcha-v2",
+  "expect": "captcha markup present in raw HTML \u2014 crawler must identify the type and sitekey",
+  "evidence": "HTTP 200, 221006 bytes; markers: g-recaptcha | data-sitekey=\"6LfD3PIbAAAAAJs_eEHvoOl75_83eXSqpPSRFJ_u\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "enterprise",
+  "url": "https://2captcha.com/demo/recaptcha-v2-enterprise",
+  "expect": "captcha markup present in raw HTML \u2014 crawler must identify the type and sitekey",
+  "evidence": "HTTP 200, 217453 bytes; markers: g-recaptcha | data-sitekey=\"6Lf26sUnAAAAAIKLuWNYgRsFUfmI-3Lex3xT5N-s\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://2captcha.com/demo/hcaptcha",
+  "expect": "captcha markup present in raw HTML \u2014 crawler must identify the type and sitekey",
+  "evidence": "HTTP 200, 288477 bytes; markers: h-captcha",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://accounts.hcaptcha.com/demo",
+  "expect": "captcha markup present in raw HTML \u2014 crawler must identify the type and sitekey",
+  "evidence": "HTTP 200, 4359 bytes; markers: js.hcaptcha.com/1/api.js | h-captcha | data-sitekey=\"a5f74b19-9e45-40e0-b45d-47ff91b7a6c2\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "botdetect",
+  "url": "https://captcha.com/demos/features/captcha-demo.aspx",
+  "expect": "captcha markup present in raw HTML \u2014 crawler must identify the type and sitekey",
+  "evidence": "HTTP 200, 45145 bytes; markers: name=\"captcha",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "botdetect",
+  "url": "https://www.joinindianarmy.nic.in/default.aspx",
+  "expect": "captcha markup present in raw HTML \u2014 crawler must identify the type and sitekey",
+  "evidence": "HTTP 200, 10848 bytes; markers: CaptchaImage.axd | alt=\"Captcha\" | txtCaptchaCode",
+  "source": "verified-live",
+  "stable": true
+ }
+]

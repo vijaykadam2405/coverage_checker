@@ -13,6 +13,7 @@ from crawler_coverage_auditor.validation.fingerprints import sha256_text
 from crawler_coverage_auditor.validation.access import detect_access
 from crawler_coverage_auditor.discovery.tabs import detect_tabs, merge_tab_content, panel_has_content, same_document_url, TAB_SELECTOR
 from crawler_coverage_auditor.validation.text_extract import extract_text
+from crawler_coverage_auditor.discovery.readiness import ContentReadiness
 from bs4 import BeautifulSoup
 
 
@@ -40,10 +41,11 @@ class BrowserDiscovery:
 class BrowserExplorer:
     """Reuse one cookie/session context; explore read-only controls until content stabilizes."""
 
-    def __init__(self, actions: int = 60, on_event=None, allowed=None, stopped=None, pace=None,
+    def __init__(self, actions: int | None = None, on_event=None, allowed=None, stopped=None, pace=None,
                  storage_state=None, challenge_wait_seconds: float = 12.0, on_response=None, user_agent=None,
-                 sources=None, max_filter_values=100):
-        self.actions = actions
+                 sources=None, max_filter_values=None):
+        # Accept historical arguments without reinstating arbitrary count cutoffs.
+        self.actions = None
         self.on_event = on_event
         self.allowed = allowed
         self.stopped = stopped or (lambda: False)
@@ -54,7 +56,7 @@ class BrowserExplorer:
         self.user_agent = user_agent
         from crawler_coverage_auditor.config import DISCOVERY_SOURCES
         self.sources = set(DISCOVERY_SOURCES if sources is None else sources)
-        self.max_filter_values = max_filter_values
+        self.max_filter_values = None
         self._paused_hosts: set[str] = set()
         self.playwright = self.browser = self.context = None
         self.error = None
@@ -62,11 +64,18 @@ class BrowserExplorer:
     async def __aenter__(self):
         try:
             from playwright.async_api import async_playwright
+            from crawler_coverage_auditor.integrations.main_crawler import browser_profile
+            profile = browser_profile()
             self.playwright = await async_playwright().start()
-            self.browser = await self.playwright.chromium.launch(headless=True)
+            self.browser = await self.playwright.chromium.launch(headless=True,
+                **({'args': profile['args'], 'ignore_default_args': profile['ignore_default_args']} if profile['enabled'] else {}))
             self.context = await self.browser.new_context(ignore_https_errors=False, accept_downloads=False, service_workers='block',
                                                          storage_state=self.storage_state,
                                                          **({'user_agent': self.user_agent} if self.user_agent else {}))
+            if profile['init_script']:
+                await self.context.add_init_script(profile['init_script'])
+                if self.on_event:
+                    self.on_event('MAIN_CRAWLER_PROFILE', 'Using the imported main crawler browser identity helpers; access success still requires actual valid content', None)
             async def restrict(route):
                 request = route.request
                 from crawler_coverage_auditor.validation.network_safety import check_public_request
@@ -111,11 +120,33 @@ class BrowserExplorer:
 
     async def __aexit__(self, *_):
         if self.context:
-            await self.context.close()
+            await self._close_bounded(self.context.close, 'browser context')
         if self.browser:
-            await self.browser.close()
+            await self._close_bounded(self.browser.close, 'browser')
         if self.playwright:
-            await self.playwright.stop()
+            await self._close_bounded(self.playwright.stop, 'browser driver')
+
+    async def _close_bounded(self, close, label, *, timeout=5.0):
+        try:
+            async with asyncio.timeout(timeout):
+                await close()
+        except Exception as error:
+            if self.on_event:
+                self.on_event('CLEANUP_WARNING', f'{label} cleanup failed or timed out: {type(error).__name__}; continuing remaining owned-resource cleanup', None)
+
+    async def _drain_tasks(self, tasks, *, timeout=2.0):
+        pending = {task for task in tasks if not task.done()}
+        if pending:
+            _, pending = await asyncio.wait(pending, timeout=timeout)
+        if pending:
+            for task in pending:
+                task.cancel()
+            await asyncio.wait(pending, timeout=timeout)
+        # Retrieve completed exceptions, so failed observers do not leak warnings.
+        for task in tasks:
+            if task.done() and not task.cancelled():
+                task.exception()
+        return not pending
 
     async def explore(self, url: str) -> BrowserDiscovery:
         if not self.context:
@@ -128,9 +159,18 @@ class BrowserExplorer:
         states: list[dict] = []
         script_errors: dict[tuple[str, str], dict] = {}
         tab_fragments: list[str] = []
+        pagination_urls: set[str] = set()
         tasks: list[asyncio.Task] = []
-        page = await self.context.new_page()
+        frame_snapshots: dict[object, tuple[str, str]] = {}
+        try:
+            page = await self.context.new_page()
+        except Exception as error:
+            return BrowserDiscovery((), (), f'Browser page unavailable: {type(error).__name__}: {error}')
         session = None
+        readiness = ContentReadiness(url)
+        page.on('request', readiness.started)
+        page.on('requestfinished', readiness.finished)
+        page.on('requestfailed', readiness.finished)
         def resource_link(request):
             kind = resource_type(request.url)
             if request.resource_type in {'image', 'media', 'font'} or (kind in URL_ONLY_TYPES and request.resource_type not in {'script', 'stylesheet'}):
@@ -201,22 +241,25 @@ class BrowserExplorer:
             html = await page.content()
             for frame in page.frames:
                 try:
-                    for link in extract_links(await frame.content(), frame.url or page.url):
+                    frame_html = html if frame == page.main_frame else await frame.content()
+                    frame_url = frame.url or page.url
+                    if frame_snapshots.get(frame) == (frame_url, frame_html):
+                        continue
+                    frame_snapshots[frame] = (frame_url, frame_html)
+                    for link in extract_links(frame_html, frame_url):
                         links[link.url] = link
-                    for link in embedded_links(await frame.content(), frame.url or page.url) if 'STRUCTURED_DATA' in self.sources else []:
+                    for link in embedded_links(frame_html, frame_url) if 'STRUCTURED_DATA' in self.sources else []:
                         links[link.url] = link
                 except Exception:
                     pass
             if not same_document_url(page.url, url):
-                links[page.url] = Link(page.url, "Rendered navigation", "browser")
+                links[page.url] = Link(page.url, "Rendered navigation", 'pagination' if page.url in pagination_urls else "browser")
             return html
         async def settle():
-            # Allow onchange/scroll handlers to schedule their first request before waiting for idle.
-            await page.wait_for_timeout(200)
-            try:
-                await page.wait_for_load_state("networkidle", timeout=3500)
-            except Exception:
-                await page.wait_for_timeout(300)
+            if not await readiness.wait(page, stopped=self.stopped) and readiness.pending and not self.stopped():
+                reason = 'Content requests are still pending after the browser readiness wait; some content may be incomplete'
+                if reason not in limitations:
+                    limitations.append(reason)
         async def navigate(target):
             for attempt in range(3):
                 try:
@@ -243,19 +286,24 @@ class BrowserExplorer:
             nonlocal used
             if 'LOAD_MORE' not in self.sources:
                 return
-            seen: set[str] = set()
+            seen: set[tuple[str, int]] = set()
             stable = 0
-            while used < self.actions and not self.stopped():
+            while not self.stopped():
                 await collect()
                 await close_gallery()
-                fingerprint = sha256_text(await page.locator("body").inner_text())
+                # Result cards can have identical labels while exposing new URLs.
+                # Repeated text alone must not terminate useful discovery.
+                fingerprint = (sha256_text(await page.locator("body").inner_text()), len(links))
                 stable = stable + 1 if fingerprint in seen else 0
                 seen.add(fingerprint)
                 more = page.get_by_role("button", name=re.compile(r"^(load more|show more|more results|next|older|next page)$", re.I))
+                before_url = page.url
+                activated = False
                 if await more.count() and await more.first.is_visible() and await more.first.is_enabled():
                     event("LOAD_MORE", "Opening more results for the current filter state")
                     try:
                         await more.first.click(timeout=3000)
+                        activated = True
                     except Exception as error:
                         # A final asynchronous response may remove the button between inspection and click.
                         if await more.count():
@@ -264,6 +312,9 @@ class BrowserExplorer:
                 else:
                     await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
                 await settle()
+                if activated and not same_document_url(before_url, page.url):
+                    pagination_urls.add(page.url)
+                    links[page.url] = Link(page.url, 'URL reached through more-results control', 'pagination')
                 used += 1
                 if stable >= 2:
                     break
@@ -278,7 +329,7 @@ class BrowserExplorer:
             current_response = current_response or initial_response
             initial_status = current_response.status if current_response else None
             initial_html = await page.content()
-            issue = detect_access(initial_status, current_response.headers if current_response else {}, initial_html, page.url)
+            issue = detect_access(initial_status, current_response.headers if current_response else {}, initial_html, page.url, requested_url=url)
             if issue and issue.browser_wait and self.challenge_wait_seconds:
                 event("BROWSER_WAIT", f"{issue.provider or 'Website'}: waiting for ordinary browser verification (no CAPTCHA interaction)")
                 deadline = asyncio.get_running_loop().time() + self.challenge_wait_seconds
@@ -286,7 +337,7 @@ class BrowserExplorer:
                     await page.wait_for_timeout(400)
                     initial_html = await page.content()
                     initial_status = current_response.status if current_response else None
-                    issue = detect_access(initial_status, current_response.headers if current_response else {}, initial_html, page.url)
+                    issue = detect_access(initial_status, current_response.headers if current_response else {}, initial_html, page.url, requested_url=url)
                 if not issue:
                     event("BROWSER_RECOVERED", "Ordinary browser verification completed; inspecting actual website content")
             if issue:
@@ -297,6 +348,7 @@ class BrowserExplorer:
                 return BrowserDiscovery(tuple(links.values()), tuple(network), f"Browser access blocked: HTTP {initial_status}", initial_html, page.url, http_status=initial_status, script_errors=tuple(script_errors.values()))
             initial_html = await collect()
             initial_url = page.url
+            baseline_ready = True
             control_specs = await page.locator("select, input[type=checkbox], input[type=radio]").evaluate_all("""els => els.map(e => ({
                 name:e.name||e.id, type:e.tagName.toLowerCase()==='select'?'select':e.type,
                 values:e.tagName.toLowerCase()==='select'?Array.from(e.options).filter(o=>!o.disabled&&o.value).map(o=>({value:o.value,label:o.textContent})): [{value:e.value,label:e.getAttribute('aria-label')||e.labels?.[0]?.textContent||e.value}],
@@ -306,18 +358,20 @@ class BrowserExplorer:
             if await page.locator('[role=combobox]:not(select), [role=checkbox]:not(input)').count():
                 limitations.append("Custom JavaScript filter controls detected; full value enumeration may require a website adapter")
             for spec in control_specs if 'FILTER_BROWSER' in self.sources else []:
+                if self.stopped():
+                    break
                 if spec["method"].lower() == "get":
                     continue
                 if spec["unsafe"]:
                     continue
                 event("FILTER_DETECTED", f"Filter detected: {spec['name']} ({spec['method']})")
-                if len(spec['values']) > self.max_filter_values:
-                    limitations.append(f"Filter {spec['name']} value safeguard reached; some states remain unexplored")
-                for value in spec["values"][:self.max_filter_values]:
-                    if self.stopped() or used >= self.actions:
+                for value in spec["values"]:
+                    if self.stopped():
                         break
-                    await navigate(url)
-                    await settle()
+                    if not baseline_ready:
+                        await navigate(url)
+                        await settle()
+                        baseline_ready = True
                     escaped = spec["name"].replace('"', '\\"')
                     control = page.locator(f'{"select" if spec["type"] == "select" else "input"}[name="{escaped}"], {"select" if spec["type"] == "select" else "input"}[id="{escaped}"]')
                     if spec["type"] != "select":
@@ -327,6 +381,7 @@ class BrowserExplorer:
                     if not await control.count():
                         continue
                     event("FILTER_APPLYING", f"Applying {spec['name']}: {value['label']}")
+                    baseline_ready = False
                     if spec["type"] == "select":
                         await control.select_option(value["value"], timeout=3000)
                     else:
@@ -346,9 +401,10 @@ class BrowserExplorer:
                         limitations.append(f"DOM-only filter {spec['name']}={value['value']} has no independent URL; linked items checked, state-level corpus presence unverified")
                     await expand()
             # Restore the baseline only if an actual filter was explored.
-            if used:
+            if not baseline_ready and not self.stopped():
                 await navigate(url)
                 await settle()
+                baseline_ready = True
             tabs = detect_tabs(await page.content(), page.url) if 'TABS' in self.sources else []
             loaded_tabs = [tab for tab in tabs if tab.kind == 'CONTENT' and tab.loaded]
             if loaded_tabs:
@@ -363,7 +419,7 @@ class BrowserExplorer:
                     # A gallery opener is not a content filter/tab. Its resource URLs
                     # have already been captured without opening/downloading images.
                     continue
-                if used >= self.actions or self.stopped():
+                if self.stopped():
                     break
                 if spec.control_id:
                     escaped = spec.control_id.replace('\\', '\\\\').replace('"', '\\"')
@@ -375,6 +431,8 @@ class BrowserExplorer:
                     event('FILTER_APPLYING' if is_filter else 'TAB_OPENING', f"Applying filter tab: {spec.label}" if is_filter else f"Loading same-page content tab: {spec.label}")
                     await tab.click(timeout=3000)
                     await settle()
+                    if is_filter or not same_document_url(page.url, initial_url):
+                        baseline_ready = False
                     html = await collect()
                     states.append({"source_url": url, "state_url": page.url, "control": "tab", "value": spec.label, "label": spec.label, "method": "javascript", "html": html, 'kind': 'filter' if is_filter else 'content_tab'})
                     used += 1
@@ -388,17 +446,16 @@ class BrowserExplorer:
                     await expand()
             if len([spec for spec in control_specs if not spec['unsafe']]) > 1:
                 limitations.append("Multiple rendered filters: independent values explored; dependent combinations may require a website adapter")
-            if any(state.get('kind') != 'content_tab' for state in states) or not same_document_url(page.url, initial_url):
+            if (not baseline_ready or not same_document_url(page.url, initial_url)) and not self.stopped():
                 await navigate(url)
                 await settle()
             await expand()
-            if used >= self.actions:
-                limitations.append(f"Browser action budget ({self.actions}) reached; more filter/scroll content may exist")
             html = await collect()
             if same_document_url(page.url, initial_url):
                 initial_html = html
             if tasks:
-                await asyncio.gather(*tasks, return_exceptions=True)
+                if not await self._drain_tasks(tasks):
+                    limitations.append('Browser response observation exceeded its deadline; some API/resource evidence may be incomplete')
             if script_errors and not extract_text(initial_html)[0].strip():
                 limitations.append('Website JavaScript failed and no readable HTML content was available; exploration is incomplete')
             return BrowserDiscovery(tuple(links.values()), tuple(network), None, merge_tab_content(initial_html, tab_fragments), initial_url, tuple(dict.fromkeys(limitations)), tuple(states), initial_status, tuple(script_errors.values()))
@@ -406,8 +463,8 @@ class BrowserExplorer:
             return BrowserDiscovery(tuple(links.values()), tuple(network), f"{type(error).__name__}: {error}", limitations=tuple(limitations), states=tuple(states), script_errors=tuple(script_errors.values()))
         finally:
             if tasks:
-                await asyncio.gather(*tasks, return_exceptions=True)
-            await page.close()
+                await self._drain_tasks(tasks)
+            await self._close_bounded(page.close, 'page')
 
 
 async def discover_rendered_page(url: str) -> BrowserDiscovery:

@@ -1,0 +1,57 @@
+{
+  "_comment": "Special-request targets: sites crawled exclusively through the C3 (CamoFox) lane. No keyword gate \u2014 everything on the domain is kept, not just defence-relevant pages.",
+  "targets": [
+    {
+      "name": "sipri",
+      "source_id": "sipri_org",
+      "_seed_note": "Every top-level nav section is seeded directly. BFS from '/' alone reaches these eventually, but only after exhausting the shallow layers \u2014 on a ~10s/page C3 lane that is hours before a section is even touched. Seeding them makes coverage broad early instead of deep-and-narrow.",
+      "seed_urls": [
+        "https://www.sipri.org/",
+        "https://www.sipri.org/research",
+        "https://www.sipri.org/databases",
+        "https://www.sipri.org/publications",
+        "https://www.sipri.org/yearbook",
+        "https://www.sipri.org/news",
+        "https://www.sipri.org/events",
+        "https://www.sipri.org/media",
+        "https://www.sipri.org/commentary",
+        "https://www.sipri.org/about",
+        "https://www.sipri.org/visualizations",
+        "https://www.sipri.org/sitemap.xml"
+      ],
+      "max_pages": 20000,
+      "max_depth": 8,
+      "concurrency": 1,
+      "delay_s": 2.0,
+      "timeout_s": 90.0,
+      "retries": 1,
+      "solve_captchas": true,
+      "path_scope": null,
+      "_rate_note": "MEASURED 2026-07-21 against www.sipri.org (193.10.14.94, Apache): the host caps CONCURRENT connections per IP, it does not rate-limit. Same 10-request probe, only the crawl's own concurrency changed: with the crawl running at conc=4 the probe got 2/10 (80% ConnectError, ~15-20s each); with the crawl stopped, sequential got 8/10. Raising delay barely moves it (8s delay = 5/6), so the lever is CONCURRENCY, not spacing. conc=4 was self-defeating - the crawl's own 4 sockets ate the cap and refused its own pages, producing ZERO pages in 10 minutes. Hence conc=1. Do not raise this: a refused page costs a full 90s timeout plus retries, so parallelism here is strictly negative.",
+      "direct_fallback": true,
+      "transport": "direct_first",
+      "sitemap": "https://www.sipri.org/sitemap.xml",
+      "sitemap_cache": "/app/data/sipri_sitemap.json",
+      "_sitemap_note": "Phase 1: seed every published URL (57 sub-sitemaps). Phase 2: BFS from those pages finds anything the sitemap omits. Complete coverage without waiting for discovery to reach deep pages on a 15.5s-per-page origin."
+    },
+    {
+      "name": "att_assistance",
+      "source_id": "sipri_att",
+      "_seed_note": "SIPRI's Arms Trade Treaty assistance mapping project ('Mapping ATT'). SIPRI content but a SEPARATE domain, so the sipri target can never reach it \u2014 the crawler is scoped to the seed's registered domain by design.",
+      "seed_urls": [
+        "https://www.att-assistance.org/",
+        "https://www.att-assistance.org/?page_id=45"
+      ],
+      "max_pages": 3000,
+      "max_depth": 6,
+      "concurrency": 2,
+      "delay_s": 2.0,
+      "timeout_s": 90.0,
+      "retries": 1,
+      "solve_captchas": true,
+      "path_scope": null,
+      "direct_fallback": true,
+      "transport": "direct_first"
+    }
+  ]
+}

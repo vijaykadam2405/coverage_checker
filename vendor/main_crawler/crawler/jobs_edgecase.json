@@ -1,0 +1,2066 @@
+[
+ {
+  "job_id": "mod-gov-lv",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.mod.gov.lv/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "argentina-gob-ar",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.argentina.gob.ar/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "airforce-mil-nz",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.airforce.mil.nz/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "navy-mil-bd",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.navy.mil.bd/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-gov-eg",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.mod.gov.eg/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "9779-mod-gov-il",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://9779.mod.gov.il/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "defence-govt-nz",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.defence.govt.nz/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-gov-rw",
+  "job_type": "profile",
+  "seed_urls": [
+   "http://www.mod.gov.rw/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "army-md",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.army.md/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "nabavke-mod-gov-rs",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://nabavke.mod.gov.rs/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "gov-uk",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://gov.uk/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-gov-np",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://mod.gov.np/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "army-cz",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.army.cz/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "gov-si",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.gov.si/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-gov-np",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.mod.gov.np/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "defensie-nl",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.defensie.nl/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "marine-nl",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.marine.nl/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "landmacht-nl",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.landmacht.nl/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "tniad-mil-id",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.tniad.mil.id/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-go-jp",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.mod.go.jp/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "armedforcescovenant-gov-uk",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.armedforcescovenant.gov.uk/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "gov-uk",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.gov.uk/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "army-mod-uk",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.army.mod.uk/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "eng-mod-gov-cn",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://eng.mod.gov.cn/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-gov-in",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.mod.gov.in/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "gov-pl",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.gov.pl/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "defence-gov-ng",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://defence.gov.ng/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "english-defensie-nl",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://english.defensie.nl/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-go-ke",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://mod.go.ke/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "defence-industry-space-ec-europa-eu",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://defence-industry-space.ec.europa.eu/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "nepalarmy-mil-np",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://nepalarmy.mil.np/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "defence-gov-ng",
+  "job_type": "profile",
+  "seed_urls": [
+   "http://defence.gov.ng/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-gov-az",
+  "job_type": "profile",
+  "seed_urls": [
+   "http://www.mod.gov.az"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-gov-np",
+  "job_type": "profile",
+  "seed_urls": [
+   "http://www.mod.gov.np/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "hachvana-mod-gov-il",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.hachvana.mod.gov.il/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-go-th",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://mod.go.th/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-go-th",
+  "job_type": "profile",
+  "seed_urls": [
+   "http://www.mod.go.th/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "maavarim-mod-gov-il",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://maavarim.mod.gov.il/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "vsr-mil-by",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://vsr.mil.by/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-gov-cn",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.mod.gov.cn/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "gov-ie",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.gov.ie/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-gov-kz",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.mod.gov.kz/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-gov-la",
+  "job_type": "profile",
+  "seed_urls": [
+   "http://www.mod.gov.la/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "ccffaa-mil-pe",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.ccffaa.mil.pe/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "gob-pe",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.gob.pe/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-gov-so",
+  "job_type": "profile",
+  "seed_urls": [
+   "http://mod.gov.so/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mndpro-mil-kr",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.mndpro.mil.kr/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "navy-mi-th",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.navy.mi.th/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "contracts-mod-uk",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.contracts.mod.uk/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mdn-gub-uy",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.mdn.gub.uy/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "gub-uy",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.gub.uy/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "afp-mil-ph",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.afp.mil.ph/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-gov-kw",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.mod.gov.kw/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "defense-gov-gn",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.defense.gov.gn/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "kaitseministeerium-ee",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://kaitseministeerium.ee/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mocr-mo-gov-cz",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://mocr.mo.gov.cz/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "armed-mapn-ro",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://armed.mapn.ro/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "portalegiustiziamilitare-difesa-it",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://portalegiustiziamilitare.difesa.it/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "kemhan-go-id",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.kemhan.go.id/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "gov-si",
+  "job_type": "profile",
+  "seed_urls": [
+   "http://www.gov.si/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mnd-gov-tw",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.mnd.gov.tw/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "awm-gov-au",
+  "job_type": "profile",
+  "seed_urls": [
+   "http://www.awm.gov.au/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "escuelanaval-edu-pe",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.escuelanaval.edu.pe/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "wojsko-polskie-pl",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.wojsko-polskie.pl/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "slovenskavojska-si",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.slovenskavojska.si/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "english-mapn-ro",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://english.mapn.ro/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "morh-hr",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.morh.hr/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "armeeapotheke-ch",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.armeeapotheke.ch/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mopmr-org",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://mopmr.org/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "morh-hr",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://morh.hr/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "afrh-gov",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.afrh.gov/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "georgetownsecuritystudiesreview-org",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://georgetownsecuritystudiesreview.org/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "westpoint-edu",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.westpoint.edu/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "modnugmm-org",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://modnugmm.org/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "dimensions-magazin-de",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://dimensions-magazin.de/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "ddpmod-gov-in",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://ddpmod.gov.in/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mo-gov-cz",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.mo.gov.cz/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "geographicalimaginations-com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://geographicalimaginations.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "asiandefencedirectory-com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.asiandefencedirectory.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "greanvillepost-com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.greanvillepost.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "parallelparliament-co-uk",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.parallelparliament.co.uk/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "defencestories-com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://defencestories.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "govdirectory-org",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.govdirectory.org/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "ar-admin-ch",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.ar.admin.ch/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "nsm-no",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.nsm.no/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "tno-nl",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.tno.nl/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "ndc-gov-bd",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://ndc.gov.bd/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "afd-gov-bd",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://afd.gov.bd/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "frma-ma",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.frma.ma/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "esup-edu-pe",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.esup.edu.pe/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "naval-group-com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.naval-group.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "covenantfund-org-uk",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.covenantfund.org.uk/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "fmn-dk",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.fmn.dk/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "bmvg-de",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.bmvg.de/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "dod-hawaii-gov",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://dod.hawaii.gov/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "defesa-gov-tl",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://defesa.gov.tl/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "naval-acad-bg",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.naval-acad.bg/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "pki-difesa-it",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://pki.difesa.it/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "technologymagazine-com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://technologymagazine.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "acmc-gov-au",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.acmc.gov.au/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mil-com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.mil.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mod-gov-az",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://mod.gov.az/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "yomkipurwar-mod-gov-il",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://yomkipurwar.mod.gov.il/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "defense-gouv-tg",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://defense.gouv.tg/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "asds-edu-om",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.asds.edu.om/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "theministryofdefence-com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://theministryofdefence.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "goasdf-com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://goasdf.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "rtna-ac-th",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.rtna.ac.th/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "soarc-gov",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://soarc.gov/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "defence-gov-mv",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://defence.gov.mv/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "dst-mil-nz",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://dst.mil.nz/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "armymedia-bg",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.armymedia.bg/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "kaitseministeerium-ee",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.kaitseministeerium.ee/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "gob-mx",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.gob.mx/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "defense-gouv-tg",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.defense.gouv.tg/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "vbs-admin-ch",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.vbs.admin.ch/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "pakistancadetcollege-com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://pakistancadetcollege.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "dstoutlook-com-au",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://dstoutlook.com.au/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "midd-gov-lv",
+  "job_type": "profile",
+  "seed_urls": [
+   "http://www.midd.gov.lv/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "osa-oba-gov-ba",
+  "job_type": "profile",
+  "seed_urls": [
+   "http://www.osa-oba.gov.ba/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "corpoguardieaifuochi-it",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://corpoguardieaifuochi.it/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "senat-cd",
+  "job_type": "profile",
+  "seed_urls": [
+   "http://www.senat.cd/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "sgp-norgov-no",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://sgp.norgov.no/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "dsma-edu-mm",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.dsma.edu.mm/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "ih-gov-hu",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.ih.gov.hu/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "meteoam-it",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.meteoam.it/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "fpm-dk",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://www.fpm.dk/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "mssb-dk",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://mssb.dk/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ },
+ {
+  "job_id": "ffw-gaiganz-de",
+  "job_type": "profile",
+  "seed_urls": [
+   "http://www.ffw-gaiganz.de/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "max_pages": 50,
+  "max_depth": -1,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ]
+ }
+]

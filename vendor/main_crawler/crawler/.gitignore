@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Crawler runtime artifacts (generated: storage, sqlite history, emitted records)
+data/
+
+# OS
+.DS_Store
+
+# Logs
+*.log

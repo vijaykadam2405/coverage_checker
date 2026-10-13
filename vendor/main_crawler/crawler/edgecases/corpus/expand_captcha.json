@@ -1,0 +1,749 @@
+[
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://recaptcha-demo.appspot.com/recaptcha-v2-checkbox.php",
+  "expect": "Google's own demo app renders a plain reCAPTCHA v2 checkbox widget bound to a form.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 2915 bytes; markers found: script src recaptcha/api.js x1; class=\"g-recaptcha\" x1; data-sitekey attribute present x1 (len=40) - value REDACTED; markup: <script type=\"text/javascript\" src=\"https://www.google.com/recaptcha/api.js?hl=en\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://recaptcha-demo.appspot.com/recaptcha-v2-checkbox-explicit.php",
+  "expect": "Same Google demo app but the widget is created by an explicit grecaptcha.render() call instead of auto-render.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 3335 bytes; markers found: script src recaptcha/api.js x1; class=\"g-recaptcha\" x1; grecaptcha.render( x1; markup: <script type=\"text/javascript\" src=\"https://www.google.com/recaptcha/api.js?hl=en&onload=onloadCallback&render=explicit\" async defer>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://recaptcha.net/recaptcha/api2/demo",
+  "expect": "Google's alternate recaptcha.net domain serves the identical v2 checkbox demo; useful because the crawler must recognise the non-google.com host.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 2884 bytes; markers found: script src recaptcha/api.js x1; class=\"g-recaptcha\" x2; g-recaptcha-response x3; data-sitekey attribute present x1 (len=40) - value REDACTED; markup: <script src='/recaptcha/api.js' async defer nonce=\"ArQTsy9cgSQhg0trdyZ0TQ\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v3",
+  "url": "https://nopecha.com/demo/recaptcha",
+  "expect": "Solver-vendor demo page loads reCAPTCHA with a render= sitekey (score-based, no visible checkbox).",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 5018 bytes; markers found: script src recaptcha/api.js x2; api.js?...render=<key> x1; markup: <script src=\"https://www.google.com/recaptcha/api.js\" async=\"async\" defer=\"defer\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://deathbycaptcha.com/",
+  "expect": "Captcha-solving vendor's own marketing site gates its signup form behind a reCAPTCHA v2 checkbox.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 54022 bytes; markers found: script src recaptcha/api.js x1; class=\"g-recaptcha\" x1; data-sitekey attribute present x1 (len=40) - value REDACTED; markup: <script src=\"https://www.google.com/recaptcha/api.js\" async defer>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://etherscan.io/login",
+  "expect": "Ethereum block explorer's login page renders reCAPTCHA on a real production auth form.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 86599 bytes; markers found: script src recaptcha/api.js x1; data-sitekey attribute present x1 (len=24) - value REDACTED; markup: <script src='//www.recaptcha.net/recaptcha/api.js'>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://bscscan.com/login",
+  "expect": "BNB Chain explorer (same Etherscan codebase, separate host) renders reCAPTCHA on its login form.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 79766 bytes; markers found: script src recaptcha/api.js x1; data-sitekey attribute present x1 (len=24) - value REDACTED; markup: <script src='//www.recaptcha.net/recaptcha/api.js'>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://polygonscan.com/login",
+  "expect": "Polygon explorer login page renders reCAPTCHA.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 75991 bytes; markers found: script src recaptcha/api.js x1; data-sitekey attribute present x1 (len=24) - value REDACTED; markup: <script src='//www.recaptcha.net/recaptcha/api.js'>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://arbiscan.io/login",
+  "expect": "Arbitrum explorer login page renders reCAPTCHA.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 75228 bytes; markers found: script src recaptcha/api.js x1; data-sitekey attribute present x1 (len=24) - value REDACTED; markup: <script src='//www.recaptcha.net/recaptcha/api.js'>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://optimistic.etherscan.io/login",
+  "expect": "Optimism explorer login page renders reCAPTCHA on a subdomain host.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 76174 bytes; markers found: script src recaptcha/api.js x1; data-sitekey attribute present x1 (len=24) - value REDACTED; markup: <script src='//www.recaptcha.net/recaptcha/api.js'>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://basescan.org/login",
+  "expect": "Base explorer login page renders reCAPTCHA.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 74628 bytes; markers found: script src recaptcha/api.js x1; data-sitekey attribute present x1 (len=24) - value REDACTED; markup: <script src='//www.recaptcha.net/recaptcha/api.js'>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://lineascan.build/login",
+  "expect": "Linea explorer login page renders reCAPTCHA on an unusual .build TLD.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 74361 bytes; markers found: script src recaptcha/api.js x1; data-sitekey attribute present x1 (len=24) - value REDACTED; markup: <script src='//www.recaptcha.net/recaptcha/api.js'>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v3",
+  "url": "https://ird.gov.np/pan-search",
+  "expect": "Nepal's Inland Revenue Department PAN-search page runs reCAPTCHA v3 over a public taxpayer lookup form.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 142782 bytes; markers found: script src recaptcha/api.js x1; class=\"g-recaptcha\" x1; g-recaptcha-response x1; grecaptcha.execute( x1; data-sitekey attribute present x1 (len=40) - value REDACTED; markup: <script src=\"https://www.google.com/recaptcha/api.js\" async defer>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://portal.gov.cz/",
+  "expect": "Czech national government portal ships reCAPTCHA in its landing page markup.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 103712 bytes; markers found: script src recaptcha/api.js x1; class=\"g-recaptcha\" x1; data-sitekey attribute present x1 (len=40) - value REDACTED; markup: <script src=\"https://www.google.com/recaptcha/api.js\" async defer>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v3",
+  "url": "https://myanimelist.net/register.php",
+  "expect": "Large community site's registration page loads reCAPTCHA with a render= sitekey (v3, no checkbox).",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 23307 bytes; markers found: script src recaptcha/api.js x1; api.js?...render=<key> x1; markup: <script src='https://www.google.com/recaptcha/api.js?render=<redacted>' async defer>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "enterprise",
+  "url": "https://www.last.fm/join",
+  "expect": "Signup page loads Google's enterprise.js rather than api.js and carries g-recaptcha containers.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 143422 bytes; markers found: script src recaptcha/enterprise.js x1; class=\"g-recaptcha\" x2; g-recaptcha-response x3; data-sitekey attribute present x1 (len=40) - value REDACTED; markup: <script src=\"https://www.google.com/recaptcha/enterprise.js?hl=en&amp;cachebust=<redacted-uuid>\" async defer>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://cndt-certidao.tst.jus.br/gerarCertidao.faces",
+  "expect": "Brazilian labour-court debt-certificate issuer gates its public certificate form with reCAPTCHA.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 21238 bytes; markers found: script src recaptcha/api.js x1; g-recaptcha-response x1; markup: <script src=\"https://www.google.com/recaptcha/api.js?hl=pt-BR&a=2\" async defer>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://www.sefaz.mt.gov.br/nfce/consultanfce",
+  "expect": "Mato Grosso state tax authority puts reCAPTCHA on its public electronic-invoice lookup.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 12268 bytes; markers found: script src recaptcha/api.js x1; class=\"g-recaptcha\" x1; data-sitekey attribute present x1 (len=40) - value REDACTED; markup: <script src=\"https://www.google.com/recaptcha/api.js\" async defer>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v3",
+  "url": "https://www.ssm-einfo.my/",
+  "expect": "Malaysia's Companies Commission business-information portal loads reCAPTCHA with a render= sitekey.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 341184 bytes; markers found: script src recaptcha/api.js x2; api.js?...render=<key> x1; markup: <script src=\"https://www.google.com/recaptcha/api.js?render=<redacted>\" type=\"f26a72cd7f11c7ca2597cf2b-text/javascript\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://www.4shared.com/",
+  "expect": "File-hosting service loads the reCAPTCHA script on its landing page for gated download/login flows.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 43310 bytes; markers found: script src recaptcha/api.js x1; markup: <script type=\"text/javascript\" src=\"//www.google.com/recaptcha/api.js?render=explicit\" async=\"async\" defer=\"defer\" >",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://gplinks.co/",
+  "expect": "Link-shortener/monetiser loads reCAPTCHA on the interstitial-gated landing page.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 64910 bytes; markers found: script src recaptcha/api.js x1; markup: <script src=\"https://www.recaptcha.net/recaptcha/api.js?onload=onloadRecaptchaCallback&render=explicit\" async defer>; final URL after redirects: https://gplinks.co/subscriber/",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "enterprise",
+  "url": "https://coinbeez.com/",
+  "expect": "Faucet site loads Google's recaptcha/enterprise.js directly.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 43691 bytes; markers found: script src recaptcha/enterprise.js x1; api.js?...render=<key> x1; markup: <script src=\"https://www.google.com/recaptcha/enterprise.js?render=<redacted>\">; final URL after redirects: https://www.hugedomains.com/domain_profile.cfm?d=coinbeez.com",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v3",
+  "url": "https://freenanofaucet.com/",
+  "expect": "Crypto faucet loads reCAPTCHA with a render= sitekey and calls grecaptcha.execute (v3 score flow).",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 11308 bytes; markers found: script src recaptcha/api.js x1; class=\"g-recaptcha\" x1; grecaptcha.execute( x1; api.js?...render=<key> x1; markup: <script src='https://www.google.com/recaptcha/api.js?render=<redacted>'>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://www.emailondeck.com/",
+  "expect": "Disposable-email service gates inbox creation behind a visible hCaptcha checkbox.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 20664 bytes; markers found: script src js.hcaptcha.com/1/api.js x1; class=\"h-captcha\" x1; data-sitekey attribute present x1 (uuid-form) - value REDACTED; markup: <div class=\"h-captcha\" data-sitekey=\"<redacted>\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://cointiply.com/",
+  "expect": "Crypto rewards site loads the hCaptcha API script on its landing/login page.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 33973 bytes; markers found: script src js.hcaptcha.com/1/api.js x1; markup: <script src=\"https://js.hcaptcha.com/1/api.js?render=explicit&recaptchacompat=off\" async defer >",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://www.phpcaptcha.org/try-securimage/",
+  "expect": "Securimage's own project site protects its captcha demo form with a third-party hCaptcha checkbox.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 26934 bytes; markers found: script src js.hcaptcha.com/1/api.js x1; class=\"h-captcha\" x1; h-captcha-response x1; data-sitekey attribute present x2 (len=13) - value REDACTED; markup: \"https://js.hcaptcha.com/1/api.js\"; final URL after redirects: https://phpcaptcha.org/try-securimage/",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://freebitco.in/",
+  "expect": "Long-running faucet loads hCaptcha from the bare hcaptcha.com host (not js.hcaptcha.com).",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 82219 bytes; markers found: script src hcaptcha.com/1/api.js x1; markup: <script src=\"https://hcaptcha.com/1/api.js\" async defer>; final URL after redirects: https://freebitco.in/signup/?op=s",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://autofaucet.org/",
+  "expect": "Faucet aggregator loads the hCaptcha API script multiple times for its claim forms.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 47370 bytes; markers found: script src js.hcaptcha.com/1/api.js x3; markup: \"https://js.hcaptcha.com/1/api.js\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://community.mybb.com/member.php?action=register",
+  "expect": "MyBB's own community forum uses hCaptcha as its registration challenge.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 4108 bytes; markers found: script src js.hcaptcha.com/1/api.js x1; class=\"h-captcha\" x1; data-sitekey attribute present x1 (uuid-form) - value REDACTED; markup: <div class=\"h-captcha\" data-sitekey=\"<redacted>\" data-theme=\"light\" data-size=\"normal\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://claimcrypto.cc/",
+  "expect": "Faucet site renders an h-captcha container with a UUID-format sitekey.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 20411 bytes; markers found: script src hcaptcha.com/1/api.js x1; class=\"h-captcha\" x1; data-sitekey attribute present x1 (uuid-form) - value REDACTED; markup: <div class=\"h-captcha\" data-sitekey=\"<redacted>\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_invisible",
+  "url": "https://coinfaucet.io/index",
+  "expect": "XRP faucet drives hCaptcha programmatically via hcaptcha.execute with no static checkbox div.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 50796 bytes; markers found: hcaptcha.execute( x3; markup: hcaptcha.execute(hcaptchaId)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_invisible",
+  "url": "https://www.hcaptcha.com/accessibility",
+  "expect": "hCaptcha's own accessibility page runs a passive hCaptcha check via render/execute with no checkbox.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 62291 bytes; markers found: script src js.hcaptcha.com/1/api.js x1; hcaptcha.render( x1; hcaptcha.execute( x1; markup: <div id=\"h-captcha\" class=\"hcaptcha-beacon-accessibility\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_invisible",
+  "url": "https://www.hcaptcha.com/partners",
+  "expect": "hCaptcha's own partners page runs the same passive beacon check.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 72157 bytes; markers found: script src js.hcaptcha.com/1/api.js x1; hcaptcha.render( x2; hcaptcha.execute( x2; markup: <div id=\"h-captcha\" class=\"hcaptcha-beacon-uj\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_invisible",
+  "url": "https://www.hcaptcha.com/enterprise",
+  "expect": "hCaptcha's own enterprise page runs the same passive beacon check.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 87311 bytes; markers found: script src js.hcaptcha.com/1/api.js x1; hcaptcha.render( x2; hcaptcha.execute( x2; markup: <div id=\"h-captcha\" class=\"hcaptcha-beacon-uj\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://solucoes.receita.fazenda.gov.br/servicos/cpf/consultasituacao/consultapublica.asp",
+  "expect": "Brazil's federal tax agency gates its public CPF-status lookup with a normal-size hCaptcha checkbox injected after load.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 5713 bytes; markers found: script src hcaptcha.com/1/api.js x1; class=\"h-captcha\" x1; data-sitekey attribute present x1 (uuid-form) - value REDACTED; markup: <div id=\"hcaptcha\" class=\"h-captcha\" data-callback=\"recaptchaCallback\" data-expired-callback=\"recaptchaExpire\" data-sitekey=\"<redacted>\" data-size=\"normal\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://servicos.receita.fazenda.gov.br/Servicos/CPF/ConsultaSituacao/ConsultaPublica.asp",
+  "expect": "Same Receita Federal CPF lookup served from a second production hostname.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 5713 bytes; markers found: script src hcaptcha.com/1/api.js x1; class=\"h-captcha\" x1; data-sitekey attribute present x1 (uuid-form) - value REDACTED; markup: <div id=\"hcaptcha\" class=\"h-captcha\" data-callback=\"recaptchaCallback\" data-expired-callback=\"recaptchaExpire\" data-sitekey=\"<redacted>\" data-size=\"normal\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://consopt.www8.receita.fazenda.gov.br/consultaoptantes",
+  "expect": "Receita Federal 'Simples Nacional' opt-in lookup renders an hCaptcha checkbox.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 3869 bytes; markers found: script src hcaptcha.com/1/api.js x1; class=\"h-captcha\" x1; data-sitekey attribute present x1 (uuid-form) - value REDACTED; markup: <script src=\"https://hcaptcha.com/1/api.js?recaptchacompat=off&hl=pt-BR\" async defer>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://cav.receita.fazenda.gov.br/autenticacao/login",
+  "expect": "Receita Federal's virtual service centre login renders hCaptcha and calls hcaptcha.execute.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 7477 bytes; markers found: script src hcaptcha.com/1/api.js x1; class=\"h-captcha\" x1; hcaptcha.execute( x2; data-sitekey attribute present x1 (uuid-form) - value REDACTED; markup: <script src=\"https://hcaptcha.com/1/api.js?recaptchacompat=off&hl=pt-BR\" async defer>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_invisible",
+  "url": "https://solucoes.receita.fazenda.gov.br/Servicos/consrest/Atual.app/paginas/mobile/restituicaomobile.asp",
+  "expect": "Tax-refund status page (mobile variant) renders hCaptcha programmatically via hcaptcha.render.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 2316 bytes; markers found: hcaptcha.render( x1; markup: hcaptcha.render('h-captcha', { sitekey: '<redacted>' }); final URL after redirects: https://www.restituicao.receita.fazenda.gov.br/#/",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx",
+  "expect": "Brazil's national electronic-invoice portal: page NAMED 'consultaRecaptcha.aspx' but actually serves hCaptcha - a naming trap for marker-based detectors.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 37386 bytes; markers found: script src hcaptcha.com/1/api.js x1; class=\"h-captcha\" x1; data-sitekey attribute present x1 (uuid-form) - value REDACTED; markup: <div class=\"h-captcha\" style=\"transform: scale(1.08); transform-origin: 0 0\" data-sitekey=\"<redacted>\">; final URL after redirects: https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?AspxAutoDetectCookieSupport=1",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://www.nfe.fazenda.gov.br/portal/consultaResumo.aspx",
+  "expect": "Invoice summary lookup on the same national NF-e portal, also hCaptcha-gated.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 29525 bytes; markers found: script src hcaptcha.com/1/api.js x1; markup: <script src=\"https://hcaptcha.com/1/api.js?recaptchacompat=off&hl=pt-BR\" async defer type=\"text/javascript\">; final URL after redirects: https://www.nfe.fazenda.gov.br/portal/consulta.aspx",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://www.cte.fazenda.gov.br/portal/consultaRecaptcha.aspx",
+  "expect": "Brazil's electronic transport-document (CT-e) portal, same misleading filename, also hCaptcha.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 31557 bytes; markers found: script src hcaptcha.com/1/api.js x1; class=\"h-captcha\" x1; data-sitekey attribute present x1 (uuid-form) - value REDACTED; markup: <div class=\"h-captcha\" style=\"transform: scale(1.08); transform-origin: 0 0\" data-sitekey=\"<redacted>\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://www.cte.fazenda.gov.br/portal/consultaResumo.aspx",
+  "expect": "CT-e summary lookup, hCaptcha-gated.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 31577 bytes; markers found: script src hcaptcha.com/1/api.js x1; class=\"h-captcha\" x1; data-sitekey attribute present x1 (uuid-form) - value REDACTED; markup: <div class=\"h-captcha\" style=\"transform: scale(1.08); transform-origin: 0 0\" data-sitekey=\"<redacted>\">; final URL after redirects: https://www.cte.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_invisible",
+  "url": "https://www.tse.jus.br/servicos-eleitorais/titulo-e-local-de-votacao/consulta-por-nome",
+  "expect": "Brazil's Superior Electoral Court voter-lookup page loads the hCaptcha API script twice.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 97882 bytes; markers found: script src js.hcaptcha.com/1/api.js x2; markup: <script async=\"True\" crossorigin=\"anonymous\" data-bundle=\"hcaptcha\" defer=\"True\" src=\"https://js.hcaptcha.com/1/api.js?hl=pt\">; final URL after redirects: https://www.tse.jus.br/servicos-eleitorais/autoatendimento-eleitoral",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://tronpick.io/",
+  "expect": "Faucet ships a runtime captcha-provider switcher wiring hCaptcha, reCAPTCHA, Turnstile and IconCaptcha in one page.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 202974 bytes; markers found: script src js.hcaptcha.com/1/api.js x1; h-captcha-response x13; hcaptcha.render( x1; markup: 'https://js.hcaptcha.com/1/api.js?onload=initHcaptchaLazy&render=explicit&recaptchacompat=off'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://solpick.io/",
+  "expect": "Same multi-provider faucet template on a separate host.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 202151 bytes; markers found: script src js.hcaptcha.com/1/api.js x1; h-captcha-response x13; hcaptcha.render( x1; markup: 'https://js.hcaptcha.com/1/api.js?onload=initHcaptchaLazy&render=explicit&recaptchacompat=off'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://dogepick.io/",
+  "expect": "Same multi-provider faucet template on a separate host.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 203232 bytes; markers found: script src js.hcaptcha.com/1/api.js x1; h-captcha-response x13; hcaptcha.render( x1; markup: 'https://js.hcaptcha.com/1/api.js?onload=initHcaptchaLazy&render=explicit&recaptchacompat=off'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://tonpick.game/",
+  "expect": "Same multi-provider faucet template on a .game TLD host.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 203707 bytes; markers found: script src js.hcaptcha.com/1/api.js x1; h-captcha-response x13; hcaptcha.render( x1; markup: 'https://js.hcaptcha.com/1/api.js?onload=initHcaptchaLazy&render=explicit&recaptchacompat=off'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://defproc.gov.in/nicgep/app?page=WebTenderStatusLists&service=page",
+  "expect": "India's Ministry of Defence e-procurement tender-status page renders a base64 captcha image next to a 5-char answer field.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 62574 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x4; markup: <input type=\"text\" name=\"captchaText\" value=\"\" id=\"captchaText\" size=\"5\" autocomplete=\"off\" maxlength=\"6\" style=\"width:200px;\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://etenders.gov.in/eprocure/app?page=WebTenderStatusLists&service=page",
+  "expect": "National e-tenders portal, same NICGEP captcha widget on a distinct host.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 72928 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x4; markup: <input type=\"text\" name=\"captchaText\" value=\"\" id=\"captchaText\" size=\"5\" autocomplete=\"off\" maxlength=\"6\" style=\"width:200px;\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://eprocure.gov.in/epublish/app?page=WebTenderStatusLists&service=page",
+  "expect": "Central publish-portal variant of NICGEP with the same captcha widget.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 151374 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x4; markup: <input type=\"text\" name=\"captchaText\" value=\"\" id=\"captchaText\" size=\"5\" maxlength=\"8\" onkeyup=\"return uppercase('captchaText')\" style=\"width:200px;\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://etender.up.nic.in/nicgep/app?page=WebTenderStatusLists&service=page",
+  "expect": "Uttar Pradesh state e-procurement tender-status page.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 100475 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x4; markup: <input type=\"text\" name=\"captchaText\" value=\"\" id=\"captchaText\" size=\"5\" autocomplete=\"off\" maxlength=\"6\" style=\"width:200px;\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://assamtenders.gov.in/nicgep/app?page=WebTenderStatusLists&service=page",
+  "expect": "Assam state e-procurement tender-status page.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 71658 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x4; markup: <input type=\"text\" name=\"captchaText\" value=\"\" id=\"captchaText\" size=\"5\" autocomplete=\"off\" maxlength=\"6\" style=\"width:200px;\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://jharkhandtenders.gov.in/nicgep/app?page=WebTenderStatusLists&service=page",
+  "expect": "Jharkhand state e-procurement tender-status page.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 74844 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x4; markup: <input type=\"text\" name=\"captchaText\" value=\"\" id=\"captchaText\" size=\"5\" autocomplete=\"off\" maxlength=\"6\" style=\"width:200px;\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://uktenders.gov.in/nicgep/app?page=WebTenderStatusLists&service=page",
+  "expect": "Uttarakhand state e-procurement tender-status page.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 94343 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x4; markup: <input type=\"text\" name=\"captchaText\" value=\"\" id=\"captchaText\" size=\"5\" autocomplete=\"off\" maxlength=\"6\" style=\"width:200px;\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://hptenders.gov.in/nicgep/app?page=WebTenderStatusLists&service=page",
+  "expect": "Himachal Pradesh state e-procurement tender-status page.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 69702 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x4; markup: <input type=\"text\" name=\"captchaText\" value=\"\" id=\"captchaText\" size=\"5\" autocomplete=\"off\" maxlength=\"6\" style=\"width:200px;\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://iocletenders.nic.in/nicgep/app?page=WebTenderStatusLists&service=page",
+  "expect": "Indian Oil Corporation's e-procurement portal (public-sector enterprise, not a state).",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 62923 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x4; markup: <input type=\"text\" name=\"captchaText\" value=\"\" id=\"captchaText\" size=\"5\" autocomplete=\"off\" maxlength=\"6\" style=\"width:200px;\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://eprocurebel.co.in/nicgep/app?page=WebTenderStatusLists&service=page",
+  "expect": "Bharat Electronics Ltd (defence electronics PSU) e-procurement portal on a .co.in host.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 57900 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x4; markup: <input type=\"text\" name=\"captchaText\" value=\"\" id=\"captchaText\" size=\"5\" autocomplete=\"off\" maxlength=\"6\" style=\"width:200px;\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://etenders.hry.nic.in/nicgep/app?page=WebTenderStatusLists&service=page",
+  "expect": "Haryana state e-procurement tender-status page.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 60483 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x4; markup: <input type=\"text\" name=\"captchaText\" value=\"\" id=\"captchaText\" size=\"5\" autocomplete=\"off\" maxlength=\"6\" style=\"width:200px;\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://pmgsytendersup.gov.in/nicgep/app?page=WebTenderStatusLists&service=page",
+  "expect": "PMGSY rural-roads programme tender portal for UP.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 57653 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x4; markup: <input type=\"text\" name=\"captchaText\" value=\"\" id=\"captchaText\" size=\"5\" autocomplete=\"off\" maxlength=\"6\" style=\"width:200px;\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "botdetect",
+  "url": "https://captcha.com/demos/",
+  "expect": "BotDetect's demo index page embeds several live BotDetect captcha images with their retype inputs.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 45146 bytes; markers found: BotDetect BDC_ fields x4; <img ...captcha...> x11; <img src=...captcha...> x8; <input ...name/id containing 'captcha'> x6; markup: <img class=\"BDC_CaptchaImage BDC_HideCaptchaImage\" id=\"demoCaptcha_CaptchaImage\" src=\"/forms/captcha-demo-features/captcha-endpoint.php?get=image&amp;c=demoCaptcha&amp;t=87798fdddeac3165eebb; final URL after redirects: https://captcha.com/demos/features/captcha-demo.aspx",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "botdetect",
+  "url": "https://ceac.state.gov/CEACStatTracker/Status.aspx",
+  "expect": "US State Department visa-status tracker renders a Lanapsoft BotDetect captcha (BotDetectCaptcha.ashx image handler) beside a required code field.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 28302 bytes; markers found: <img ...captcha...> x3; <img src=...captcha...> x3; <input ...name/id containing 'captcha'> x3; markup: <img class=\"LBD_CaptchaImage\" id=\"c_status_ctl00_contentplaceholder1_defaultcaptcha_CaptchaImage\" src=\"/CEACStatTracker/BotDetectCaptcha.ashx?get=image&amp;c=c_status_ctl00_contentplaceholde",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "botdetect",
+  "url": "https://ceac.state.gov/GenNIV/Default.aspx",
+  "expect": "US State Department non-immigrant visa application entry page, same BotDetect image handler on a separate ASP.NET app under the same host.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 95026 bytes; markers found: <img ...captcha...> x3; <img src=...captcha...> x3; <input ...name/id containing 'captcha'> x3; markup: <img class=\"LBD_CaptchaImage\" id=\"c_default_ctl00_sitecontentplaceholder_uclocation_identifycaptcha1_defaultcaptcha_CaptchaImage\" src=\"/GenNIV/BotDetectCaptcha.ashx?get=image&amp;c=c_default",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://serviceonline.gov.in/",
+  "expect": "India's national e-district services portal renders a captcha image with a text answer field.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 4011424 bytes; markers found: <img ...captcha...> x2; <img src=...captcha...> x2; <input ...name/id containing 'captcha'> x2; captchaText/captchaImage NICGEP pair x1; markup: <img alt=\"Captcha\" id=\"captchaImageF\" src=\"/captchaImage\" width=\"150\" height=\"45\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://tnreginet.gov.in/portal/",
+  "expect": "Tamil Nadu registration department portal serves SimpleCaptcha-generated images (src='SimpleCaptcha?<nonce>') for both its token and login forms, each with a 5-char text input and a refresh icon.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 714105 bytes; markers found: <img ...captcha...> x4; <img src=...captcha...> x2; <input ...name/id containing 'captcha'> x3; markup: <img src=\"SimpleCaptcha?1785104052981\" id=\"captcha_token\" alt=\"Captcha\" >",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://meebhoomi.ap.gov.in/",
+  "expect": "Andhra Pradesh land-records portal ships two <img alt='Captcha Image'> placeholders whose src is filled in client-side, each paired with an 'Enter Captcha' text input.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 82585 bytes; markers found: <img ...captcha...> x2; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x1; markup: <img id=\"CitcaptchaImg\" alt=\"Captcha Image\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://bhulekh.mahabhumi.gov.in/",
+  "expect": "Maharashtra land-records portal renders a captcha image with a text answer field.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 73703 bytes; markers found: <img ...captcha...> x1; <input ...name/id containing 'captcha'> x3; markup: <input name=\"ctl00$ContentPlaceHolder1$txtcaptcha\" type=\"text\" maxlength=\"6\" id=\"ContentPlaceHolder1_txtcaptcha\" tabindex=\"3\" class=\"form-control\" placeholder=\"Enter Captcha\" style=\"font-fam",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://passbook.epfindia.gov.in/MemberPassBook/login",
+  "expect": "Employees' Provident Fund passbook login renders a captcha image beside its answer field.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 29026 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x1; markup: <input id=\"captcha\" class=\"form-control captcha\" name=\"captcha\" value=\"\" maxlength=\"6\" type=\"text\" placeholder=\"Enter Captcha\" >",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://iprsearch.ipindia.gov.in/publicsearch/",
+  "expect": "Indian Patent Office public patent search renders a captcha image with a retype field.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 28893 bytes; markers found: <img ...captcha...> x3; <img src=...captcha...> x1; <input ...name/id containing 'captcha'> x1; captchaText/captchaImage NICGEP pair x2; markup: <img id=\"Captcha\" title=\"Captcha Text\" alt=\"Captcha Text\" longdesc=\"Captcha Image\" src=\"/PublicSearch/Captcha/GetCaptchaImage\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://itax.kra.go.ke/KRA-Portal/",
+  "expect": "Kenya Revenue Authority iTax portal renders a captcha image on its public login form.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 48224 bytes; markers found: <img ...captcha...> x1; <img src=...captcha...> x1; <input ...name/id containing 'captcha'> x1; markup: <img alt=\"Captcha Image\" id=\"captcha_img\" name=\"captcha_img\" title=\"Captcha\" width=\"65\" height=\"15\" style='vertical-align:middle;' src=\"/KRA-Portal/GenerateCaptchaServlet.do?sourcePage=LOGIN",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://tafcop.sancharsaathi.gov.in/telecomUser/",
+  "expect": "India's TAFCOP telecom-subscriber lookup renders a captcha image with client-side validation.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 28062 bytes; markers found: <img ...captcha...> x1; <img src=\"data:image...\" (inline captcha png) x1; <input ...name/id containing 'captcha'> x3; captchaText/captchaImage NICGEP pair x2; markup: <input type=\"text\" id=\"txtInput\" name=\"captchaText\" placeholder=\"Enter Captcha\" class=\"form-control form-control-lg\" />",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://pay2igr.igrmaharashtra.gov.in/",
+  "expect": "Maharashtra registration/stamps payment portal renders multiple captcha images across its forms.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 181577 bytes; markers found: <img ...captcha...> x12; <img src=...captcha...> x6; <input ...name/id containing 'captcha'> x6; markup: <img src=\"/PTI/captchaimage\" alt=\"CAPTCHA\" id=\"captchaimg_s\">; final URL after redirects: https://pay2igr.igrmaharashtra.gov.in/PTI/",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://www.kerala.gov.in/",
+  "expect": "Kerala state government portal renders a captcha image beside a form input.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 164451 bytes; markers found: <img ...captcha...> x1; <img src=...captcha...> x1; <input ...name/id containing 'captcha'> x1; markup: <img src=\"https://www.kerala.gov.in/captcha/default?HoU0iHzF\" alt=\"CAPTCHA Image\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "other",
+  "url": "https://free-ethereum.io/",
+  "expect": "Non-government example: a crypto faucet renders its OWN base64-PNG text captcha with an 'Enter Captcha Text' label.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 35460 bytes; markers found: <img ...captcha...> x3; <img src=\"data:image...\" (inline captcha png) x3; <input ...name/id containing 'captcha'> x3; markup: <input type=\"text\" value=\"\" id=\"captchapasswordinput\" name=\"captcha_challenge\" >",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://docs.hcaptcha.com/",
+  "expect": "hCaptcha's own developer documentation embeds live widgets, so the API script and response fields appear many times in one page.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 152032 bytes; markers found: script src js.hcaptcha.com/1/api.js x4; h-captcha-response x9; markup: <script src=https://newassets.hcaptcha.com/js/p.js defer data-domain=docs.hcaptcha.com>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_invisible",
+  "url": "https://www.hcaptcha.com/blog",
+  "expect": "Blog index on hCaptcha's own site runs the same passive render/execute beacon as the rest of the marketing site.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 112304 bytes; markers found: script src js.hcaptcha.com/1/api.js x1; hcaptcha.render( x1; hcaptcha.execute( x1; markup: <div id=\"h-captcha\" class=\"hcaptcha-beacon-blog\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_invisible",
+  "url": "https://servicos.receita.fazenda.gov.br/Servicos/consrest/Atual.app/paginas/index.asp",
+  "expect": "Brazil's tax-refund status lookup (desktop entry page) creates its hCaptcha widget programmatically via hcaptcha.render.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 2316 bytes; markers found: hcaptcha.render( x1; markup: hcaptcha.render('h-captcha', { sitekey: '<redacted>' }); final URL after redirects: https://www.restituicao.receita.fazenda.gov.br/#/",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "securimage",
+  "url": "https://buscacepinter.correios.com.br/app/endereco/index.php",
+  "expect": "Brazil Post's public postcode lookup uses a Securimage-generated image captcha - same library family as the Indian court portals but a Brazilian deployment.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 54660 bytes; markers found: securimage_show.php x1; <img ...captcha...> x2; <input ...name/id containing 'captcha'> x1; markup: <img id=\"captcha_image\" src=\"../../core/securimage/securimage_show.php\" alt=\"CAPTCHA Image\"/>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "captcha_image_text",
+  "variant": "securimage",
+  "url": "https://rastreamento.correios.com.br/app/index.php",
+  "expect": "Brazil Post's parcel-tracking page renders a Securimage image captcha before it will run a tracking query.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 24179 bytes; markers found: securimage_show.php x1; <img ...captcha...> x2; <input ...name/id containing 'captcha'> x1; markup: <img id=\"captcha_image\" src=\"../core/securimage/securimage_show.php\" alt=\"CAPTCHA Image\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://www.nfp.fazenda.sp.gov.br/",
+  "expect": "Sao Paulo state 'Nota Fiscal Paulista' portal renders a reCAPTCHA checkbox on its public entry page.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 68210 bytes; markers found: script src recaptcha/api.js x1; class=\"g-recaptcha\" x1; data-sitekey attribute present x1 (len=40) - value REDACTED; markup: <script type=\"text/javascript\" src=\"https://www.google.com/recaptcha/api.js?hl=pt\" async defer>; final URL after redirects: https://www.nfp.fazenda.sp.gov.br/login.aspx?ReturnUrl=%2f",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "recaptcha",
+  "variant": "v2_checkbox",
+  "url": "https://www.cnj.jus.br/improbidade_adm/consultar_requerido.php",
+  "expect": "Brazil's National Council of Justice gates its public administrative-misconduct register search with a reCAPTCHA checkbox.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 20221 bytes; markers found: script src recaptcha/api.js x1; class=\"g-recaptcha\" x1; markup: <script language=\"javascript\" src='https://www.google.com/recaptcha/api.js' async defer>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://firefaucet.win/",
+  "expect": "Faucet landing page loads the hCaptcha API script; this site rotates captcha providers between requests, so a detector must not cache one verdict per host.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 36528 bytes; markers found: script src js.hcaptcha.com/1/api.js x1; markup: 'https://js.hcaptcha.com/1/api.js?render=explicit&recaptchacompat=off&onload='",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "hcaptcha",
+  "variant": "hcaptcha_checkbox",
+  "url": "https://cav.receita.fazenda.gov.br/ec/pages/comum/paginaNaoEncontrada.jsf",
+  "expect": "Receita Federal serves its hCaptcha-gated login shell even on an unknown-page route, so the challenge appears on an error path too.",
+  "evidence": "fetched 2026-07-27 with httpx follow_redirects=True: HTTP 200, 7477 bytes; markers found: script src hcaptcha.com/1/api.js x1; class=\"h-captcha\" x1; hcaptcha.execute( x2; data-sitekey attribute present x1 (uuid-form) - value REDACTED; markup: <script src=\"https://hcaptcha.com/1/api.js?recaptchacompat=off&hl=pt-BR\" async defer>; final URL after redirects: https://cav.receita.fazenda.gov.br/autenticacao/login",
+  "source": "verified-live",
+  "stable": true
+ }
+]

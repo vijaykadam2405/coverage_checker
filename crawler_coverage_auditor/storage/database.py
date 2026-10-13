@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from crawler_coverage_auditor.storage.models import DiscoveredURL
+from crawler_coverage_auditor.validation.publication import enrich_archive_rows
+from crawler_coverage_auditor.services.checkpoints import SCHEMA as CHECKPOINT_SCHEMA
 
 
 SCHEMA = """
@@ -109,11 +112,17 @@ CREATE TABLE IF NOT EXISTS pagination_tasks (
 
 class AuditDatabase:
     def __init__(self, path: Path) -> None:
+        self._discovery_batch_depth = 0
+        self._checkpoint_operations = 0
         path.parent.mkdir(parents=True, exist_ok=True)
         self.connection = sqlite3.connect(path, timeout=30)
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA journal_mode=WAL")
         self.connection.executescript(SCHEMA)
+        self.connection.executescript(CHECKPOINT_SCHEMA)
+        self._ensure_column('scan_checkpoints', 'paused_at', 'TEXT')
+        self._ensure_column('scan_checkpoints', 'pause_reason', 'TEXT')
+        self._ensure_column('pagination_probe_checkpoints', 'captured_at', 'TEXT')
         self._ensure_column("corpus_matches", "text_status", "TEXT")
         self._ensure_column("corpus_matches", "provider", "TEXT")
         self._ensure_column("corpus_matches", "evidence_json", "TEXT")
@@ -136,6 +145,7 @@ class AuditDatabase:
         # Historical method sets were sorted, so their first source is unknowable.
         for statement in (
             'CREATE INDEX IF NOT EXISTS urls_run_state ON urls(audit_run_id,state)',
+            'CREATE INDEX IF NOT EXISTS urls_run_pending_depth ON urls(audit_run_id,state,min_depth,id)',
             'CREATE INDEX IF NOT EXISTS urls_run_host_type ON urls(audit_run_id,host,page_type)',
             'CREATE INDEX IF NOT EXISTS urls_run_depth ON urls(audit_run_id,navigation_depth)',
             'CREATE INDEX IF NOT EXISTS matches_run_status ON corpus_matches(audit_run_id,match_status)',
@@ -153,6 +163,35 @@ class AuditDatabase:
 
     def close(self) -> None:
         self.connection.close()
+
+    def _checkpoint(self) -> None:
+        """Keep normal writes immediate; group synchronous discovery writes only."""
+        self._checkpoint_operations += 1
+        if not self._discovery_batch_depth or self._checkpoint_operations >= 100:
+            self.connection.commit()
+            self._checkpoint_operations = 0
+
+    @contextmanager
+    def discovery_batch(self):
+        """Short local write checkpoints, never held across network/browser awaits.
+
+        One hundred storage operations is a durability checkpoint, not a URL
+        limit. Earlier checkpoints survive an error; the current chunk rolls
+        back. The source stays FETCHING/RENDERING until discovery finishes so
+        an interrupted page can be replayed safely on resume.
+        """
+        self._discovery_batch_depth += 1
+        try:
+            yield
+        except BaseException:
+            self.connection.rollback()
+            self._checkpoint_operations = 0
+            raise
+        finally:
+            self._discovery_batch_depth -= 1
+            if not self._discovery_batch_depth:
+                self.connection.commit()
+                self._checkpoint_operations = 0
 
     def create_run(self, target_url: str, corpus_url: str, config: dict[str, Any]) -> int:
         now = datetime.now(UTC).isoformat()
@@ -204,15 +243,18 @@ class AuditDatabase:
         self.connection.execute("""INSERT INTO audit_events
             (audit_run_id,created_at,stage,kind,severity,url,depth,message,details_json) VALUES(?,?,?,?,?,?,?,?,?)""",
             (run_id, datetime.now(UTC).isoformat(), stage, kind, severity, url, depth, message, json.dumps(details)))
-        self.connection.commit()
+        self._checkpoint()
 
     def limit(self, run_id: int, stage: str, url: str | None, reason: str, last_successful: str | None = None) -> None:
         self.connection.execute("""INSERT OR IGNORE INTO audit_limits
             (audit_run_id,stage,url,reason,last_successful_url,created_at) VALUES(?,?,?,?,?,?)""",
             (run_id, stage, url, reason, last_successful, datetime.now(UTC).isoformat()))
-        self.connection.commit()
+        self._checkpoint()
 
     def content_evidence(self, run_id: int, url: str, evidence: dict) -> None:
+        previous = self.connection.execute('SELECT evidence_json FROM content_evidence WHERE audit_run_id=? AND normalized_url=?', (run_id, url)).fetchone()
+        if previous:
+            evidence = json.loads(previous[0]) | evidence
         self.connection.execute("INSERT OR REPLACE INTO content_evidence VALUES(?,?,?)", (run_id, url, json.dumps(evidence)))
         self.connection.commit()
 
@@ -234,19 +276,21 @@ class AuditDatabase:
             "SELECT id, min_depth, navigation_depth, discovery_methods FROM urls WHERE audit_run_id=? AND normalized_url=?", (run_id, item.normalized_url)
         ).fetchone()
         if row:
-            methods = set(json.loads(row["discovery_methods"])) | {item.discovery_method}
-            self.connection.execute(
-                "UPDATE urls SET min_depth=?, discovery_methods=? WHERE id=?",
-                (min(row["min_depth"], item.depth), json.dumps(sorted(methods)), row["id"]),
-            )
-            if navigational:
+            previous_methods = set(json.loads(row["discovery_methods"]))
+            methods = previous_methods | {item.discovery_method}
+            if item.depth < row['min_depth'] or methods != previous_methods:
+                self.connection.execute(
+                    "UPDATE urls SET min_depth=?, discovery_methods=? WHERE id=?",
+                    (min(row["min_depth"], item.depth), json.dumps(sorted(methods)), row["id"]),
+                )
+            if navigational and (row['navigation_depth'] is None or item.depth < row['navigation_depth']):
                 self.connection.execute("UPDATE urls SET navigation_depth=MIN(COALESCE(navigation_depth,?),?) WHERE id=?", (item.depth, item.depth, row["id"]))
                 if item.parent_url and (row["navigation_depth"] is None or item.depth < row["navigation_depth"]):
                     self.connection.execute("UPDATE urls SET parent_url=? WHERE id=?", (item.parent_url, row["id"]))
             if item.parent_url:
                 self.connection.execute("INSERT OR IGNORE INTO url_edges(audit_run_id,source_url,target_url,anchor_text,method) VALUES(?,?,?,?,?)",
                                         (run_id, item.parent_url, item.normalized_url, item.anchor_text, item.discovery_method))
-            self.connection.commit()
+            self._checkpoint()
             return False
         self.connection.execute(
             "INSERT INTO urls(audit_run_id,url,normalized_url,page_type,min_depth,navigation_depth,discovery_methods,parent_url,anchor_text,capture_enabled,host,first_discovery_method,discovered_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -258,7 +302,7 @@ class AuditDatabase:
                 "INSERT OR IGNORE INTO url_edges(audit_run_id,source_url,target_url,anchor_text,method) VALUES(?,?,?,?,?)",
                 (run_id, item.parent_url, item.normalized_url, item.anchor_text, item.discovery_method),
             )
-        self.connection.commit()
+        self._checkpoint()
         return True
 
     def reconcile_navigation_depth(self, run_id: int) -> None:
@@ -292,11 +336,12 @@ class AuditDatabase:
         self.connection.commit()
 
     def add_http_result(self, run_id: int, normalized_url: str, **values: Any) -> None:
+        fetched_at = values.pop('fetched_at', None) or datetime.now(UTC).isoformat()
         columns = ["audit_run_id", "normalized_url", *values.keys(), "fetched_at"]
         placeholders = ",".join("?" for _ in columns)
         self.connection.execute(
             f"INSERT OR REPLACE INTO http_results({','.join(columns)}) VALUES({placeholders})",
-            (run_id, normalized_url, *values.values(), datetime.now(UTC).isoformat()),
+            (run_id, normalized_url, *values.values(), fetched_at),
         )
         self.connection.commit()
 
@@ -315,6 +360,12 @@ class AuditDatabase:
             "INSERT OR IGNORE INTO sitemaps(audit_run_id,sitemap_url,parent_sitemap,sitemap_type,url_count) VALUES(?,?,?,?,?)",
             (run_id, url, parent, sitemap_type, count),
         )
+        if not cursor.rowcount:
+            # An unfinished sitemap can change between pause and resume. Keep
+            # its latest parsed entry count accurate without adding another row.
+            self.connection.execute('''UPDATE sitemaps SET sitemap_type=?,url_count=?
+                WHERE audit_run_id=? AND sitemap_url=? AND (sitemap_type!=? OR url_count!=?)''',
+                (sitemap_type, count, run_id, url, sitemap_type, count))
         self.connection.commit()
         return cursor.rowcount > 0
 
@@ -323,31 +374,26 @@ class AuditDatabase:
             "INSERT OR IGNORE INTO documents(audit_run_id,normalized_url,parent_url,extension) VALUES(?,?,?,?)",
             (run_id, url, parent_url, extension),
         )
-        self.connection.commit()
-
-    def update_document_metadata(self, run_id: int, url: str, mime_type: str | None, size_bytes: int | None) -> None:
-        self.connection.execute("UPDATE documents SET mime_type=?, size_bytes=? WHERE audit_run_id=? AND normalized_url=?",
-                                (mime_type, size_bytes, run_id, url))
-        self.connection.commit()
+        self._checkpoint()
 
     def add_filter_definition(self, run_id: int, source_url: str, control_name: str, control_type: str,
                               form_action: str | None, form_method: str | None, selector_hint: str | None) -> None:
         self.connection.execute("""INSERT OR IGNORE INTO filter_definitions
             (audit_run_id,source_url,control_name,control_type,form_action,form_method,selector_hint) VALUES(?,?,?,?,?,?,?)""",
             (run_id, source_url, control_name, control_type, form_action, form_method, selector_hint))
-        self.connection.commit()
+        self._checkpoint()
 
     def add_filter_value(self, run_id: int, source_url: str, control_name: str, display_value: str | None,
                          request_value: str) -> None:
         self.connection.execute("INSERT OR IGNORE INTO filter_values(audit_run_id,source_url,control_name,display_value,request_value) VALUES(?,?,?,?,?)",
                                 (run_id, source_url, control_name, display_value, request_value))
-        self.connection.commit()
+        self._checkpoint()
 
     def add_network_request(self, run_id: int, source_url: str, request_url: str, method: str | None,
                             resource_type: str | None, status_code: int | None) -> None:
         self.connection.execute("INSERT OR IGNORE INTO network_requests(audit_run_id,source_url,request_url,method,resource_type,status_code) VALUES(?,?,?,?,?,?)",
                                 (run_id, source_url, request_url, method, resource_type, status_code))
-        self.connection.commit()
+        self._checkpoint()
 
     def upsert_pagination_series(self, run_id: int, series_key: str, template_url: str, parameter_name: str,
                                  detected_from: str, observed_max: int, max_page: int | None = None,
@@ -405,14 +451,19 @@ class AuditDatabase:
         )
         self.connection.commit()
 
-    def report_rows(self, run_id: int, *, include_traversal: bool = False, only_url: str | None = None) -> list[sqlite3.Row]:
+    def report_rows(self, run_id: int, *, include_traversal: bool = False, only_url: str | None = None, enrich_archives: bool = True) -> list[dict]:
         capture_clause = '' if include_traversal else ' AND u.capture_enabled=1'
         url_clause = ' AND u.normalized_url=?' if only_url is not None else ''
-        return self.connection.execute(f"""
-            SELECT u.url,u.normalized_url,u.canonical_url,u.page_type,u.min_depth,u.navigation_depth,u.discovery_methods,u.parent_url,
+        rows = self.connection.execute(f"""
+            SELECT u.url,u.normalized_url,u.canonical_url,u.page_type,u.min_depth,u.navigation_depth,u.discovery_methods,u.parent_url,u.anchor_text,
                    h.status_code,h.final_url,h.validity,h.title,h.h1,h.text_length,h.content_type,h.error,h.fetched_at,u.state,
-                   c.match_status,c.corpus_url,c.document_id,c.similarity,c.text_status,c.corpus_text_length,c.provider,c.evidence_json
+                   c.match_status,c.corpus_url,c.document_id,c.similarity,c.text_status,c.corpus_text_length,c.provider,c.evidence_json,
+                   e.evidence_json AS content_evidence_json
             FROM urls u LEFT JOIN http_results h ON h.audit_run_id=u.audit_run_id AND h.normalized_url=u.normalized_url
             LEFT JOIN corpus_matches c ON c.audit_run_id=u.audit_run_id AND c.normalized_url=u.normalized_url
+            LEFT JOIN content_evidence e ON e.audit_run_id=u.audit_run_id AND e.normalized_url=u.normalized_url
             WHERE u.audit_run_id=? {capture_clause} {url_clause} ORDER BY u.min_depth,u.url
         """, (run_id, only_url) if only_url is not None else (run_id,)).fetchall()
+        if not enrich_archives:
+            return [dict(row) for row in rows]
+        return enrich_archive_rows(rows, lambda url: self.page_snapshot(run_id, url))

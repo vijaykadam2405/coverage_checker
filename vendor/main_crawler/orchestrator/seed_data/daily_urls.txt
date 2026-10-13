@@ -1,0 +1,44 @@
+# Sites crawled DAILY, one URL per line. '#' comments, blank lines ignored.
+# Source: daily_crawl_plan.xlsx sheet 'News - crawl daily' (built 2026-08-27).
+# These run on the RESERVED crawler instance only (CRAWLER_DAILY_INSTANCE).
+# Two rows from the sheet are excluded: blogspot.com and net.au are truncated hosts
+# (a subdomain collapsed to its registrable domain) - crawling them means crawling
+# all of Blogspot / all of .net.au. Restore them once the real hostnames are known.
+
+https://infodefensa.com/    # 72.3 changes/day, first crawl 2861.2s
+https://defencesecurityasia.com/    # 47.4 changes/day, first crawl 871.4s
+https://spslandforces.com/    # 22.08 changes/day, first crawl 2911.3s
+https://defence24.com/    # 14.84 changes/day, first crawl 1286.7s
+https://navytimes.com/    # 12.7 changes/day, first crawl 894.7s
+https://thediplomat.com/    # 7.8 changes/day, first crawl 2548.5s
+https://defenseindustrydaily.com/    # 6.17 changes/day, first crawl 2166.6s
+https://rusi.org/    # 5.7 changes/day, first crawl 2961.3s
+https://tass.com/    # 4 changes/day, first crawl 3542.4s
+https://mindef.gov.sg/    # 3.35 changes/day, first crawl 2697.7s
+https://warontherocks.com/    # 2.9 changes/day, first crawl 1824.2s
+https://nordicdefencereview.com/    # 2 changes/day, first crawl 3317s
+https://al-monitor.com/    # 2 changes/day, first crawl 1704.9s
+https://insidedefense.com/    # 193.16 changes/day, first crawl 1511.2s
+https://defensescoop.com/    # 187.05 changes/day, first crawl 1753.7s
+https://defenceconnect.com.au/    # 174 changes/day, first crawl 1041.6s
+https://aviationweek.com/    # 170 changes/day, first crawl 547.4s
+https://defence-industry.eu/    # 156 changes/day, first crawl 1041.6s
+https://vpk.name/    # 154 changes/day, first crawl 325.7s
+https://idrw.org/    # 151.5 changes/day, first crawl 547.4s
+https://ukdefencejournal.org.uk/    # 48 changes/day, first crawl 1041.6s
+https://militairespectator.nl/    # 26 changes/day, first crawl 637.4s
+https://meretmarine.com/    # 25.2 changes/day, first crawl 637.4s
+https://theaviationist.com/    # 18.5 changes/day, first crawl 547.4s
+https://c4isrnet.com/    # 7.5 changes/day, first crawl 547.4s
+https://israelhayom.com/    # 5.38 changes/day, first crawl 2102.2s
+https://adf-magazine.com/    # 4.77 changes/day, first crawl 325.7s
+https://militarywatchmagazine.com/    # 4 changes/day, first crawl 53.2s
+https://bharatshakti.in/    # 4 changes/day, first crawl 53.2s
+https://israeldefense.co.il/    # 4 changes/day, first crawl 3172.4s
+https://asianmilitaryreview.com/    # 3.94 changes/day, first crawl 547.4s
+https://forceindia.net/    # 3.86 changes/day, first crawl 1343.1s
+https://defensie.nl/    # 2.05 changes/day, first crawl 1290.4s
+https://armyrecognition.com/    # 2.04 changes/day, first crawl 53.2s
+https://africanmilitaryblog.com/    # 2 changes/day, first crawl 53.2s
+https://defensa.com/    # 1.55 changes/day, first crawl 2793.6s
+https://overtdefense.com/    # 1.52 changes/day, first crawl 3872.5s

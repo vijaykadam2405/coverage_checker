@@ -1,0 +1,58 @@
+[
+ {
+  "category": "rate_limit",
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi?retmode=json",
+  "expect": "NCBI E-utilities enforce a documented 3-requests-per-second ceiling per IP for keyless callers and announce it inline: the response that spends the last unit of the window still carries the payload but sets X-RateLimit-Remaining: 0. A crawler must read the counter and slow down THERE, not wait for the 429 that follows.",
+  "evidence": "SERIAL burst at the harness's own 0.15s spacing, measured live 2026-07-27 08:5x and 09:0x UTC from our own India egress. Run A: req1-2=200, req3=200 carrying 'X-RateLimit-Limit: 3' + 'X-RateLimit-Remaining: 0'. Run B: same, on req5. Server: Finatra. diagnose()=rate_limit/backoff both times. Rate-DEPENDENT: req1 is always a clean 200, which is what separates a throttle from a standing block.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://zenquotes.io/api/random",
+  "expect": "Keyless quote API allows 5 requests per 30s window and answers the 6th with HTTP 429 whose body states the reason in words — the plain-429 path, with no Retry-After and no RateLimit headers to lean on.",
+  "evidence": "SERIAL burst, measured live 2026-07-27 08:4x and 09:0x UTC from our own India egress. Both runs identical: req1-5=200 OK, req6=HTTP 429, body [{\"q\":\"Too many requests. Obtain an auth key for unlimited access.\",\"a\":\"zenquotes.io\"}], Server: Apache, no Retry-After header. diagnose()=rate_limit/backoff.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.github.com/search/repositories?q=test",
+  "expect": "GitHub's SEARCH endpoint has its own documented quota — 10 requests/minute for unauthenticated callers, a tenth of the 60/hour core quota the existing api.github.com/users/octocat row exercises. It announces exhaustion as X-RateLimit-Remaining: 0 on both a 200 and the 403 that follows, so the crawler must back the whole host off from a header rather than from a status.",
+  "evidence": "measured live 2026-07-27 09:0x-09:1x UTC from our own India egress. A single 8-request serial burst drives 'x-ratelimit-limit: 10' from remaining 10 to remaining 2 (x-ratelimit-resource: search). Run back-to-back inside the same minute the burst reaches 'x-ratelimit-remaining: 0' on req2 -> diagnose()=rate_limit/backoff. Paired deliberately with the ?q=scrapy row below: both share the one documented per-IP search bucket, so the harness's concurrent pass reproduces the throttle in ONE run — measured, both rows hit remaining 0 within 5-6 requests (one on a 200, one on a 403).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.github.com/search/repositories?q=scrapy",
+  "expect": "Second query against the same documented 10/minute unauthenticated search bucket. A crawler that touches two search URLs on one host inside a minute IS throttled — that is the real behaviour this pair records, and it is what makes the throttle reproducible in a single harness pass instead of only on a re-run.",
+  "evidence": "measured live 2026-07-27 09:1x UTC from our own India egress, run CONCURRENTLY with the ?q=test row exactly as the harness runs them, starting from a freshly reset window: statuses [200,200,200,200,200] then 'x-ratelimit-limit: 10', 'x-ratelimit-remaining: 0', 'x-ratelimit-used: 10', 'x-ratelimit-resource: search' -> diagnose()=rate_limit/backoff. The sibling row hit 0 on a 403 in the same pass.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.ipregistry.co/?key=tryout",
+  "expect": "'tryout' is Ipregistry's own published demo key, documented as heavily rate limited. Exhausting it returns HTTP 429 with a LARGE Retry-After (~50 min) — the case where honouring the header matters most, because retrying on the crawler's default cooldown would just be refused again.",
+  "evidence": "measured live 2026-07-27 09:0x and 09:1x UTC from our own India egress. First burst: 8x200 with 'x-rate-limit-limit: 5' falling to 'x-rate-limit-remaining: 1'. Next burst: req1 = HTTP 429, 'Retry-After: 3114', 'x-rate-limit-remaining: 0', body {\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"The 'tryout' API key is heavily rate limited and is only meant for a few initial tests.\"}. diagnose()=rate_limit/backoff, retry_after clamped to the 300s cap. Reproduced on a third pass 8 minutes later (Retry-After: 2849).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://httpbingo.org/status/429",
+  "expect": "Deterministic 429 control: proves the plain 'HTTP 429 -> rate_limit/backoff' branch still fires with no vendor signature, no Retry-After and no RateLimit header present at all. Second control alongside mock.codes/429 because the corpus's other synthetic endpoints have died.",
+  "evidence": "measured live 2026-07-27 09:0x UTC from our own India egress: req1 = HTTP 429, empty body, Content-Type: text/plain, Server: Fly/c12ea07533. diagnose()=rate_limit/backoff. Measured in the same pass: httpbin.org/status/429 now answers 503 from awselb/2.0 (its own load balancer, endpoint down) and httpstat.us/429 raised ConnectTimeout — neither is usable. postman-echo.com/status/429 also returns a clean 429 and is a verified spare, but it sits behind Cloudflare and would read as antibot the day that challenges us.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.bitbucket.org/2.0/repositories/atlassian?pagelen=1",
+  "expect": "Replaces /2.0/repositories?pagelen=1, which Atlassian retired (HTTP 410, CHANGE-2770). Same evidential purpose: the anonymous 60-requests/hour quota published on every 200 in the combined 'limit, limit;w=window' spelling, so the crawler reads its budget from a SUCCESSFUL response instead of discovering it by being cut off.",
+  "evidence": "SERIAL burst of 8, measured live 2026-07-27 08:5x and 09:0x UTC from our own India egress. All 8 = 200 OK, 3,287 chars; 'X-RateLimit-Limit: 60, 60;w=3600', 'X-RateLimit-Remaining: 59'->'47', 'X-RateLimit-Reset: 278'. Server: AtlassianEdge. 8 requests cannot exhaust 60/hour, so this row scores not_reproduced on a cold run and only passes once earlier runs have spent the hour's budget — it is a headers-published case, not a burst case, and it also covers the 'X-RateLimit-Limit: 20, 20;w=60' spelling the dead r.jina.ai row used to carry.",
+  "source": "verified-live",
+  "stable": true
+ }
+]

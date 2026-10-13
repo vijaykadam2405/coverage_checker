@@ -1,0 +1,20 @@
+[
+ {
+  "category": "pagination",
+  "url": "https://webscraper.io/test-sites/load-more",
+  "expect": "A 'Load More' BUTTON pager: the button fires GET /test-sites-ajax?page=N and appends the returned card HTML, so there is no anchor to follow and the crawler must reach the next page through its render tier (_click_discover's request listener / the harness's XHR shim).",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True, verify=True) and through edgecases/run.py::paginate_probe. GET https://webscraper.io/test-sites/load-more -> HTTP 200, 32,967 bytes, title 'Test site with load more button', 54 server-rendered cards, and the button is in the served HTML verbatim: <button class=\"btn btn-primary load-more-btn ecommerce-items-scroll-more\">Load More</button>. Clicking it in CamoFox fired the pager request https://webscraper.io/test-sites-ajax?page=2, which paginate_probe recorded as '[ajax] 1 walked, 2 discovered' -> PASS on the UNPATCHED crawler. Fetching that endpoint directly confirms it is real content, not a stub: /test-sites-ajax?page=1 -> HTTP 200, 10,637 bytes of card markup; ?page=2 -> HTTP 200, 10,623 bytes. REPLACES https://webscraper.io/test-sites/e-commerce/more/computers/laptops, which is not a pager at all: that page ships ALL 117 products inside one data-items attribute (json.loads of the attribute yields 117 objects, first 'Asus VivoBook X441NA-GA190', last 'Asus ROG Strix SCAR Edition GL503VM-ED115T'), renders 0 of them server-side, and webscraper.io/js/app.js's EcommerceMore.renderNextItems only splices from that in-page array -- zero network requests fire on click, so there is no second page for any crawler to reach.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "load-more BUTTON whose click fires an XHR pager (/test-sites-ajax?page=N)"
+ },
+ {
+  "category": "pagination",
+  "url": "https://quotes.toscrape.com/api/quotes?page=2",
+  "expect": "JSON API ?page=N whose ONLY next-page pointer is in the body (has_next). No <a>, no <link rel=next>, no RFC 8288 Link header, so the crawler has to read the pager out of the JSON envelope and stop when has_next turns false.",
+  "evidence": "measured live 2026-07-27 with httpx (follow_redirects=True, verify=True). ?page=1 -> HTTP 200, 2,860 bytes, has_next=true, 10 quotes. ?page=2 -> HTTP 200, 4,629 bytes, has_next=true, 10 quotes. ?page=10 -> HTTP 200, 2,641 bytes, has_next=FALSE, 10 quotes (the last page with data). ?page=11 and ?page=12 -> HTTP 200, 210 bytes, 0 quotes. No 'link' response header on any of them. The shipped extractor sees nothing at all on this body: crawler.parse.extract_links -> [] and crawler.parse.extract_rel_links -> [], which is exactly why the row fails today; walked 6 hops (?page=2 -> 3 -> 4 -> 5 -> 6 -> 7, body sizes [4629, 2987, 2620, 2680, 2855]) once parse.links_from_json is in place. REPLACES https://zenodo.org/api/records?size=5&page=2, which no longer answers from this network: two fetches two seconds apart both returned HTTP 403, 763 bytes, server nginx, title '403 Forbidden', body 'Access to this resource has been restricted due to unusual traffic from your network.' -- an IP-level block, so that row measures the block and not the pager. Re-add the Zenodo row if the block lifts; it is a valid ?page=N JSON pager.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "JSON API ?page=N, pager only in the body (has_next), no Link header"
+ }
+]

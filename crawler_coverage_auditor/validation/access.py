@@ -7,6 +7,7 @@ solve challenges, submit login forms, or manufacture successful content.
 from __future__ import annotations
 
 import re
+import json
 from dataclasses import dataclass
 
 from bs4 import BeautifulSoup
@@ -20,7 +21,7 @@ class AccessIssue:
     browser_wait: bool = False
 
 
-def detect_access(status: int | None, headers: dict, html: str, url: str = "") -> AccessIssue | None:
+def detect_access(status: int | None, headers: dict, html: str, url: str = "", *, requested_url: str | None = None) -> AccessIssue | None:
     headers = {str(key).lower(): str(value).lower() for key, value in headers.items()}
     if status == 429:
         return AccessIssue("RATE_LIMITED", "HTTP 429: website rate limited requests; respect Retry-After and pause this host")
@@ -28,6 +29,16 @@ def detect_access(status: int | None, headers: dict, html: str, url: str = "") -
         return AccessIssue("GEO_BLOCKED", "HTTP 451: content unavailable for legal/regional reasons")
     if status == 401:
         return AccessIssue("LOGIN_REQUIRED", "HTTP 401: authentication required; public-page audit does not attempt login")
+    if status == 511:
+        return AccessIssue('NETWORK_LOGIN_REQUIRED', 'HTTP 511: network authentication required; no network-login bypass attempted')
+    # Some public APIs return a JSON authentication error with HTTP 200.
+    if html.lstrip().startswith('{') and len(html) < 10_000:
+        try:
+            payload = json.loads(html)
+            if isinstance(payload, dict) and isinstance(payload.get('error'), str) and payload['error'] in {'unauthorized', 'authentication_required', 'login_required'}:
+                return AccessIssue('LOGIN_REQUIRED', 'API explicitly requires authentication; public audit does not submit credentials')
+        except (TypeError, ValueError):
+            pass
     soup = BeautifulSoup(html[:500_000], "lxml")
     for node in soup.select("[hidden], [aria-hidden='true']"):
         node.decompose()
@@ -40,6 +51,30 @@ def detect_access(status: int | None, headers: dict, html: str, url: str = "") -
     visible = soup.get_text(" ", strip=True).lower()
     raw = html[:500_000].lower()
     thin = len(visible) < 1500
+    page_heading = (heading or title).strip()
+    # A successful status is not proof that a CDN served the requested article.
+    if thin and (page_heading in {'403 error', 'request blocked', 'access denied'} or
+                 visible.startswith('the request could not be satisfied')) and (
+            'cloudfront' in raw or 'edgesuite.net' in raw or 'reference #' in visible):
+        return AccessIssue('BOT_BLOCKED', 'CDN access wall returned instead of website content, including on HTTP 200', 'cdn')
+    if thin and (re.match(r'^(?:too many requests|rate limit exceeded|request throttled)(?:\b|$)', page_heading) or
+                 re.match(r'^(?:too many requests|rate limit exceeded|request throttled)[.!:\s]', visible)):
+        return AccessIssue('RATE_LIMITED', 'Website returned a throttle message instead of content; stop this host rather than retry aggressively')
+    if thin and any(visible.startswith(phrase) or page_heading.startswith(phrase) for phrase in (
+            'this content is not available in your country', 'content unavailable in your region',
+            'access is not available from your location', 'this website is unavailable in your country')):
+        return AccessIssue('GEO_BLOCKED', 'Website explicitly withheld content for the current location; no proxy/geographic bypass attempted')
+    if thin and re.match(r'^(?:subscription required|subscribe to (?:read|continue)|subscriber[- ]only content|paywall)(?:\b|$)', page_heading):
+        return AccessIssue('PAYWALL', 'Subscription gate returned instead of public content; no paywall bypass attempted')
+    from urllib.parse import urlsplit
+    landed = urlsplit(url)
+    asked = urlsplit(requested_url or url)
+    consent_route = r'/(?:consent|cookie-consent|cookie-wall|privacy-consent|zustimmung)(?:/|$)'
+    if requested_url and (re.search(consent_route, landed.path, re.I) and not re.search(consent_route, asked.path, re.I) or
+                          (landed.hostname or '').startswith('consent.') and landed.hostname != asked.hostname):
+        return AccessIssue('CONSENT_REQUIRED', 'Website redirected to a consent gate; prepare an authorized session with your own privacy choice')
+    if thin and soup.select_one('[data-age-gate], #age-gate, #agegate') and re.match(r'^(?:age verification|verify your age|age gate)(?:\b|$)', page_heading):
+        return AccessIssue('AGE_VERIFICATION', 'Age-verification gate detected; no age declaration submitted automatically')
     challenge_title = any(phrase in title + " " + heading for phrase in (
         "just a moment", "verify you are human", "security check", "robot check",
         "checking your browser", "access denied", "attention required", "captcha verification"))
@@ -70,6 +105,13 @@ def detect_access(status: int | None, headers: dict, html: str, url: str = "") -
         if structural or (any(marker in raw for marker in markers) and status in {403, 406, 456, 503, 999}):
             return AccessIssue("BOT_BLOCKED", f"{provider} access challenge: content withheld", provider,
                                provider in {"servicepipe", "anubis"})
+    from crawler_coverage_auditor.integrations.main_crawler import challenge
+    production_detection = challenge(status, headers, html)
+    if production_detection is not None and thin:
+        interactive = production_detection.solvability in {'token_injection', 'vendor_task', 'local_ocr', 'not_injectable'}
+        return AccessIssue('CAPTCHA_REQUIRED' if interactive else 'BOT_BLOCKED',
+                           f'Main crawler detected {production_detection.kind}: website withheld content',
+                           production_detection.kind, production_detection.solvability == 'wait_only')
     widget = soup.select_one(".g-recaptcha, .h-captcha, .cf-turnstile, iframe[src*='recaptcha'], iframe[src*='hcaptcha']")
     # A contact form's embedded CAPTCHA is not a content-blocking interstitial.
     if widget and thin and challenge_title:
@@ -81,3 +123,17 @@ def detect_access(status: int | None, headers: dict, html: str, url: str = "") -
     if status in {403, 406, 456, 999} or (thin and challenge_title):
         return AccessIssue("BLOCKED", f"Website denied access (HTTP {status or 'unknown'}); browser/session or owner allowlisting may be required")
     return None
+
+
+def requires_rendering(html: str, meaningful_text: str) -> bool:
+    """Recognize a script-driven mount with no readable content, not every small page."""
+    if len(meaningful_text.strip()) >= 200:
+        return False
+    soup = BeautifulSoup(html[:500_000], 'lxml')
+    mount = soup.select_one('#app, #root, #__next, #__nuxt, [ng-app]')
+    if mount is None or not soup.find('script'):
+        return False
+    for node in mount.select('script, style, template, noscript'):
+        node.decompose()
+    content = mount.get_text(' ', strip=True)
+    return not content or bool(re.fullmatch(r'(?:loading(?:\s+(?:content|application))?|please wait|javascript required)[.\s…]*', content, re.I))

@@ -1,0 +1,546 @@
+[
+ {
+  "category": "js_render",
+  "url": "https://www.scrapingcourse.com/javascript-rendering",
+  "expect": "Raw HTML shows only 'Enable JavaScript to see products'; the product grid renders solely after the JS bundle runs.",
+  "evidence": "HTTP 200, 29,640 bytes; visible text (script/style stripped) = 138 chars, literally 'Enable JavaScript to see products'; 8 <script> tags; zero product names in raw HTML.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://quotes.toscrape.com/js/",
+  "expect": "Raw HTML has only nav/footer chrome; all quotes are embedded as a JS variable and DOM-injected, absent as semantic HTML text.",
+  "evidence": "HTTP 200, 5,808 bytes; visible text = 96 chars ('Quotes to Scrape ... Login Next -> ... Made with <3 by Zyte'); no quote text present; 2 <script> tags carry the data.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://web.telegram.org/a/",
+  "expect": "Raw HTML is a bare bootstrap page; the entire messenger UI is built by JS after load.",
+  "evidence": "HTTP 200, 4,255 bytes; visible text = 8 chars (only 'Telegram'); an app-mount container is present with zero chat/message markup.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://excalidraw.com/",
+  "expect": "Raw HTML root div is empty; the whiteboard canvas and all UI chrome are drawn by JS onto a <canvas> element.",
+  "evidence": "HTTP 200, 6,862 bytes; visible text = 32 chars ('Excalidraw Whiteboard Excalidraw'); exact empty <div id=\"root\"></div> matched; 6 <script> tags, 0 <img>.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://the-internet.herokuapp.com/dynamic_loading/2",
+  "expect": "The target 'Hello World!' element is added to the DOM only after a JS timer/AJAX call finishes; absent from the initial GET.",
+  "evidence": "HTTP 200, 2,141 bytes; visible text = 124 chars ('...Example 2: Element rendered after the fact Start'); the string 'Hello World' is NOT present anywhere in the raw response.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://www.scrapethissite.com/pages/ajax-javascript/",
+  "expect": "Page declares '87 items' but the Oscar-winner film/year/nominee rows are fetched via AJAX after load, not present as table rows in the initial HTML.",
+  "evidence": "HTTP 200, 13,210 bytes; visible text = 778 chars, ending at '87 items' with no film titles following; 13 <script> tags; purpose-built AJAX sandbox.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://open.spotify.com/",
+  "expect": "Raw HTML is a near-blank web-player shell; the entire player UI, search and browse content is client-rendered.",
+  "evidence": "HTTP 200, 6,016 bytes; visible text = 20 chars ('Spotify - Web Player').",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://www.desmos.com/calculator",
+  "expect": "Raw HTML literally shows a 'Loading...' placeholder; the graphing-calculator canvas/UI is built entirely by JS.",
+  "evidence": "HTTP 200, 11,067 bytes; visible text = 39 chars ('Desmos | Graphing Calculator Loading...').",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://www.instagram.com/",
+  "expect": "Raw HTML delivers almost no text; the feed/login UI is fully client-rendered behind a large JS bundle.",
+  "evidence": "HTTP 200, 604,816 bytes total, yet visible text (script/style stripped) = 9 chars ('Instagram').",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "url": "https://x.com/",
+  "expect": "Logged-out clients get the login wall and nothing else; rendering does not change that, so this is an auth wall, not a render case.",
+  "evidence": "Re-measured 2026-07-26 through the real browser: plain HTTP 456 chars -> rendered 548 chars (+92). The render reached the same login prompt, no timeline. The original row's own evidence already said 'zero tweet content' — it was filed under the wrong case.",
+  "source": "verified-live-2026-07-26",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://www.pinterest.com/",
+  "expect": "Raw HTML is essentially blank; the pin grid is 100% client-rendered.",
+  "evidence": "HTTP 200, 1,076,726 bytes total, yet visible text = 9 chars ('Pinterest').",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://www.twitch.tv/directory",
+  "expect": "Raw HTML for the category directory carries no game/category listings at all; the grid is built by JS.",
+  "evidence": "HTTP 200, 196,373 bytes total, visible text = 23 chars ('All Categories - Twitch').",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://www.dailymotion.com/",
+  "expect": "Raw HTML is a bare shell; the video homepage/feed is entirely client-rendered.",
+  "evidence": "HTTP 200, 51,612 bytes total, visible text = 11 chars ('Dailymotion').",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://500px.com/",
+  "expect": "Raw HTML root div is empty; the photo-discovery feed is 100% client-rendered.",
+  "evidence": "HTTP 200, 9,681 bytes; visible text = 5 chars ('500px'); exact empty <div id=\"root\"></div> matched.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://todomvc.com/examples/react/dist/",
+  "expect": "Raw HTML is a tiny skeleton; every todo item is rendered client-side by React after the bundle loads.",
+  "evidence": "HTTP 200, 393 bytes total; body is exactly <section class=\"todoapp\" id=\"root\"></section> plus a footer credit line; visible text = 72 chars; no <li> todo items in source.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://todomvc.com/examples/vue/dist/",
+  "expect": "Raw HTML is a tiny skeleton; every todo item is rendered client-side by Vue after the bundle loads.",
+  "evidence": "HTTP 200, 434 bytes total; body is exactly <section class=\"todoapp\"></section> plus a footer credit line; visible text = 70 chars; no <li> todo items in source.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://kepler.gl/",
+  "expect": "Raw HTML body contains a single <script src=\"/bundle.js\"> and nothing else; the entire WebGL map/data-viz UI is drawn by JS after load.",
+  "evidence": "HTTP 200, 802 bytes total; visible text = 245 chars (all from <head> meta/OG tags); <body> has zero markup besides the bundle <script> tag.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://soundcloud.com/",
+  "expect": "Non-JS clients get a browser-compatibility fallback instead of the real streaming/discovery UI.",
+  "evidence": "HTTP 200, 65,060 bytes; visible text = 329 chars, entirely the fallback message ('Your current browser isn't compatible with SoundCloud...'); zero track/artist content.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://app.diagrams.net/",
+  "expect": "Raw HTML carries only a short marketing blurb; the actual diagram canvas/editor is absent until the JS app boots.",
+  "evidence": "HTTP 200, 2,759 bytes; visible text = 437 chars, all generic 'flowchart maker' marketing copy; no diagram/editor markup present; 2 <script> tags.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.theguardian.com/international",
+  "expect": "Below-the-fold article thumbnails use native lazy loading.",
+  "evidence": "HTTP 200, 1,324,262 bytes; 117 <img> tags; loading=\"lazy\" occurs 97 times in raw HTML.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.nytimes.com/",
+  "expect": "Homepage images below the fold are natively lazy-loaded.",
+  "evidence": "HTTP 200, 1,343,481 bytes; loading=\"lazy\" occurs 24 times in raw HTML across 57 <img> tags.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.flickr.com/",
+  "expect": "Photo-stream thumbnails are natively lazy-loaded.",
+  "evidence": "HTTP 200, 57,606 bytes; loading=\"lazy\" occurs 32 times across 39 <img> tags.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://dev.to/",
+  "expect": "Article cover images on the homepage feed use native lazy loading.",
+  "evidence": "HTTP 200, ~283,000 bytes (consistent across 2 fetches); loading=\"lazy\" occurs 49-51 times across 111-113 <img> tags.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.flipkart.com/search?q=laptop",
+  "expect": "Product-grid images below the fold are lazy-loaded.",
+  "evidence": "HTTP 200, ~620,000 bytes; loading=\"lazy\" occurs 5 times. Note: also carries a real <a href=\"...&page=2\" rel=\"next\"> pagination link (confirmed by grep), so this URL is a pagination site, not an infinite-scroll one.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.gettyimages.com/photos/nature",
+  "expect": "Search-result thumbnails use a data-src placeholder-swap pattern instead of eager src loading.",
+  "evidence": "Retargeted: the homepage's photo grid is 57 CSS background-images and only 12 <img>, all already decoded. The search page has 63 <img> and decoded 16->63 from the crawler's own _LAZY_RESOLVE_JS.",
+  "source": "verified-live-2026-07-26",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.behance.net/",
+  "expect": "Creative-work thumbnails in the project feed are natively lazy-loaded.",
+  "evidence": "HTTP 200, 915,673 bytes; loading=\"lazy\" occurs 56 times across 67 <img> tags.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://dribbble.com/",
+  "expect": "Shot thumbnails use a data-src placeholder-swap pattern plus skeleton loaders.",
+  "evidence": "HTTP 200, 396,583 bytes; data-src= occurs 68 times across 88 <img> tags; 368 occurrences of 'skeleton'.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://tenor.com/",
+  "expect": "GIF search-result thumbnails use native lazy loading.",
+  "evidence": "HTTP 200, 261,356 bytes; loading=\"lazy\" occurs 84 times across 87 <img> tags.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.producthunt.com/",
+  "expect": "Product thumbnail images on the daily listing are natively lazy-loaded.",
+  "evidence": "HTTP 200, ~965,000 bytes (consistent across 2 fetches); loading=\"lazy\" occurs 36-37 times across 69-70 <img> tags.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.deviantart.com/",
+  "expect": "Artwork thumbnails on the homepage feed are natively lazy-loaded.",
+  "evidence": "HTTP 200, 1,157,315 bytes; loading=\"lazy\" occurs 56 times across 63 <img> tags. (Head also carries a <link rel=\"next\"> SEO hint, not a clickable <a> link.)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.redbubble.com/shop/nature",
+  "expect": "Product thumbnails in the shop grid are natively lazy-loaded, with a skeleton-loader placeholder pattern.",
+  "evidence": "HTTP 200, 1,178,342 bytes; loading=\"lazy\" occurs 88 times across 100 <img> tags; 13 occurrences of 'skeleton'. (Head carries a <link rel=\"next\"> SEO hint, not a clickable <a> link.)",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.ikea.com/us/en/search/?q=chair",
+  "expect": "Product search-result images are natively lazy-loaded.",
+  "evidence": "HTTP 200, 852,959 bytes; loading=\"lazy\" occurs 13 times across 14 <img> tags.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.houzz.com/photos",
+  "expect": "Photo-gallery thumbnails use native lazy loading behind a skeleton-loader placeholder grid.",
+  "evidence": "HTTP 200, 223,899 bytes; loading=\"lazy\" occurs 55 times across 58 <img> tags; 147 occurrences of 'skeleton'. A real 'Next' pagination link exists but only inside a <noscript> fallback block.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.pexels.com/search/nature/",
+  "expect": "Photo search-result thumbnails are natively lazy-loaded.",
+  "evidence": "HTTP 200, 1,039,797 bytes; loading=\"lazy\" occurs 16 times across 141 <img> tags. Also carries a real <a rel=\"next\"> pagination link, so not usable as an infinite-scroll example.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.framer.com/",
+  "expect": "Marketing-page images throughout are natively lazy-loaded.",
+  "evidence": "HTTP 200, 2,283,219 bytes; loading=\"lazy\" occurs 122 times across 180 <img> tags.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.mapbox.com/",
+  "expect": "Marketing-page images are natively lazy-loaded.",
+  "evidence": "HTTP 200, 630,149 bytes; loading=\"lazy\" occurs 87 times across 104 <img> tags.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://miro.com/",
+  "expect": "Marketing-page images are natively lazy-loaded.",
+  "evidence": "HTTP 200, 998,588 bytes; loading=\"lazy\" occurs 65 times across 140 <img> tags.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://scrapingcourse.com/infinite-scrolling",
+  "expect": "Only the first batch of products is in the initial HTML; more append on scroll via JS with no <a> pagination link anywhere.",
+  "evidence": "HTTP 200, 18,998 bytes; visible text = 471 chars showing just 2 product names+prices ('Chaz Kangeroo Hoodie $52 Teton Pullover...'); 0 rel=\"next\", 0 href containing 'page'; purpose-built sandbox.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://webscraper.io/test-sites/e-commerce/scroll/computers/laptops",
+  "expect": "Only 3 products are in the initial HTML; more load via AJAX as you scroll with no pagination link.",
+  "evidence": "Retargeted: the bare /scroll URL is the category LANDING page (3 cards, 0 products). The laptops sub-page is the actual infinite list — measured nodes 292->616, items 11->21, images 6->24, text 1022->3272 chars, height 1191->3057px.",
+  "source": "verified-live-2026-07-26",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "http://infinite-scroll.com/demo/full-page/",
+  "expect": "Official demo of the infinite-scroll.com JS library: content areas append as you scroll, no pagination links.",
+  "evidence": "HTTP 200, 7,181 bytes; visible text = 1,528 chars; 'infinite scroll' mentioned 24 times in source; 0 rel=\"next\".",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "http://infinite-scroll.com/demo/masonry/",
+  "expect": "Official masonry-layout demo of the same library: image tiles append as you scroll, no pagination links.",
+  "evidence": "HTTP 200, 4,901 bytes decompressed; visible text = 141 chars ('...End of content No more pages to load Next page'); 16 <img> tags; 0 rel=\"next\".",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://quotes.toscrape.com/scroll",
+  "expect": "Page body literally says 'Loading...'; quotes are fetched from a JSON API and appended as you scroll, with no pagination link.",
+  "evidence": "HTTP 200, 2,673 bytes; visible text = 95 chars; raw HTML references '/api/quotes'; 0 rel=\"next\"; corroborated by scrapinghub's own sample spider written specifically for this endpoint.",
+  "source": "github:scrapinghub/sample-projects",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://web-scraping.dev/testimonials",
+  "expect": "Site's own description: 'dynamic client side paging where new items appear as user scrolls', backed by a paged JSON API and no <a> pagination link.",
+  "evidence": "HTTP 200, 30,112 bytes; visible text = 930 chars ('...4.12 in 60 Reviews...'); raw HTML references '/api/testimonials?page=2'; 0 rel=\"next\".",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://9gag.com/",
+  "expect": "Meme feed loads via JS with no pagination link; raw HTML carries almost no post content.",
+  "evidence": "HTTP 200, 182,888 bytes; visible text = 126 chars (only obfuscated post-ID tokens, no captions); 0 rel=\"next\".",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://giphy.com/",
+  "expect": "GIF trending feed loads via JS with no pagination link.",
+  "evidence": "HTTP 200, 330,374 bytes; visible text = 293 chars (nav/legal chrome only); 0 rel=\"next\".",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://stocktwits.com/",
+  "expect": "Social trading feed appends via JS with no pagination link.",
+  "evidence": "HTTP 200, 470,867 bytes; visible text = 6,387 chars (nav/marketing chrome only, no post stream); 0 rel=\"next\".",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://imgur.com/",
+  "expect": "Gallery grid appends via JS/XHR on scroll with no pagination link.",
+  "evidence": "HTTP 200, 6,675 bytes; visible text = 32 chars ('Imgur: The magic of the Internet'); 0 rel=\"next\", 0 href containing 'page'.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.mixcloud.com/discover/",
+  "expect": "Discover feed of shows/mixes appends via JS scroll with no pagination link.",
+  "evidence": "HTTP 200, 431,626 bytes; visible text = 5,615 chars (nav chrome only, no track listing); 0 rel=\"next\".",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.artstation.com/",
+  "expect": "Portfolio explore grid appends via JS scroll with no pagination link.",
+  "evidence": "HTTP 200, 91,611 bytes; visible text = 1,632 chars (nav/marketing chrome only); 0 rel=\"next\".",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.pinterest.com/search/pins/?q=nature",
+  "expect": "Pin search results append via JS scroll with no pagination link; skeleton placeholders precede real tiles.",
+  "evidence": "HTTP 200, 1,074,833 bytes; visible text = 9 chars; 6 occurrences of 'skeleton'; 0 rel=\"next\".",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.wattpad.com/stories/adventure",
+  "expect": "Story-browse grid appends via JS scroll with no pagination link.",
+  "evidence": "HTTP 200, 359,753 bytes; visible text = 24,636 chars (real category/story nav present); 0 rel=\"next\".",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://knowyourmeme.com/memes/popular",
+  "expect": "Popular-entries list appends via JS scroll with no pagination link; images are also lazy-loaded.",
+  "evidence": "HTTP 200, 224,080 bytes; visible text = 5,144 chars (real entry titles present, e.g. 'Deadpool Meme', 'Foam Party Girl'); loading=\"lazy\" occurs 67 times; 0 rel=\"next\".",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://play.tailwindcss.com/",
+  "expect": "In-browser playground; the editor and preview are built client-side.",
+  "evidence": "Measured 2026-07-26: HTTP 200, 44,905 bytes, visible text = 168 chars; the crawler's own diagnose() returns js_render on the plain fetch.",
+  "source": "verified-live-2026-07-26",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://tenor.com/search/nature-gifs",
+  "expect": "GIF grid appends on scroll; the text never changes.",
+  "evidence": "Measured 2026-07-26: document height 4,622 -> 28,539px, images 13 -> 29, DOM nodes 454 -> 771, visible text 401 -> 401 chars.",
+  "source": "verified-live-2026-07-26",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://giphy.com/search/nature",
+  "expect": "Search grid appends on scroll.",
+  "evidence": "Measured 2026-07-26: images 30 -> 114, document height 2,049 -> 6,845px.",
+  "source": "verified-live-2026-07-26",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://unsplash.com/s/photos/nature",
+  "expect": "Photo grid decodes images only as they enter the viewport.",
+  "evidence": "Measured 2026-07-26: decoded images 18 -> 59 after scroll + the crawler's own lazy resolver.",
+  "source": "verified-live-2026-07-26",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://medium.com/tag/technology",
+  "expect": "Article cards carry lazy thumbnails that decode on scroll.",
+  "evidence": "Measured 2026-07-26: decoded images 12 -> 55 after scroll + the lazy resolver.",
+  "source": "verified-live-2026-07-26",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.scrapingcourse.com/infinite-scrolling",
+  "expect": "Purpose-built infinite list: product cards append as you reach the bottom.",
+  "evidence": "Measured 2026-07-26: images 14 -> 38, repeated items 12 -> 36, DOM nodes 155 -> 323, height 2,016 -> 3,233px, text +660 chars.",
+  "source": "verified-live-2026-07-26",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://infinite-scroll.com/demo/full-page/",
+  "expect": "The InfiniteScroll library's own full-page demo appends article pages on scroll.",
+  "evidence": "Measured 2026-07-26: height 3,422 -> 10,635px, images 2 -> 5, nodes 139 -> 200, text +1,915 chars.",
+  "source": "verified-live-2026-07-26",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://www.tradingview.com/chart/",
+  "expect": "Charting app: the whole surface is drawn client-side, raw HTML is a shell.",
+  "evidence": "Measured 2026-07-26: HTTP 200, 68,641 bytes of HTML yielding 67 chars of visible text; the crawler's own diagnose() returns js_render on the plain fetch.",
+  "source": "verified-live-2026-07-26",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://tenor.com/search/cat-gifs",
+  "expect": "GIF grid appends on scroll; the visible text barely moves.",
+  "evidence": "Measured 2026-07-26: document height 4,459 -> 27,062px, images 13 -> 27, DOM nodes 466 -> 739, items 124 -> 136.",
+  "source": "verified-live-2026-07-26",
+  "stable": true
+ },
+ {
+  "category": "js_render",
+  "url": "https://www.gitpod.io/",
+  "expect": "Raw HTML is the canonical CRA empty shell: <noscript>You need to enable JavaScript...</noscript><div id=\"root\"></div>; the workspace dashboard is entirely client-rendered.",
+  "evidence": "HTTP 200, 756 bytes total; visible text = 9 chars ('Dashboard'); exact empty <div id=\"root\"></div> confirmed in source alongside the literal noscript warning.",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "js_render",
+  "url": "https://x.com/",
+  "expect": "Raw HTML shows only the logged-out login-wall chrome; the timeline itself never appears without JS+auth.",
+  "evidence": "HTTP 200, 35,821 bytes; visible text = 450 chars, all login-prompt copy ('Happening now ... Continue with phone ... Continue with Google...'), zero tweet content.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.bbc.com/news",
+  "expect": "Article thumbnails on the homepage use native lazy loading.",
+  "evidence": "HTTP 200, 367,184 bytes; 42 <img> tags; loading=\"lazy\" occurs 13 times.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.gettyimages.com/",
+  "expect": "Search-result thumbnails use a data-src placeholder-swap pattern instead of eager src loading.",
+  "evidence": "HTTP 200, 295,120 bytes; data-src= occurs 9 times across 11 <img> tags.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.kickstarter.com/discover",
+  "expect": "Project discovery grid appends via JS scroll with no pagination link.",
+  "evidence": "HTTP 200, 542,535 bytes; 0 rel=\"next\", 0 href containing 'page'; visible text = 12,881 chars, opening with a maintenance-banner notice rather than project cards.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://vsco.co/discover",
+  "expect": "Discover photo grid appends via JS scroll with no pagination link.",
+  "evidence": "HTTP 200, 343,009 bytes; visible text = 1,097 chars (nav chrome only); 0 rel=\"next\".",
+  "source": "verified-live",
+  "stable": false
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.reverbnation.com/main/discover",
+  "expect": "Discover feed of artists appends via JS scroll with no pagination link.",
+  "evidence": "HTTP 200, 170,294 bytes; visible text = 5,179 chars (nav/marketing chrome); 0 rel=\"next\".",
+  "source": "verified-live",
+  "stable": false
+ }
+]

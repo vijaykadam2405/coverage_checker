@@ -1,0 +1,73 @@
+# C4 host-solver relay — the one hop that lets a container reach the GPU.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.datacentre.yml \
+#                  -f docker-compose.scale.yml -f docker-compose.solver.yml up -d
+#
+# WHY THE SOLVER IS NOT JUST ANOTHER SERVICE HERE
+# -----------------------------------------------
+# Because this box cannot run it. Measured on the data centre 2026-08-02, Chrome in a container
+# with /dev/dri passed through and the render group added:
+#
+#     default    ANGLE (Mesa, llvmpipe (LLVM 15.0.7 256 bits), OpenGL 4.5)
+#     --use-gl=angle --use-angle=gl   ANGLE (Mesa, llvmpipe (LLVM 15.0.7 256 bits), OpenGL 4.5)
+#     --use-gl=egl                    ANGLE (Google, Vulkan 1.3.0 (SwiftShader ...), SwiftShader)
+#
+# and glxinfo agrees: `llvmpipe (LLVM 20.1.2)` with vmwgfx_dri.so present and
+# MESA_LOADER_DRIVER_OVERRIDE=vmwgfx making no difference. The guest is a VMware VM whose
+# hypervisor exposes no 3D at all — /dev/dri/renderD128 exists but accelerates nothing. llvmpipe
+# is exactly the fingerprint Cloudflare's interactive tier refuses, and it cannot be faked away in
+# JS because the capability surface is cross-checked. So no Dockerfile, no driver package and no
+# flag combination puts C4 on this machine; it needs hardware this VM does not have.
+#
+# The solver therefore runs on the operator's workstation, which reaches this box with a reverse
+# tunnel (scripts/c4_up.ps1 keeps it alive):
+#
+#     ssh -R 9378:127.0.0.1:9378 -p <ssh-port> <user>@<box>
+#
+# sshd here runs the default GatewayPorts=no, so that lands on the HOST's 127.0.0.1:9378 — which
+# no container can reach. This service is the hop that fixes that.
+#
+# WHY IT IS COMPOSE AND NOT A HAND-RUN `docker run`
+# --------------------------------------------------
+# Because a hand-run container comes back when someone remembers, and the entire point of this
+# file is that C4 stops being something a person babysits. `restart: unless-stopped` plus being in
+# the project means it returns with the stack.
+services:
+  hostsolver-relay:
+    image: alpine/socat:latest
+    container_name: mallory-hostsolver-relay
+    restart: unless-stopped
+    # host networking for both halves of the hop at once: it must see the tunnel's endpoint on the
+    # host's own 127.0.0.1, and bind the bridge gateway that the crawler containers route to.
+    #
+    # Verified from inside mallory-crawler-crawler-api-1 before this was written — the firewall's
+    # DROP rules live in DOCKER-USER scoped to `-i $EXTIF`, so bridge->host traffic is not filtered
+    # and `curl http://172.23.0.1:9379/health` answered. That check is worth repeating after any
+    # firewall change, because the failure mode is C4 silently doing nothing.
+    network_mode: host
+    # 172.23.0.1 is the mallory-crawler_default gateway. It is hardcoded on purpose: if the network
+    # is ever recreated on a different subnet this bind FAILS LOUDLY in a restart loop, which is
+    # the behaviour we want. Silently listening on the wrong address would give every crawler a
+    # connection error that hostsolver.solve() is designed to swallow.
+    # The far side is C4_TUNNEL_PORT, not a literal, because that port has to be MOVABLE. If an ssh
+    # client dies without a clean disconnect, sshd can leave the old remote listener bound, and
+    # every reconnect then fails with "remote port forwarding failed" indefinitely. Reaping it needs
+    # root (the sshd [priv] process owns the socket) and this box has no passwordless sudo — so the
+    # only escape is to move the port at both ends. Keep it in step with -TunnelPort in c4_up.ps1.
+    #
+    # Note the failure SHAPE that stale listener produces: it accepts TCP and never answers. A
+    # connectivity healthcheck would call it green; the content grep below is what catches it.
+    command: >-
+      TCP-LISTEN:9379,fork,reuseaddr,bind=172.23.0.1
+      TCP:127.0.0.1:${C4_TUNNEL_PORT:-9380}
+    healthcheck:
+      # Proves the whole chain — relay, tunnel, and the solver at the far end — not just that socat
+      # is running. `browser_open` is host_solver's own field: anything else answering this port
+      # fails the grep, which is the lesson from the day a dead tunnel let requests reach a
+      # different service that answered 200 happily.
+      test: ["CMD-SHELL",
+             "wget -qO- http://172.23.0.1:9379/health 2>/dev/null | grep -q browser_open || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

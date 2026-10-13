@@ -132,6 +132,16 @@ export function App() {
               automatic scanning and text checks.
             </div>
           )}
+          {connected && compatible && state.backend_update_available && (
+            <p className="info-box" role="status">
+              Backend improvements are ready.{" "}
+              {state.active
+                ? "Pause this scan and wait for it to save before restarting. "
+                : "Restart the backend to apply them. "}
+              Stop the server with Ctrl+C, then run npm.cmd --prefix frontend
+              start. Saved URLs and completed checks are retained.
+            </p>
+          )}
           {view === "control" ? (
             connected && state.settings.discovery_sources ? (
               <ControlRoom

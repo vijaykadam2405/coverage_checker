@@ -1,0 +1,194 @@
+[
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbingo.org/redirect/20",
+  "expect": "Crawler follows a chain of 302s that decrements (redirect/20 -> relative-redirect/19 -> .../18 -> ...) and never reaches a content page within any reasonable hop budget; a crawler capped at ~10-12 redirects gives up mid-chain.",
+  "evidence": "curl -sS -L --max-redirs 12 -w 'code=%{http_code} redirects=%{num_redirects} final=%{url_effective}': curl exit 47 'Maximum (12) redirects followed', code=302 redirects=12 final=https://httpbingo.org/relative-redirect/8 (i.e. 12 hops consumed and still 8 hops from content). httpbin.org itself (the originally-suggested host) returned HTTP 503 / connection timeouts on every retry during this session (2026-07-24, checked 6x over ~45min), so httpbingo.org (API-compatible open-source reimplementation, Go, hosted on fly.io) was used as the live substitute.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbingo.org/relative-redirect/15",
+  "expect": "Same decrementing relative-redirect chain pattern; proves a crawler following relative Location headers alone (no host change) still never lands on content within a 10-12 hop budget.",
+  "evidence": "curl -sS -L --max-redirs 12: curl exit 47 'Maximum (12) redirects followed', code=302 redirects=12 final=https://httpbingo.org/relative-redirect/3 (12 of 15 hops consumed, 3 remaining). Distinct endpoint from redirect/20 (relative-redirect issues bare relative Location headers rather than the redirect/N wrapper), same registrable domain counted once toward the 2-per-domain cap.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://postman-echo.com/redirect-to?url=https%3A%2F%2Fpostman-echo.com%2Fredirect-to%3Furl%3Dhttps%253A%252F%252Fpostman-echo.com%252Fredirect-to%253Furl%253Dhttps%25253A%25252F%25252Fpostman-echo.com%25252Fredirect-to%25253Furl%25253Dhttps%2525253A%2525252F%2525252Fpostman-echo.com%2525252Fredirect-to%2525253Furl%2525253Dhttps%252525253A%252525252F%252525252Fpostman-echo.com%252525252Fredirect-to%252525253Furl%252525253Dhttps%25252525253A%25252525252F%25252525252Fpostman-echo.com%25252525252Fredirect-to%25252525253Furl%25252525253Dhttps%2525252525253A%2525252525252F%2525252525252Fpostman-echo.com%2525252525252Fredirect-to%2525252525253Furl%2525252525253Dhttps%252525252525253A%252525252525252F%252525252525252Fpostman-echo.com%252525252525252Fredirect-to%252525252525253Furl%252525252525253Dhttps%25252525252525253A%25252525252525252F%25252525252525252Fpostman-echo.com%25252525252525252Fredirect-to%25252525252525253Furl%25252525252525253Dhttps%2525252525252525253A%2525252525252525252F%2525252525252525252Fpostman-echo.com%2525252525252525252Fredirect-to%2525252525252525253Furl%2525252525252525253Dhttps%252525252525252525253A%252525252525252525252F%252525252525252525252Fpostman-echo.com%252525252525252525252Fredirect-to%252525252525252525253Furl%252525252525252525253Dhttps%25252525252525252525253A%25252525252525252525252F%25252525252525252525252Fpostman-echo.com%25252525252525252525252Fget",
+  "expect": "A 12-hop nested redirect-to chain built on Postman's live echo/testing service; a crawler with a 10-redirect cap aborts before reaching /get, exactly like the httpbin redirect/N pattern named in the brief.",
+  "evidence": "Constructed by nesting postman-echo's redirect-to?url= endpoint 12 deep (each layer's url= param is a percent-encoded copy of the next). curl -sS -L --max-redirs 10: curl exit 47 'Maximum (10) redirects followed', code=302 redirects=10, final still a redirect-to URL 2 layers short of /get -- confirms the chain is genuinely >10 hops on real, live Postman infrastructure (postman-echo.com), not a placeholder.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://postman-echo.com/redirect-to?url=https%3A%2F%2Fpostman-echo.com%2Fredirect-to%3Furl%3Dhttps%253A%252F%252Fpostman-echo.com%252Fredirect-to%253Furl%253Dhttps%25253A%25252F%25252Fpostman-echo.com%25252Fredirect-to%25253Furl%25253Dhttps%2525253A%2525252F%2525252Fpostman-echo.com%2525252Fredirect-to%2525253Furl%2525253Dhttps%252525253A%252525252F%252525252Fpostman-echo.com%252525252Fredirect-to%252525253Furl%252525253Dhttps%25252525253A%25252525252F%25252525252Fpostman-echo.com%25252525252Fredirect-to%25252525253Furl%25252525253Dhttps%2525252525253A%2525252525252F%2525252525252Fpostman-echo.com%2525252525252Fredirect-to%2525252525253Furl%2525252525253Dhttps%252525252525253A%252525252525252F%252525252525252Fpostman-echo.com%252525252525252Fredirect-to%252525252525253Furl%252525252525253Dhttps%25252525252525253A%25252525252525252F%25252525252525252Fpostman-echo.com%25252525252525252Fredirect-to%25252525252525253Furl%25252525252525253Dhttps%2525252525252525253A%2525252525252525252F%2525252525252525252Fpostman-echo.com%2525252525252525252Fredirect-to%2525252525252525253Furl%2525252525252525253Dhttps%252525252525252525253A%252525252525252525252F%252525252525252525252Fpostman-echo.com%252525252525252525252Fget",
+  "expect": "An 11-hop nested redirect-to chain (one layer shallower than the sibling entry) that fully resolves end-to-end, demonstrating a real, traceable >10-hop redirect chain rather than a capped/truncated one.",
+  "evidence": "curl -sS -L --max-redirs 15 -w 'code=%{http_code} redirects=%{num_redirects} final=%{url_effective}': code=200 redirects=11 final=https://postman-echo.com/get. Full 11-hop chain traced to completion, confirming the chain length precisely (not an artifact of hitting a cap).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://en.wikipedia.org/w/index.php?title=Web_crawler&printable=yes",
+  "expect": "Every article is duplicated at a second, permanent URL via the printable=yes query param; a crawler indexing both the canonical and printable form of every page doubles its effective crawl space for zero new content.",
+  "evidence": "Base https://en.wikipedia.org/wiki/Web_crawler -> HTTP 200, 346620 bytes. Printable variant -> HTTP 200, 340556 bytes (98.2% of base size, same article body minus chrome). Both live-fetched 2026-07-24.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://en.wikipedia.org/w/index.php?title=HTTP_cookie&printable=yes",
+  "expect": "Same printable-duplicate mechanism on a second, unrelated article, showing the param works site-wide (every one of Wikipedia's ~6M articles gets a free duplicate URL).",
+  "evidence": "Base https://en.wikipedia.org/wiki/HTTP_cookie -> HTTP 200, 584212 bytes. Printable variant -> HTTP 200, 584719 bytes (99.9% match). Confirms the pattern generalizes, not a one-off.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.bbc.com/news?utm_source=test&utm_medium=crawl&utm_campaign=x1",
+  "expect": "Marketing/tracking query params are ignored by the app but not canonicalized away, so every crawlable link plus any utm_* combination a crawler invents is a 'new' 200 URL serving identical content.",
+  "evidence": "Base https://www.bbc.com/news -> HTTP 200, 367183 bytes. Same page with ?utm_source=test&utm_medium=crawl&utm_campaign=x1 -> HTTP 200, 367183 bytes -- byte-identical. A second, different utm/fbclid combination also returned HTTP 200 (370588 bytes, minor drift from a live 'latest headlines' widget). Confirms tracking-param space is unbounded and un-deduplicated by the server.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.allduniv.ac.in/a/b/a/b/a/b",
+  "expect": "The University of Allahabad site serves HTTP 200 for arbitrarily deep, meaningless nested path segments instead of a 404, so a crawler that keeps appending path segments to any discovered link never runs out of 'new' 200 URLs.",
+  "evidence": "Base https://www.allduniv.ac.in/ -> HTTP 200, 461246 bytes. Nested path /a/b/a/b/a/b -> HTTP 200, 333951 bytes (title 'University of Allahabad', a real rendered page, not an error page). Verified live 2026-07-24 with a realistic browser User-Agent (default curl UA was not blocked here either).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.allduniv.ac.in/foo/bar/foo/bar/foo/bar",
+  "expect": "A second, structurally different nested path on the same host proves the 200-for-any-depth behavior is a general catch-all, not a coincidence tied to one specific path string.",
+  "evidence": "HTTP 200, 333951 bytes -- byte-for-byte identical to /a/b/a/b/a/b above. A third pattern (/x/y/x/y/x/y/x/y) also returned exactly 333951 bytes. Three distinct nested paths, identical byte count each time, all HTTP 200.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.zappos.com/search?term=shoes",
+  "expect": "Base faceted-search result page for a common query; combined with the sort/filter permutation below shows the search UI multiplies one query into many crawlable URLs over the same underlying catalog.",
+  "evidence": "HTTP 200, 1195020 bytes, live-fetched 2026-07-24 with a standard browser User-Agent.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.zappos.com/search?term=shoes&sort=priceAsc",
+  "expect": "Same query re-sorted via a URL param: a crawler treats this as a distinct page, and every additional sort/filter option (there are many) is another full HTTP 200 page over the same result set.",
+  "evidence": "HTTP 200, 1316975 bytes -- same order of magnitude as the unsorted base (1195020 bytes), same template/result set re-ordered. Both 200 on 2026-07-24.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.ikea.com/us/en/search/?q=chair",
+  "expect": "IKEA's search endpoint returns 200 for any query; paired with the sort permutation below it shows near-byte-identical duplicate pages generated purely by a query-string change.",
+  "evidence": "HTTP 200, 852920 bytes.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.ikea.com/us/en/search/?q=chair&sort=price-asc",
+  "expect": "Adding a sort param yields another fully-indexable 200 page essentially the same size as the base search -- proof the sort-facet space multiplies crawlable URLs with near-zero new content.",
+  "evidence": "HTTP 200, 852959 bytes vs 852920 bytes for the unsorted query -- 99.995% size match, same search, same day (2026-07-24).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.target.com/s?searchTerm=chair",
+  "expect": "Base Target search-result page; the sort variant below returns a near-identical byte count, demonstrating the facet/sort param space is a crawl multiplier over one query.",
+  "evidence": "HTTP 200, 120936 bytes.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.target.com/s?searchTerm=chair&sortBy=price_low_to_high",
+  "expect": "Same search, one sort param added: still 200, still essentially the same page weight, so every sort option Target exposes (and every combination with other facets) is a distinct crawlable URL.",
+  "evidence": "HTTP 200, 121923 bytes vs 120936 bytes unsorted -- 99.2% size match.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.flipkart.com/search?q=laptop",
+  "expect": "Flipkart's search endpoint accepts an open-ended set of query/filter/sort/tracking params per query; paired entry below shows near-identical output for a permuted URL.",
+  "evidence": "HTTP 200, 658206 bytes.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.flipkart.com/search?q=laptop&sort=price_asc&otracker=clp_filters",
+  "expect": "Same query with a sort param plus a tracking/otracker param appended (the kind of param Flipkart's own internal links carry) -- still 200, still near-identical weight, confirming the combinatorial explosion is real.",
+  "evidence": "HTTP 200, 659390 bytes vs 658206 bytes base -- 99.8% size match.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.myntra.com/shoes",
+  "expect": "Base category-listing page for a large fashion catalog; Myntra exposes many sort/filter facets (sort=recommended, rawQuery + page, etc) that each produce another full-weight 200 page over the same catalog.",
+  "evidence": "HTTP 200, 1165154 bytes. Two facet/sort permutations checked for duplicate-content proof: ?sort=recommended -> HTTP 200, 1166114 bytes (99.9% match); ?rawQuery=shoes&p=2 -> HTTP 200, 1162150 bytes (99.7% match).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.coursera.org/search?query=python",
+  "expect": "Course-catalog search returns 200 for any query string; paired with the sorted+paginated variant below it demonstrates the same combinatorial facet/pagination problem outside retail (course marketplaces facet on level, language, skill, rating, provider, etc).",
+  "evidence": "HTTP 200, 792033 bytes.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.coursera.org/search?query=python&sortBy=BEST_MATCH&page=2",
+  "expect": "Same query with sort + page params combined: still 200, still near-identical weight, showing sort x pagination alone (before even counting the other facets) already multiplies the crawlable space.",
+  "evidence": "HTTP 200, 789745 bytes vs 792033 bytes base -- 99.7% match.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.goodreads.com/shelf/show/fantasy",
+  "expect": "A large user-generated book shelf/tag page; paginating through it (below) yields further full-weight 200 pages for a crawler that just increments a page counter forever across thousands of shelves.",
+  "evidence": "HTTP 200, 283186 bytes.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://www.goodreads.com/shelf/show/fantasy?page=2",
+  "expect": "Simple pagination param: still 200, near-identical page weight to page 1 and to page 3, and Goodreads has thousands of user-created shelf names each with their own unbounded page sequence.",
+  "evidence": "HTTP 200, 283825 bytes (page=2) and 283789 bytes (page=3, also checked) vs 283186 bytes for page 1 -- all three within 0.3% of each other.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://old.reddit.com/r/technology/",
+  "expect": "A large, JS-free subreddit listing; combined with the sort-param variant below it shows Reddit's own sort/time-filter facets (new/top/hot/rising x hour/day/week/month/year/all) multiply one listing into dozens of full 200 pages.",
+  "evidence": "HTTP 200, 162030 bytes.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "url_space_loop",
+  "url": "https://old.reddit.com/r/technology/top/?sort=top&t=all",
+  "expect": "Same subreddit under a different sort+time facet combination: still 200 at near-identical weight, and every one of the sort x time-window combinations is a separate crawlable URL over the same ~1000 underlying posts.",
+  "evidence": "HTTP 200, 163443 bytes vs 162030 bytes for the default listing (?sort=new gave 162053 bytes) -- all three within 1% of each other.",
+  "source": "verified-live",
+  "stable": true
+ }
+]

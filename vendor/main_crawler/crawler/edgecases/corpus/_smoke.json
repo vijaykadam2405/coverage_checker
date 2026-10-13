@@ -1,0 +1,11 @@
+[
+  {"category": "ssl_error", "url": "https://expired.badssl.com/", "expect": "expired certificate", "evidence": "bootstrap smoke row", "source": "verified-live", "stable": true},
+  {"category": "ssl_error", "url": "https://self-signed.badssl.com/", "expect": "self-signed certificate", "evidence": "bootstrap smoke row", "source": "verified-live", "stable": true},
+  {"category": "ssl_error", "url": "https://wrong.host.badssl.com/", "expect": "hostname mismatch", "evidence": "bootstrap smoke row", "source": "verified-live", "stable": true},
+  {"category": "ssl_error", "url": "https://untrusted-root.badssl.com/", "expect": "unknown CA", "evidence": "bootstrap smoke row", "source": "verified-live", "stable": true},
+  {"category": "dns_failure", "url": "https://qvxzptlmnbrwykjhgfds.com/", "expect": "NXDOMAIN", "evidence": "bootstrap smoke row", "source": "verified-live", "stable": true},
+  {"category": "conn_error", "url": "https://httpstat.us/200?sleep=60000", "expect": "host hangs up mid-request instead of answering", "evidence": "measured: RemoteProtocolError 'Server disconnected without sending a response.' at 6.3s — this is the regression row for the errors.py conn pattern fix", "source": "verified-live", "stable": true},
+  {"category": "redirect_loop", "url": "https://httpbingo.org/redirect/20", "expect": "20 hops exceeds the 10 cap", "evidence": "bootstrap smoke row (httpbingo, not httpbin — httpbin.org read-timed-out at 21.9s and was unusable)", "source": "verified-live", "stable": true},
+  {"category": "js_render", "url": "https://quotes.toscrape.com/js/", "expect": "quotes injected by JS, absent from raw HTML", "evidence": "bootstrap smoke row", "source": "verified-live", "stable": true},
+  {"category": "calendar_trap", "url": "https://example.com/events/2039-04/", "expect": "far-future calendar path", "evidence": "bootstrap smoke row (URL shape is the finding, no fetch needed)", "source": "verified-live", "stable": true}
+]

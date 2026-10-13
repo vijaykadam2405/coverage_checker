@@ -1,8 +1,16 @@
 # Production crawler ZIP: access/discovery adaptation
 
+This describes the original targeted adaptation. The full source has subsequently
+been retained as optional with selected live bridges; see
+[MAIN_CRAWLER_INTEGRATION.md](MAIN_CRAWLER_INTEGRATION.md) for the current state.
+
 Source: user-supplied `C:\Users\vijay\Desktop\Crawler.zip`, reviewed read-only. The archive was not executed or installed, and its embedded documents are reference material rather than instructions. This is a targeted adaptation into CrawlScope, not a drop-in import of the production engine.
 
 ## Reviewed mechanisms
+
+The expanded 12 October 2026 review and complete crawler test-module inventory
+are in [ZIP_FEATURE_REVIEW.md](ZIP_FEATURE_REVIEW.md). This revision has a 27-item
+operator checklist and 118 crawler test modules, not a verified 116-feature list.
 
 | ZIP source | CrawlScope implementation |
 | --- | --- |
@@ -26,4 +34,4 @@ The ZIP contains a substantial production engine, multiple services and benchmar
 
 ## Verification scope
 
-Local controlled fixtures cover robots HTTP 403 versus actual Disallow/5xx/429, normal security prose/widget pages, CAPTCHA/login walls, browser cookie recovery, URL-only resource discovery, cookie scoping/encryption and Retry-After sharing. Discovery remains isolated from corpus verification. Only HTML text is compared; no document/image/file content or Corpus file text is retrieved. No production target or Corpus load test is performed as part of this port.
+Local controlled fixtures cover robots HTTP 403 versus actual Disallow/5xx/429, normal security prose/widget pages, CAPTCHA/login walls, browser cookie recovery, URL-only resource discovery, cookie scoping/encryption and Retry-After sharing. Website request/session credentials remain isolated from Corpus API credentials. Only HTML text is compared; no document/image/file content or Corpus file text is retrieved. No production target or Corpus load test is performed as part of this port.

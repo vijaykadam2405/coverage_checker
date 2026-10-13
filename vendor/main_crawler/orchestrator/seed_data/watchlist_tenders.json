@@ -1,0 +1,28 @@
+{
+  "version": "2026-06-29",
+  "note": "REAL tender seed. countries = the 25 geo markets from the prototype. keywords trigger a tender capture. sources are the procurement portals; method tells the crawler whether it is an API or a scrape target.",
+  "keywords": [
+    "155mm", "52 calibre", "mounted gun system", "towed howitzer", "self-propelled howitzer",
+    "ultra light howitzer", "light field gun", "artillery ammunition", "precision munition",
+    "light tank", "armoured fighting vehicle", "MRAP", "protected mobility vehicle", "8x8",
+    "assault rifle", "carbine", "sniper rifle", "light machine gun", "close quarter battle",
+    "anti-tank guided missile", "ATGM", "air defence system", "QRSAM", "MANPADS",
+    "loitering munition", "kamikaze drone", "MALE UAV", "tactical UAV", "counter-UAS",
+    "naval gun", "autonomous underwater vehicle", "mine countermeasure", "RFP", "RFI", "EOI", "tender"
+  ],
+  "target_countries": [
+    "India", "Armenia", "Saudi Arabia", "UAE", "Egypt", "Vietnam", "Philippines",
+    "Indonesia", "Nigeria", "Morocco", "Argentina", "Sri Lanka", "Ukraine", "Poland",
+    "Australia", "USA", "UK", "France", "Germany", "Italy", "Sweden", "South Korea",
+    "Israel", "Canada", "Africa"
+  ],
+  "sources": [
+    { "id": "MOD_IN",    "name": "MoD India tenders",        "url": "https://mod.gov.in/tenders",        "method": "scrape", "country": "India",  "priority": "P0" },
+    { "id": "GEPNIC",    "name": "GePNIC / eProcure India",  "url": "https://eprocure.gov.in",           "method": "scrape", "country": "India",  "priority": "P0" },
+    { "id": "DEFPROC",   "name": "Defence Procurement (SRIJAN/iDEX)", "url": "https://srijandefence.gov.in", "method": "scrape", "country": "India", "priority": "P1" },
+    { "id": "SAMGOV",    "name": "SAM.gov (US federal)",     "url": "https://api.sam.gov",               "method": "api",    "country": "USA",    "priority": "P1" },
+    { "id": "OCCAR",     "name": "OCCAR (EU joint)",         "url": "https://www.occar.int",             "method": "scrape", "country": "Europe", "priority": "P2" },
+    { "id": "NSPA",      "name": "NATO NSPA",                "url": "https://www.nspa.nato.int",         "method": "scrape", "country": "Europe", "priority": "P2" },
+    { "id": "TED_EU",    "name": "TED (EU tenders)",         "url": "https://ted.europa.eu",             "method": "api",    "country": "Europe", "priority": "P2" }
+  ]
+}

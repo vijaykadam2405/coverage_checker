@@ -1,0 +1,20 @@
+# Line endings.
+#
+# The repo is developed on Windows and deployed into Linux containers, and git's autocrlf gave the
+# working tree CRLF for everything. That is invisible for Python and fatal for a shell script: the
+# image builds fine, then `sh scripts/install-plugin-deps.sh` fails with
+#
+#     scripts/install-plugin-deps.sh: 5: : not found
+#     scripts/install-plugin-deps.sh: 6: set: Illegal option -
+#
+# because sh reads `set -e\r` and the \r is part of the argument. Measured on the data-centre build
+# of the CamoFox image, where it stopped the C3 render tier from being built at all.
+#
+# So: anything a container EXECUTES is pinned to LF regardless of platform. Everything else keeps
+# whatever git decides — a Python file with CRLF has never cost anything.
+*.sh            text eol=lf
+*.bash          text eol=lf
+entrypoint*     text eol=lf
+Dockerfile*     text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf

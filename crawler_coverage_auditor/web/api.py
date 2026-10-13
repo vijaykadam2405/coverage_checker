@@ -14,10 +14,11 @@ from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from crawler_coverage_auditor.analysis.states import LABELS, METHOD_LABELS, RUN_LABELS
-from crawler_coverage_auditor.config import AuditConfig, DISCOVERY_SOURCES
+from crawler_coverage_auditor.config import AuditConfig, DISCOVERY_SOURCES, paced_scan_settings, WEBSITE_DELAY_SECONDS, CORPUS_INTERVAL_SECONDS
 from crawler_coverage_auditor.corpus.credentials import api_url, configured
 from crawler_coverage_auditor.services import queries
 from crawler_coverage_auditor.services.jobs import AuditJobs
+from crawler_coverage_auditor.services.revision import BackendRevision
 from crawler_coverage_auditor.validation.text_coverage import TEXT_API_VERSION
 
 CaptureType = Literal['HTML', 'PDF', 'DOCUMENT', 'IMAGE', 'API', 'FEED', 'MEDIA', 'OTHER']
@@ -27,24 +28,20 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class Settings(BaseModel):
     schema_version: Literal[2] = 2
+    pacing_version: Literal[2] = 2
     capture_types: list[CaptureType] = Field(default_factory=lambda: DEFAULT_CAPTURE.copy(), min_length=1, max_length=8)
     discovery_sources: list[Literal['SITEMAP', 'STATIC', 'RENDERED', 'API', 'STRUCTURED_DATA', 'HTTP_LINK', 'FEED', 'FILTER_GET', 'FILTER_BROWSER', 'PAGINATION', 'TABS', 'LOAD_MORE']] = Field(default_factory=lambda: sorted(DISCOVERY_SOURCES), max_length=12)
     include_subdomains: bool = True
     external_resources: bool = True
     use_browser: bool = True
     reuse_public_session: bool = True
-    max_urls: int = Field(default=20000, ge=100, le=200000)
-    max_browser_pages: int = Field(default=300, ge=1, le=2000)
-    max_browser_actions: int = Field(default=60, ge=1, le=200)
     browser_challenge_wait_seconds: float = Field(default=12, ge=0, le=30)
-    max_filter_values: int = Field(default=100, ge=1, le=500)
-    maximum_pagination_probe: int = Field(default=1048576, ge=2, le=1048576)
     max_concurrency: Literal[1] = 1
-    website_delay_seconds: float = Field(default=1.5, ge=1.5, le=30)
+    website_delay_seconds: float = Field(default=WEBSITE_DELAY_SECONDS, ge=WEBSITE_DELAY_SECONDS, le=30)
     request_timeout_seconds: float = Field(default=25, ge=5, le=120)
     max_retries: int = Field(default=2, ge=0, le=4)
     corpus_batch_size: Literal[1] = 1
-    corpus_interval_seconds: float = Field(default=3, ge=3, le=30)
+    corpus_interval_seconds: float = Field(default=CORPUS_INTERVAL_SECONDS, ge=CORPUS_INTERVAL_SECONDS, le=30)
     corpus_timeout_seconds: float = Field(default=60, ge=60, le=180)
 
 
@@ -71,6 +68,7 @@ def create_app(database: Path | None = None, reports: Path | None = None,
     settings_path = database.parent / 'capture_settings.json'
     jobs = jobs or AuditJobs()
     settings_lock = threading.Lock()
+    revision = BackendRevision(ROOT)
     app = FastAPI(title='CrawlScope', docs_url=None, redoc_url=None)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=['localhost', '127.0.0.1', '[::1]', 'testserver'])
     app.add_middleware(CORSMiddleware, allow_origins=['http://localhost:5173', 'http://127.0.0.1:5173'],
@@ -110,9 +108,7 @@ def create_app(database: Path | None = None, reports: Path | None = None,
                 if saved.get('schema_version', 1) < 2 and 'OTHER' in saved.get('capture_types', []):
                     saved['capture_types'] = sorted(set(saved['capture_types']) | {'API', 'FEED', 'MEDIA'})
                 saved['schema_version'] = 2
-                saved.update(max_concurrency=1, corpus_batch_size=1,
-                    website_delay_seconds=max(1.5, saved.get('website_delay_seconds', 1.5)),
-                    corpus_interval_seconds=max(3.0, saved.get('corpus_interval_seconds', 3.0)))
+                saved = paced_scan_settings(saved, upgrade_legacy=True)
                 return Settings.model_validate(saved).model_dump()
             except (ValueError, TypeError, OSError):
                 pass
@@ -120,8 +116,18 @@ def create_app(database: Path | None = None, reports: Path | None = None,
 
     @app.get('/api/state')
     def state():
-        return {'application': 'CrawlScope', 'ui': 'react', 'scan_workflow': 'serial-automatic', 'runs': [public_run(run) for run in saved_runs()], 'active': active_job(), 'settings': read_settings(),
+        return {'application': 'CrawlScope', 'ui': 'react', 'scan_workflow': 'serial-automatic',
+                'backend_revision': revision.loaded, 'backend_update_available': revision.update_available(),
+                'runs': [public_run(run) for run in saved_runs()], 'active': active_job(), 'settings': read_settings(),
                 'corpus_api': {'configured': configured(), 'text_comparison_supported': True}, 'status_model': LABELS, 'run_labels': RUN_LABELS, 'discovery_methods': METHOD_LABELS}
+
+    @app.get('/api/main-crawler/features')
+    def main_crawler_features():
+        from crawler_coverage_auditor.integrations.main_crawler import status
+        try:
+            return status()
+        except (OSError, ValueError, RuntimeError) as error:
+            raise HTTPException(503, 'Main crawler source feature pack is unavailable; verify the local import') from error
 
     @app.put('/api/settings')
     def save_settings(value: Settings):
@@ -226,6 +232,11 @@ def create_app(database: Path | None = None, reports: Path | None = None,
     def activity(run_id: int, limit: int = Query(80, ge=1, le=200), after_id: int = Query(0, ge=0), severity: str = '', stage: str = '', kind: str = ''):
         get_run(run_id)
         return queries.activity(database, run_id, limit, after_id, severity, stage, kind)
+
+    @app.get('/api/runs/{run_id}/checkpoint')
+    def checkpoint(run_id: int):
+        get_run(run_id)
+        return queries.checkpoint(database, run_id)
 
     @app.get('/api/runs/{run_id}/live-urls')
     def live_urls(run_id: int, type: str = '', host: str = '', errors: bool = False, missing: bool = False):

@@ -1,0 +1,83 @@
+[
+ {
+  "category": "consent_wall",
+  "variant": "server_side_consent_page",
+  "url": "https://www.golem.de/security/",
+  "expect": "golem.de 302s every section URL to /sonstiges/zustimmung/auswahl.html?from=<original> and serves the consent form instead of the section; the crawler that follows the redirect stores 2.6 KB of consent copy in place of the site",
+  "evidence": "measured 2026-07-27 (this agent, plain HTTPS GET, verify on): HTTP 200 after 3 hops, final=https://www.golem.de/sonstiges/zustimmung/auswahl.html?from=https%3A%2F%2Fwww.golem.de%2Fspecials%2Fsecurity%2F, 18228 bytes, 2648 chars visible text, title 'Golem'; text begins \"Willkommen auf Golem.de! Cookies zustimmen Besuchen Sie Golem.de wie gewohnt mit Werbung und Tracking\"; zero article content",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "server_side_consent_page",
+  "url": "https://www.golem.de/mobil/",
+  "expect": "same golem.de server-side consent redirect from a second section, proving the wall is not path-specific",
+  "evidence": "measured 2026-07-27 (this agent): HTTP 200 after 3 hops, final=https://www.golem.de/sonstiges/zustimmung/auswahl.html?from=https%3A%2F%2Fwww.golem.de%2Fspecials%2Fmobil%2F, 18219 bytes, 2648 chars visible text, all of it consent copy",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "server_side_consent_page",
+  "url": "https://www.golem.de/games/",
+  "expect": "same golem.de server-side consent redirect from a third section",
+  "evidence": "measured 2026-07-27 (this agent): HTTP 200 after 3 hops, final=https://www.golem.de/sonstiges/zustimmung/auswahl.html?from=https%3A%2F%2Fwww.golem.de%2Fspecials%2Fgames%2F, 18219 bytes, 2648 chars visible text, all of it consent copy",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "cmp_hard_wall",
+  "url": "https://www.kleinezeitung.at/",
+  "expect": "Didomi wall that ships no article text at all: 157 KB of HTML yielding under 700 chars of visible text and zero <p> over 150 chars, so the crawler gets navigation chrome and nothing else until consent is recorded",
+  "evidence": "measured 2026-07-27 (this agent): HTTP 200, no redirect, 160741 bytes, only 671 chars visible text, 0 <p> over 150 chars, title 'Kleine Zeitung | Aktuelle Nachrichten und Services'; didomi present in the markup; the shipped detector already calls this consent_wall",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "cmp_hard_wall",
+  "url": "https://www.kleinezeitung.at/sport",
+  "expect": "same Didomi wall on a section page reached through a redirect to /rubriken/sport",
+  "evidence": "measured 2026-07-27 (this agent): HTTP 200 after 1 hop, final=https://www.kleinezeitung.at/rubriken/sport, 232852 bytes, only 675 chars visible text, 0 <p> over 150 chars; didomi present",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "cmp_hard_wall",
+  "url": "https://www.kleinezeitung.at/politik",
+  "expect": "same Didomi wall on the politics section",
+  "evidence": "measured 2026-07-27 (this agent): HTTP 200 after 1 hop, final=https://www.kleinezeitung.at/rubriken/politik, 229945 bytes, only 683 chars visible text, 0 <p> over 150 chars; didomi present",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "cmp_hard_wall",
+  "url": "https://www.kleinezeitung.at/wirtschaft",
+  "expect": "same Didomi wall on the business section",
+  "evidence": "measured 2026-07-27 (this agent): HTTP 200 after 1 hop, final=https://www.kleinezeitung.at/rubriken/wirtschaft, 231684 bytes, only 659 chars visible text, 0 <p> over 150 chars; didomi present",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "consent_path_redirect",
+  "url": "https://www.derstandard.at/panorama",
+  "expect": "derStandard rewrites the request to /consent/tcf/<original path> and answers with the consent form; the requested section is never served",
+  "evidence": "measured 2026-07-27 (this agent): HTTP 200 after 1 hop, final=https://www.derstandard.at/consent/tcf/panorama, 50974 bytes, only 755 chars visible text, title 'derStandard.at'; text is \"Willkommen bei DER STANDARD Sie entscheiden darueber, wie Sie unsere Inhalte nutzen wollen...\"; sourcepoint present",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "consent_path_redirect",
+  "url": "https://www.derstandard.at/inland",
+  "expect": "same derStandard /consent/tcf/ rewrite on a second section",
+  "evidence": "measured 2026-07-27 (this agent): HTTP 200 after 1 hop, final=https://www.derstandard.at/consent/tcf/inland, 50972 bytes, only 755 chars visible text; sourcepoint present",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ }
+]

@@ -1,0 +1,86 @@
+[
+ {
+  "category": "redirect_loop",
+  "url": "https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://example.com/a.mp3",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://httpbin.org/redirect-to?url=... (nested 13 deep) -- httpbin.org answers EVERY request with HTTP 503 in 0.2s and never emits a Location at all (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 302 -> https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://p; hop2 302 -> https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://p; hop3 302 -> https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://pdrl.fm/abc123/https://p; ... hop15 404 -- 14 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 14hops->404 in 0.3s / 0.5s / 0.2s."
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://example.com/a.mp3",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://httpbin.org/redirect/20 -- httpbin.org answers EVERY request with HTTP 503 in 0.2s and never emits a Location at all (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 302 -> https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://p; hop2 302 -> https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://p; hop3 302 -> https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://pdrl.fm/q1w2e3/https://p; ... hop15 404 -- 14 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 14hops->404 in 0.2s / 0.2s / 0.2s."
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://pfx.veritonicmetrics.com/v1/https://pfx.veritonicmetrics.com/v1/https://pfx.veritonicmetrics.com/v1/https://pfx.veritonicmetrics.com/v1/https://pfx.veritonicmetrics.com/v1/https://pfx.veritonicmetrics.com/v1/https://pfx.veritonicmetrics.com/v1/https://pfx.veritonicmetrics.com/v1/https://pfx.veritonicmetrics.com/v1/https://pfx.veritonicmetrics.com/v1/https://pfx.veritonicmetrics.com/v1/https://pfx.veritonicmetrics.com/v1/https://pfx.veritonicmetrics.com/v1/https://pfx.veritonicmetrics.com/v1/https://example.com/a.mp3",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://httpbin.org/absolute-redirect/15 -- httpbin.org answers EVERY request with HTTP 503 in 0.2s and never emits a Location at all (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 302 -> https://pfx.veritonicmetrics.com/v1/pfx.veritonicmetrics.com/v1/pfx.veritonicm; hop2 302 -> https://pfx.veritonicmetrics.com/v1/pfx.veritonicmetrics.com/v1/pfx.veritonicm; hop3 302 -> https://pfx.veritonicmetrics.com/v1/pfx.veritonicmetrics.com/v1/pfx.veritonicm; ... hop15 404 -- 14 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 14hops->404 in 3.8s / 3.1s / 3.1s."
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://r.zen.ai/r/https://r.zen.ai/r/https://r.zen.ai/r/https://r.zen.ai/r/https://r.zen.ai/r/https://r.zen.ai/r/https://example.com/a.mp3",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://httpbin.org/relative-redirect/15 -- httpbin.org answers EVERY request with HTTP 503 in 0.2s and never emits a Location at all (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 303 -> https://r.zencastr.com/r/https://r.zen.ai/r/https://r.zen.ai/r/https://r.zen.a; hop2 302 -> https://r.zen.ai/r/https://r.zen.ai/r/https://r.zen.ai/r/https://r.zen.ai/r/ht; hop3 302 -> https://r.zen.ai/r/https://r.zen.ai/r/https://r.zen.ai/r/https://r.zen.ai/r/ht; ... hop19 404 -- 18 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 18hops->404 in 1.4s / 1.4s / 1.3s. NOTE: r.zen.ai is a redirect AMPLIFIER -- each declared prefix layer costs three hops (r.zen.ai 303 -> r.zencastr.com 302 -> r.zen.ai 302), so 6 nested layers spend 18 hops. Nested any deeper it exceeds httpx's own 20-redirect cap; 6 is the depth that stays measurable while still burning well past the detector's 10-hop threshold."
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://example.com/a.mp3",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://eu.httpbin.org/redirect-to?url=... (nested 13 deep) -- eu.httpbin.org answers 502/504 or hangs past a 20s read timeout and never emits a Location (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 302 -> https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXY; hop2 302 -> https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXY; hop3 302 -> https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXYZ9/https://arttrk.com/p/WXY; ... hop15 404 -- 14 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 14hops->404 in 3.8s / 3.4s / 3.0s."
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://pfx.vpixl.com/ABCDE/https://pfx.vpixl.com/ABCDE/https://pfx.vpixl.com/ABCDE/https://pfx.vpixl.com/ABCDE/https://pfx.vpixl.com/ABCDE/https://pfx.vpixl.com/ABCDE/https://pfx.vpixl.com/ABCDE/https://pfx.vpixl.com/ABCDE/https://pfx.vpixl.com/ABCDE/https://pfx.vpixl.com/ABCDE/https://pfx.vpixl.com/ABCDE/https://pfx.vpixl.com/ABCDE/https://pfx.vpixl.com/ABCDE/https://pfx.vpixl.com/ABCDE/https://example.com/a.mp3",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://eu.httpbin.org/redirect/20 -- eu.httpbin.org answers 502/504 or hangs past a 20s read timeout and never emits a Location (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 302 -> https://pfx.vpixl.com/ABCDE/pfx.vpixl.com/ABCDE/pfx.vpixl.com/ABCDE/pfx.vpixl.; hop2 302 -> https://pfx.vpixl.com/ABCDE/pfx.vpixl.com/ABCDE/pfx.vpixl.com/ABCDE/pfx.vpixl.; hop3 302 -> https://pfx.vpixl.com/ABCDE/pfx.vpixl.com/ABCDE/pfx.vpixl.com/ABCDE/pfx.vpixl.; ... hop15 404 -- 14 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 14hops->404 in 4.0s / 3.7s / 3.2s."
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbingo.fly.dev/absolute-redirect/15",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://eu.httpbin.org/absolute-redirect/15 -- eu.httpbin.org answers 502/504 or hangs past a 20s read timeout and never emits a Location (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 302 -> https://httpbingo.fly.dev/absolute-redirect/14; hop2 302 -> https://httpbingo.fly.dev/absolute-redirect/13; hop3 302 -> https://httpbingo.fly.dev/absolute-redirect/12; ... hop16 200 -- 15 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 15hops->200 in 4.4s / 4.1s / 3.7s."
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbingo.fly.dev/relative-redirect/15",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://eu.httpbin.org/relative-redirect/15 -- eu.httpbin.org answers 502/504 or hangs past a 20s read timeout and never emits a Location (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 302 -> /relative-redirect/14; hop2 302 -> /relative-redirect/13; hop3 302 -> /relative-redirect/12; ... hop16 200 -- 15 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 15hops->200 in 4.0s / 3.7s / 3.7s."
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbingo.fly.dev/redirect/18",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://www.httpbin.org/redirect/20 -- www.httpbin.org hangs past a 20s read timeout on every request and never emits a Location (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 302 -> /relative-redirect/17; hop2 302 -> /relative-redirect/16; hop3 302 -> /relative-redirect/15; ... hop19 200 -- 18 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 18hops->200 in 4.4s / 4.7s / 4.5s."
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.konghq.com/absolute-redirect/15",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://www.httpbin.org/relative-redirect/15 -- www.httpbin.org hangs past a 20s read timeout on every request and never emits a Location (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 302 -> http://httpbin.konghq.com/absolute-redirect/14; hop2 302 -> http://httpbin.konghq.com/absolute-redirect/13; hop3 302 -> http://httpbin.konghq.com/absolute-redirect/12; ... hop16 200 -- 15 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 15hops->200 in 3.6s / 3.4s / 3.6s."
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.konghq.com/relative-redirect/15",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://httpbin.co/redirect/20 -- httpbin.co rate-limits a multi-hop walk: 'You are sending too fast requests. The service has a rate limiting.' returned as HTTP 400 on 7 of 9 sequential attempts (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 302 -> /relative-redirect/14; hop2 302 -> /relative-redirect/13; hop3 302 -> /relative-redirect/12; ... hop16 200 -- 15 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 15hops->200 in 2.5s / 2.2s / 2.3s."
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.kennethreitz.org/relative-redirect/15",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://httpbin.co/absolute-redirect/15 -- httpbin.co rate-limits a multi-hop walk: 'You are sending too fast requests. The service has a rate limiting.' returned as HTTP 400 on 7 of 9 sequential attempts (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 302 -> /relative-redirect/14; hop2 302 -> /relative-redirect/13; hop3 302 -> /relative-redirect/12; ... hop16 200 -- 15 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 15hops->200 in 3.8s / 3.5s / 3.4s."
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.dmuth.org/redirect/18",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://httpbin.co/relative-redirect/15 -- httpbin.co rate-limits a multi-hop walk: 'You are sending too fast requests. The service has a rate limiting.' returned as HTTP 400 on 7 of 9 sequential attempts (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 302 -> /redirect/17?code=302; hop2 302 -> /redirect/16?code=302; hop3 302 -> /redirect/15?code=302; ... hop19 200 -- 18 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 18hops->200 in 4.4s / 4.0s / 3.9s."
+ },
+ {
+  "category": "redirect_loop",
+  "url": "https://httpbin.fly.dev/redirect/18",
+  "expect": "redirect_loop",
+  "evidence": "REPLACES https://httpbin.co/redirect-to?url=... (nested 13 deep) -- httpbin.co rate-limits a multi-hop walk: 'You are sending too fast requests. The service has a rate limiting.' returned as HTTP 400 on 7 of 9 sequential attempts (measured 2026-07-27, three sequential repetitions each, one URL at a time so harness concurrency cannot be the cause). This replacement was then walked live 2026-07-27 with httpx follow_redirects=False, one hop at a time, no client-side following: hop1 302 -> /redirect/17?code=302; hop2 302 -> /redirect/16?code=302; hop3 302 -> /redirect/15?code=302; ... hop19 200 -- 18 consecutive 30x hops before the chain terminated, i.e. well past the 10-redirect threshold at which crawler.edgecase.diagnose calls a chain a loop. Re-measured three times with follow_redirects=True: 18hops->200 in 4.3s / 4.0s / 4.2s."
+ }
+]

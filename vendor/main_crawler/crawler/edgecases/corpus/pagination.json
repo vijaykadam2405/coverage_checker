@@ -1,0 +1,352 @@
+[
+ {
+  "category": "pagination",
+  "url": "https://books.toscrape.com/catalogue/page-1.html",
+  "expect": "Numbered path-style pager (page-1.html ... page-50.html); a crawler must follow 50 pages of /catalogue/page-N.html and stop exactly at the end (page-51 does not exist).",
+  "evidence": "curl page-1.html -> HTTP 200, 50469 bytes, contains <li class=\"next\"><a href=\"page-2.html\">. page-50.html -> HTTP 200, 50427 bytes (last real page). page-51.html -> HTTP 404, 555 bytes, confirming exactly 50 total pages.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://quotes.toscrape.com/page/1/",
+  "expect": "Numbered path-style pager (/page/N/) with a text \"Next\" link; a crawler follows page/1/ through page/10/ where real quotes stop.",
+  "evidence": "curl page/1/ -> HTTP 200, 11064 bytes, contains 'Next <span aria-hidden=\"true\">&rarr;</span></a>'. page/10/ -> HTTP 200 with quote content present. page/11/ -> HTTP 200 but 0 '<span class=\"text\"' quote matches (empty shell), confirming 10 pages of real content.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://www.scrapethissite.com/pages/forms/?page_num=2",
+  "expect": "Query-string numbered pager (?page_num=N) over a hockey-team table; a crawler must walk page_num=1..24 to completion.",
+  "evidence": "curl ?page_num=2 -> HTTP 200, 50761 bytes, containing links for page_num=1 through page_num=24. ?page_num=25 -> HTTP 200 but 0 team-row matches, confirming exactly 24 total pages.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://www.scrapingcourse.com/pagination/1",
+  "expect": "Numbered pager sandbox with a fixed total of 13 pages (/pagination/2 .. /pagination/13 linked from page 1); a crawler should reach page 13 and stop.",
+  "evidence": "curl /pagination/1 -> HTTP 200, 15950 bytes; hrefs found for https://www.scrapingcourse.com/pagination/2, /3 ... up to /13 (highest linked page = 13).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://www.scrapingcourse.com/button-click",
+  "expect": "\"Load more\" button style pagination (client-side reveal / fetch on click rather than numbered links); tests whether a crawler can discover content gated behind a button instead of an <a href>.",
+  "evidence": "curl -> HTTP 200, 15556 bytes. Title '<title>Load More Button Challenge to Learn Web Scraping - ScrapingCourse.com</title>' and literal 'Load More' button text found 3x in the body.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://webscraper.io/test-sites/e-commerce/static/computers/laptops?page=2",
+  "expect": "Query-string numbered pager (?page=N) e-commerce category listing; a crawler follows page=1..20.",
+  "evidence": "curl -> HTTP 200, 31867 bytes, containing href links for page=1 through page=20 (highest linked page = 20).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://techcrunch.com/wp-json/wp/v2/posts?page=2",
+  "expect": "WordPress REST API pagination backing TechCrunch's real \"Load more\" front-end button; a crawler that follows the JS-embedded API URL must respect page= and the total-pages header rather than looping forever.",
+  "evidence": "curl -D- -> HTTP 200; response headers include 'X-WP-Total: 261426' and 'X-WP-TotalPages: 26143', proving a large but explicitly bounded, machine-readable page count (this is the exact endpoint WP 'Load more' buttons call under the hood).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://news.ycombinator.com/news?p=2",
+  "expect": "Classic rel=\"next\" pagination on Hacker News; a crawler should follow the 'More' link via ?p=N.",
+  "evidence": "curl ?p=2 -> HTTP 200, 35590 bytes. Body contains: morelink' rel='next' (literal rel=next attribute on the 'More' link, single-quoted HTML).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://stackoverflow.com/questions?tab=newest&page=2",
+  "expect": "Numbered pager plus rel=\"next\" on Stack Overflow's question list; a crawler should follow page=2,3,4... to the end of results.",
+  "evidence": "curl -> HTTP 200, 302467 bytes. Body contains rel=\"next\" and page=1 through page=5 links (question-list pager window).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://api.github.com/repos/microsoft/vscode/issues?page=2&per_page=10",
+  "expect": "Cursor-and-page hybrid REST pagination via the standard GitHub API Link header; a crawler must parse the Link header (not guess page numbers) to advance correctly.",
+  "evidence": "curl -D- -> HTTP 200, body has 12 numeric issue fields (real data, confirms microsoft/vscode has active Issues unlike torvalds/linux which returned an empty [] and was rejected). Link header present: rel=\"next\" pointing to page=3 with an opaque cursor param (after=...), and rel=\"prev\" pointing to page=1 with a before=... cursor.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://www.theguardian.com/world/india?page=2",
+  "expect": "Numbered ?page=N pager on a major news archive section; a crawler follows page=2,3,4... through the section's history.",
+  "evidence": "curl -> HTTP 200, 446927 bytes, containing links to ?page=2, ?page=3, ?page=4.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://www.federalregister.gov/documents/search?conditions%5Bterm%5D=energy&page=2",
+  "expect": "Government notices/regulatory-document search with a numbered ?page=N pager; a crawler must page through federal notice results to completion.",
+  "evidence": "curl -> HTTP 200, 510329 bytes, containing page=1 through page=10 links in the visible pager window (real US government regulatory document search, federalregister.gov).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://en.wikipedia.org/w/index.php?title=Category:Living_people&pagefrom=Aaron",
+  "expect": "Cursor-token pagination on a Wikipedia category listing (pagefrom=<next-item-key>, not a page number); a crawler must extract the next cursor from each page rather than incrementing a counter.",
+  "evidence": "curl -> HTTP 200, 216534 bytes, containing a 'next page' link with a fresh pagefrom=Abacha%2C+Mohammed... cursor value distinct from the requested one, confirming the cursor genuinely advances through this multi-million-entry category.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://old.reddit.com/r/Python/",
+  "expect": "Cursor-token pagination (?count=N&after=t3_xxx fullname cursor) on a real, high-traffic subreddit listing; a crawler must follow the 'next' button's cursor rather than a page number.",
+  "evidence": "curl base -> HTTP 200, 134702 bytes, containing href with after=t3_1v0bd90. Fetched https://old.reddit.com/r/Python/?count=25&after=t3_1v0bd90 -> HTTP 200, 135580 bytes, which itself contains a NEW cursor after=t3_1upeq3d, proving the cursor chain genuinely advances rather than repeating.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://wordpress.org/news/wp-json/wp/v2/posts?page=2",
+  "expect": "Numbered path pager (/page/N/) on WordPress's own news blog; a crawler follows page/2/, page/3/, etc.",
+  "evidence": "Retargeted 2026-07-26 after measurement: /news/page/2/ and /news/page/3/ return BYTE-IDENTICAL 147,971-byte bodies (the theme overrides the front-page template), so that URL has no pager to find and the row tested nothing. The same site's wp-json endpoint is a real pager and emits Link: rel=next/prev.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "link-header"
+ },
+ {
+  "category": "pagination",
+  "url": "https://meta.discourse.org/latest?page=2",
+  "expect": "Numbered ?page=N pager on a real, live Discourse forum (the software's own support/meta forum); a crawler follows page=1,2,3...",
+  "evidence": "curl -> HTTP 200, 626308 bytes, containing page=1, page=2 and page=3 links/references in the topic-list payload.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://allbirds.com/collections/mens-shoes?page=2",
+  "expect": "Numbered ?page=N pager on a real Shopify e-commerce storefront's category listing; a crawler follows page=1,2,... to the end of the catalog.",
+  "evidence": "curl -> HTTP 200, 726277 bytes, containing ?page=1 and ?page=2 links in the collection pagination markup.  || RE-MEASURED 2026-07-26: this seed is the LAST page — its only rel link is rel=prev -> ?page=1, there is no rel=next, and ?page=1 (2.4MB) carries no ?page= anchors either. Shopify renders the pager client-side without an XHR, so the AJAX capture finds nothing to enqueue. Kept as the category's one honest failure: client-side-only pagination is a real gap.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://www.gutenberg.org/ebooks/search/?query=history&start_index=26",
+  "expect": "Offset/limit-style pagination (start_index=N, 25 results per page) on Project Gutenberg's live catalog search; a crawler must increment the offset by the page size to advance.",
+  "evidence": "curl -> HTTP 200, 19669 bytes, containing both start_index=26 (current) and start_index=51 (next-page link, i.e. +25 offset step), confirming genuine offset-based advancement.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://www.goodreads.com/list/show/1.Best_Books_Ever?page=2",
+  "expect": "Numbered ?page=N pager over a very large real book list; a crawler follows page=1..100+ pages.",
+  "evidence": "curl -> HTTP 200, 788335 bytes. <title>Best Books Ever (78958 books)</title>; pager links found for page=1 through page=100 (visible pager window on a list with tens of thousands of entries).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://harvard.libcal.com/calendar",
+  "expect": "LibCal (Springshare) library events calendar; the month view's AJAX endpoint accepts an arbitrary date= parameter and always renders a full calendar grid, so a crawler that discovers and follows the 'next month' AJAX URL walks forward forever.",
+  "evidence": "Base /calendar -> HTTP 200, 145927 bytes; found the client-side call url: \"/ajax/calendar/monthly?c=\"+cals+'&date='+date+... in an inline <script>. Direct fetch of /ajax/calendar/monthly?c=-1&date=2026-08-01&monthly=1 -> HTTP 200, 62122 bytes with real day-grid markup (class=\"s-lc-mc-day-num\"). Far-future fetch /ajax/calendar/monthly?c=-1&date=2035-01-01&monthly=1 -> HTTP 200, 41427 bytes, still a fully rendered month grid (same s-lc-mc-day-num cells), proving the date space is unbounded.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://harvard.libcal.com/ajax/calendar/monthly?c=-1&date=2035-01-01&monthly=1&audience=&cats=&camps=&inc=1"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://princeton.libcal.com/calendar",
+  "expect": "Same LibCal (Springshare) platform as the Harvard entry but a second, independent library instance, confirming the trap is a platform-wide pattern, not a one-off; the month AJAX endpoint accepts any date= value.",
+  "evidence": "Base /calendar -> HTTP 200, 98006 bytes. /ajax/calendar/monthly?c=-1&date=2026-08-01&monthly=1 -> HTTP 200, 49652 bytes, 42 day cells. Far-future /ajax/calendar/monthly?c=-1&date=2035-01-01&monthly=1 -> HTTP 200, 41427 bytes, 35 day cells -- a genuinely different, validly-rendered month grid for Jan 2035, not an error page.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://princeton.libcal.com/ajax/calendar/monthly?c=-1&date=2035-01-01&monthly=1&audience=&cats=&camps=&inc=1"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://arboretum.harvard.edu/events/",
+  "expect": "WordPress 'The Events Calendar' (Tribe Events) plugin, tribe-bar-date driven; a crawler following the plugin's month/date navigation (or its REST API) can query arbitrarily far into the future and always gets HTTP 200.",
+  "evidence": "curl /events/ -> HTTP 200, containing literal 'tribe-bar-date', 'tribe-events' and 'the-events-calendar' strings plus href to /events/month/. Direct HTML /events/month/2035-01/ was intermittently blocked by the site's bot-protection (403/404), so verification was done via the plugin's own public REST API instead: /wp-json/tribe/events/v1/events?start_date=2026-08-01&end_date=2026-08-31 -> HTTP 200, 165553 bytes with real event objects; ?start_date=2035-01-01&end_date=2035-01-31 -> HTTP 200, 216 bytes, body = {\"events\":[],\"total\":0,\"total_pages\":0} -- a well-formed, non-error response for a date 9 years out.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://arboretum.harvard.edu/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.zoo.org/events",
+  "expect": "Woodland Park Zoo (Seattle) runs WordPress 'The Events Calendar'; same tribe-bar-date infinite-month pattern as the Arnold Arboretum entry, on an unrelated real organization/domain.",
+  "evidence": "curl /events -> HTTP 200, 327364 bytes, containing 'tribe-bar-date' and 'tribe-events'. REST API near: start_date=2026-08-01..2026-08-31 -> HTTP 200, 44598 bytes with real events. Far: start_date=2035-01-01..2035-01-31 -> HTTP 200, 202 bytes, body {\"events\":[],...,\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.zoo.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.lpzoo.org/events",
+  "expect": "Lincoln Park Zoo (Chicago) runs WordPress 'The Events Calendar'; identical trap mechanism on a third independent domain.",
+  "evidence": "curl /events -> HTTP 200, 196169 bytes. wp-json root shows active 'tribe-ea-*' REST routes (Events Calendar Pro). REST API near (2026-08) -> HTTP 200, 2075 bytes with events. Far (2035-01) -> HTTP 200, 207 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.lpzoo.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.indyzoo.com/events",
+  "expect": "Indianapolis Zoo runs WordPress 'The Events Calendar'; same trap mechanism, fourth independent domain.",
+  "evidence": "curl /events -> HTTP 200, 390120 bytes. REST API near (2026-08) -> HTTP 200, 25758 bytes with events. Far (2035-01) -> HTTP 200, 218 bytes, {\"events\":[],\"total\":0,\"total_pages\":0} (rest_url in the body resolves to indianapoliszoo.com, the site's canonical domain).",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.indyzoo.com/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.elmwoodparkzoo.org/events/",
+  "expect": "Elmwood Park Zoo (PA) runs WordPress 'The Events Calendar'; same trap mechanism, independent domain.",
+  "evidence": "curl /events/ -> HTTP 200, 682918 bytes, containing 'tribe-bar-date'. REST API near (2026-08) -> HTTP 200, 170212 bytes with events. Far (2035-01) -> HTTP 200, 213 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.elmwoodparkzoo.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.rwpzoo.org/events/",
+  "expect": "Roger Williams Park Zoo (Providence, RI) runs WordPress 'The Events Calendar'; same trap mechanism, independent domain.",
+  "evidence": "curl /events/ -> HTTP 200, 241542 bytes. wp-json root confirms active tribe-ea-* REST routes. REST API near (2026-08) -> HTTP 200, 12566 bytes with events. Far (2035-01) -> HTTP 200, 208 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.rwpzoo.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.potterparkzoo.org/calendar/",
+  "expect": "Potter Park Zoo (Lansing, MI) runs WordPress 'The Events Calendar' under a /calendar/ slug (its /events/ path 404s, but the calendar page itself and the plugin's REST API both work); same trap mechanism.",
+  "evidence": "curl /calendar/ -> HTTP 200, 93354 bytes, containing 'tribe-bar-date' and 'tribe-events'. REST API near (2026-08) -> HTTP 200, 21395 bytes with events. Far (2035-01) -> HTTP 200, 212 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.potterparkzoo.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.zooboise.org/events/",
+  "expect": "Zoo Boise runs WordPress 'The Events Calendar'; same trap mechanism, independent domain.",
+  "evidence": "curl /events/ -> HTTP 200, 388835 bytes. wp-json root confirms tribe-ea-* REST routes active. REST API near (2026-08) -> HTTP 200, 22488 bytes with events. Far (2035-01) -> HTTP 200, 207 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.zooboise.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.pittsburghparks.org/events/",
+  "expect": "Pittsburgh Parks Conservancy runs WordPress 'The Events Calendar'; same trap mechanism, a non-zoo real organization confirming the pattern is plugin-wide, not vertical-specific.",
+  "evidence": "curl /events/ -> HTTP 200, 713861 bytes, containing 'tribe-bar-date'. REST API near (2026-08) -> HTTP 200, 60598 bytes with events. Far (2035-01) -> HTTP 200, 214 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.pittsburghparks.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.hersheygardens.org/events/",
+  "expect": "Hershey Gardens runs WordPress 'The Events Calendar'; same trap mechanism, independent domain.",
+  "evidence": "curl /events/ -> HTTP 200, 471399 bytes, containing 'tribe-bar-date'. REST API near (2026-08) -> HTTP 200, 25350 bytes with events. Far (2035-01) -> HTTP 200, 217 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.hersheygardens.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.bernheim.org/events/",
+  "expect": "Bernheim Arboretum and Research Forest runs WordPress 'The Events Calendar'; same trap mechanism, independent domain.",
+  "evidence": "curl /events/ -> HTTP 200, 307322 bytes, containing 'tribe-bar-date'. REST API near (2026-08) -> HTTP 200, 77462 bytes with events. Far (2035-01) -> HTTP 200, 207 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.bernheim.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.savethemanatee.org/events/",
+  "expect": "Save the Manatee Club runs WordPress 'The Events Calendar'; same trap mechanism on a wildlife-nonprofit domain (not a zoo/garden operator), further confirming the pattern is generic to the plugin.",
+  "evidence": "curl /events/ -> HTTP 200, 277576 bytes, containing 'tribe-bar-date'. REST API near (2026-08) -> HTTP 200, 3336 bytes with events. Far (2035-01) -> HTTP 200, 213 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.savethemanatee.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.dbg.org/events/",
+  "expect": "Denver Botanic Gardens runs WordPress 'The Events Calendar'; same trap mechanism, independent domain.",
+  "evidence": "curl /events/ -> HTTP 200, 346266 bytes. wp-json root confirms tribe-ea-* REST routes active. REST API near (2026-08) -> HTTP 200, 63162 bytes with events. Far (2035-01) -> HTTP 200, 202 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.dbg.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.filoli.org/events/",
+  "expect": "Filoli Historic House & Garden runs WordPress 'The Events Calendar'; same trap mechanism, independent domain.",
+  "evidence": "curl /events/ -> HTTP 200, 348823 bytes, containing 'tribe-bar-date'. REST API near (2026-08) -> HTTP 200, 56997 bytes with events. Far (2035-01) -> HTTP 200, 205 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.filoli.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.winterthur.org/events/",
+  "expect": "Winterthur Museum, Garden & Library runs WordPress 'The Events Calendar'; same trap mechanism, independent domain.",
+  "evidence": "curl /events/ -> HTTP 200, 313328 bytes. wp-json root confirms tribe-ea-* REST routes active. REST API near (2026-08) -> HTTP 200, 54149 bytes with events. Far (2035-01) -> HTTP 200, 213 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.winterthur.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.descansogardens.org/events/",
+  "expect": "Descanso Gardens (La Cañada Flintridge, CA) runs WordPress 'The Events Calendar'; same trap mechanism, independent domain.",
+  "evidence": "curl /events/ -> HTTP 200, 1432817 bytes, containing 'tribe-bar-date'. REST API near (2026-08) -> HTTP 200, 62047 bytes with events. Far (2035-01) -> HTTP 200, 218 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.descansogardens.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.scottarboretum.org/events/",
+  "expect": "Scott Arboretum of Swarthmore College runs WordPress 'The Events Calendar'; same trap mechanism, a university-affiliated independent domain.",
+  "evidence": "curl /events/ -> HTTP 200, 224458 bytes, containing 'tribe-bar-date'. REST API near (2026-08) -> HTTP 200, 17681 bytes with events. Far (2035-01) -> HTTP 200, 217 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.scottarboretum.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "calendar_trap",
+  "url": "https://www.lewisginter.org/events/",
+  "expect": "Lewis Ginter Botanical Garden (Richmond, VA) runs WordPress 'The Events Calendar'; same trap mechanism, independent domain.",
+  "evidence": "curl /events/ -> HTTP 200, 375721 bytes, containing 'tribe-bar-date'. REST API near (2026-08) -> HTTP 200, 51394 bytes with events. Far (2035-01) -> HTTP 200, 214 bytes, {\"events\":[],\"total\":0,\"total_pages\":0}.",
+  "source": "verified-live",
+  "stable": true,
+  "far_future_url": "https://www.lewisginter.org/wp-json/tribe/events/v1/events?start_date=2035-01-01&end_date=2035-01-31"
+ },
+ {
+  "category": "pagination",
+  "url": "https://quotes.toscrape.com/js/",
+  "expect": "A JS-RENDERED listing that still publishes a real next-page link — the pager must be followed even though the items themselves are built by JavaScript.",
+  "evidence": "Measured 2026-07-26: HTTP 200, 5,806 bytes; the quotes are assembled by JS from an inline array, and /js/page/2/ is present as an ordinary anchor.",
+  "source": "verified-live-2026-07-26",
+  "variant": "js-rendered listing",
+  "stable": true
+ },
+ {
+  "category": "pagination",
+  "url": "https://wordpress.org/news/page/2/",
+  "expect": "Numbered path pager (/page/N/) on WordPress's own news blog; a crawler follows page/2/, page/3/, etc.",
+  "evidence": "curl -> HTTP 200, 148007 bytes. <title> literally reads 'WordPress News â€“ Page 2 â€“ The latest news about WordPress and the WordPress community', confirming distinct, correctly-served page-2 content.",
+  "source": "verified-live",
+  "stable": true
+ }
+]

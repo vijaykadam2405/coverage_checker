@@ -1,0 +1,76 @@
+# Local crawl → DC ingest. Crawls on THIS workstation, POSTs finished doc bundles to the
+# data-centre ingest over an SSH tunnel (host 9091 → DC 127.0.0.1:9090). No local PG/MinIO:
+# the crawler ships everything inline to /ingest/v1/page; DC's ingest writes PG + MinIO.
+# ponytail: reuses the prebuilt images; concurrency dialed down for a shared workstation.
+services:
+  camofox:
+    image: camofox-browser:local
+    restart: unless-stopped
+    mem_limit: 6g
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    environment:
+      CAMOFOX_PORT: "9377"
+      CAMOFOX_API_KEY: "mallory-camofox-key"
+      MAX_SESSIONS: "6"
+      MAX_TABS_GLOBAL: "16"
+      CAMOFOX_OS: "windows"
+      CAMOFOX_FP_GEO: "1"
+      CAMOFOX_PERSISTENCE: "1"
+      CAMOFOX_EXTENSION_DIR: "/opt/camofox-extensions"
+    volumes:
+      - lc-camofox-profiles:/home/node/.camofox/profiles
+      - lc-camofox-cookies:/home/node/.camofox/cookies
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9377/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  crawler-api:
+    image: mallory-crawler-crawler-api:latest
+    init: true
+    depends_on: [camofox]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    environment:
+      CRAWLER_API_PORT: "8099"
+      CRAWLER_ALLOW_NETWORK: "1"
+      CRAWLER_PREFER_FIXTURES: "0"
+      # No local telemetry store — ship straight to DC ingest.
+      DATABASE_URL: ""
+      FLEET_HEARTBEAT: "0"
+      # Dialed down for a shared workstation (C4 solver + Ollama also live here).
+      CRAWLER_BROWSERS: "4"
+      CRAWLER_TABS_PER_BROWSER: "8"
+      CRAWLER_TAB_POOL: "1"
+      CRAWLER_WORKERS_N: "64"
+      CRAWLER_IO_THREADS: "96"
+      CRAWLER_ADAPTIVE_CONCURRENCY: "1"
+      CRAWLER_CPU_TARGET: "70"
+      CRAWLER_ADAPTIVE_MAX: "24"
+      CRAWLER_RENDER_MODE: "auto"
+      CRAWLER_RESPECT_ROBOTS: "0"
+      CRAWLER_IGNORE_HTTPS_ERRORS: "1"
+      CRAWLER_STRICT_DOMAIN: "1"
+      # C3 CamoFox
+      CAMOFOX_ENABLED: "1"
+      CAMOFOX_URL: "http://camofox:9377"
+      CAMOFOX_API_KEY: "mallory-camofox-key"
+      CRAWLER_C3_WORKERS: "6"
+      CRAWLER_CAMOFOX_CONCURRENCY: "6"
+      CRAWLER_DEFER_C3: "1"
+      # Local VLM captcha OCR via host Ollama (optional; degrades gracefully).
+      CRAWLER_CAPTCHA_OCR: "1"
+      CRAWLER_OCR_URL: "http://host.docker.internal:11434"
+      CRAWLER_OCR_MODEL: "qwen2.5vl:7b"
+      # C4 host solver on the workstation (Cloudflare-interactive walls).
+      CRAWLER_HOST_SOLVER_URL: "${CRAWLER_HOST_SOLVER_URL:-}"
+      # Land on the DC corpus: tunnel on the host forwards 9091 → DC ingest 9090.
+      INGEST_BASE_URL: "http://host.docker.internal:9091"
+    volumes: [lc-crawlerdata:/app/data]
+    ports: ["8097:8099"]
+    command: ["python", "run.py", "crawler-api"]
+
+volumes:
+  lc-camofox-profiles:
+  lc-camofox-cookies:
+  lc-crawlerdata:

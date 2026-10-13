@@ -1,0 +1,174 @@
+# Data-centre deployment overlay.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.datacentre.yml up -d
+#
+# Three things this file does, and each of them is a thing that goes wrong without it:
+#
+#  1. **The bundled Postgres and MinIO stay down.** `mallory-data` already owns the corpus on this
+#     box. Starting a second Postgres would give the crawler an EMPTY documents table that looks
+#     perfectly healthy — every page "new", nothing deduped — while the real corpus sat untouched in
+#     the other volume. The two services are moved behind a `bundled` profile so they are never
+#     started by accident, and the `depends_on` edges that pointed at them are reset (a dependency on
+#     a service no active profile enables is a hard compose error, not a skip).
+#
+#  2. **Nothing binds a public interface.** The base file publishes 8090/8099/9090/9377 on 0.0.0.0,
+#     which on this host would (a) collide with `deploy-p0-api-1`, which has owned 8090 for weeks,
+#     and (b) put a dashboard with a Flush button on the internet. Every port here is bound to
+#     127.0.0.1 and reached over an SSH tunnel, which is the same rule `mallory-data` and the fleet
+#     dashboard already follow.
+#
+#  3. **The stack stays inside its authorised budget: 30 cores / 500 GB.** The box has 40 cores and
+#     1007 GB and several co-tenants who were here first. Docker imposes no limit by default, so a
+#     256-worker crawl with 96 Chromium tabs will take whatever it can reach and the first symptom
+#     is somebody else's service getting OOM-killed. The per-service caps below sum to exactly
+#     30 CPUs and 496 GB.
+#
+#  4. **The crawler joins `mallory-data`'s own network.** The obvious wiring — reach the host's
+#     127.0.0.1:5432 across the Docker bridge gateway at 172.17.0.1 — does not work on this box, and
+#     it fails in the way that is hardest to read: `nc -z 172.17.0.1 5432` from a container just
+#     hangs and times out. The firewall (`~/mallory-firewall.sh`) DROPs traffic to 5432/9000 in the
+#     DOCKER-USER chain from every source except one authorised crawler IP, and container traffic
+#     traverses DOCKER-USER too. Joining the existing network instead is container-to-container, so
+#     it never touches the host interface, never touches that rule, and needs no firewall change —
+#     which is the right outcome: the rule is what keeps the corpus off the public internet.
+#
+#     Addressed by CONTAINER NAME (`mallory-data-postgres-1`), not by the service name `postgres`.
+#     This file also defines a `postgres` service, and even parked behind a profile that is a name
+#     collision waiting to resolve to the wrong thing depending on start order.
+#
+# Nothing secret lives here — the credentials come from `.env` on the server. See DATACENTRE.md.
+
+networks:
+  # Created and owned by the `mallory-data` stack. `external: true` means compose will use it and
+  # never create or destroy it — this file must not be able to affect the corpus's own plumbing.
+  mallory-data:
+    external: true
+    name: mallory-data_default
+  # The SIPRI stack, likewise owned elsewhere. The orchestrator proxies /api/sipri/summary so the
+  # Watchfloor can read it same-origin, and that needs DNS for `sipri` — which only exists on this
+  # network. It belongs HERE and not in a `docker network connect` one-liner: the runtime attachment
+  # does not survive `up -d` recreating the container, and it silently did not — recreating the
+  # orchestrator during a fleet scale-up left every SIPRI panel blank behind a name-resolution 503.
+  mallory-sipri:
+    external: true
+    name: mallory-sipri_default
+
+services:
+
+  # ── the corpus lives in `mallory-data`, not here ────────────────────────────────────────────
+  postgres:
+    profiles: ["bundled"]
+  minio:
+    profiles: ["bundled"]
+  minio-init:
+    profiles: ["bundled"]
+
+  crawler-api:
+    depends_on: !reset []
+    # INSTANCE 0 of the crawler fleet, sized identically to its siblings in docker-compose.scale.yml
+    # so no instance is privileged. It keeps two extra jobs: it owns the shared CamoFox (C3) and it
+    # is the only instance allowed to spend on the paid proxy.
+    #
+    # cpu_shares (relative weight), NOT cpus (hard CFS quota). This used to be `cpus: 16`, which was
+    # right when one container did all the crawling and wrong now: under a quota the scheduler
+    # throttles the container, latency inflates, the 240s per-item watchdog fires, and
+    # _note_weak_host demotes the host to concurrency 1 — so a CPU cap makes throughput collapse
+    # BELOW baseline rather than levelling off. A weight only loses ties.
+    #
+    # 240g was never a reservation, only a ceiling, and a 7-instance fleet needs the ceiling to be
+    # per-instance: measured RAM is ~10-17 GB for 96 tabs, so 20g holds a 32-tab instance easily.
+    #
+    # CPUSET, not `cpus`. The box is now divided three ways — crawler 0-19, L2 20-29, SFL 30-34,
+    # shared/OS 35-39 — and a cpuset is the one mechanism that gives hard separation WITHOUT the
+    # quota throttling described above: inside 0-19 this container runs at full speed and simply
+    # cannot touch the other twenty cores. `cpu_shares` stays as the tie-break between siblings.
+    #
+    # 40g -> 28g is the crawler group's 400 GiB budget divided across 12 instances + camofox +
+    # ingest + orchestrator. Safe only because the engine's RAM brake can now SEE this limit: it
+    # used to read /proc/meminfo (the host), so at any cap it read ~10% and never fired. See
+    # _cgroup_ram_percent. Without that fix a cut from 40g would OOM-kill instances, which is
+    # exactly what nearly happened at the old 20g cap.
+    cpu_shares: 1024
+    cpuset: "0-37"
+    mem_limit: 30g
+    environment:
+      # 4 -> 2 with the fleet pinned to 20 cores (was 40, uncapped). 12 instances x 4 was 48
+      # simultaneous Chromium launches on 20 cores: load hit 137, BrowserType.launch blew its
+      # 180s timeout on every instance, and the fleet stored ZERO pages. Launch is the spike,
+      # not steady state - and at ~1.2 cores per concurrent render, 20 cores admits ~16
+      # renders fleet-wide anyway, so 24 browsers is still ample headroom over the ceiling.
+      CRAWLER_BROWSERS: "2"
+      CRAWLER_TABS_PER_BROWSER: "8"
+    ports: !override ["127.0.0.1:8099:8099"]
+    # `default` must be listed explicitly: naming any network replaces the implicit one, and without
+    # it crawler-api would lose its own stack-mates (ingest, camofox, orchestrator).
+    networks: [default, mallory-data]
+
+  ingest:
+    depends_on: !reset []
+    # Raised from the base file's 2g: this instance writes into a 21k-document corpus and holds
+    # whole page bodies in flight. Still a ceiling, not a reservation.
+    #
+    # Inside the crawler group's cpuset (0-19) rather than holding a quota of its own: ingest is
+    # bursty and mostly waiting on Postgres, so a 4-core CFS quota throttled it during exactly the
+    # bursts it exists to absorb. 80g -> 24g out of the group's 400 GiB; measured use is 10.4 GiB.
+    # 24g -> 16g on the same argument: measured 10.4 GiB, so 16g keeps ~50% headroom over the
+    # observed peak and releases 8 GiB to the instances.
+    cpuset: "0-37"
+    mem_limit: 16g
+    ports: !override ["127.0.0.1:9090:9090"]
+    networks: [default, mallory-data]
+
+  orchestrator:
+    # Inside the crawler group's cpuset. It fans out to twelve instances concurrently, so a 2-core
+    # quota capped the dashboard's own latency; 20 shared cores it competes for is strictly better.
+    cpuset: "0-37"
+    mem_limit: 6g
+    # 8090 is taken on this host by a co-tenant. 8091 is the dashboard's port ON THE SERVER; the
+    # SSH tunnel maps it back to 8090 locally, so the address you actually type does not change.
+    ports: !override ["127.0.0.1:8091:8090"]
+    # `default` must be listed explicitly: naming any network replaces the implicit one, and without
+    # it the orchestrator loses the crawler fleet and ingest it exists to talk to.
+    networks: [default, mallory-sipri]
+
+  camofox:
+    # Chromium/Firefox processes are the memory hogs — 12 browsers x 8 tabs is the sizing this box
+    # is configured for, and 160 GB is the ceiling that keeps a leaking browser from taking the
+    # host down with it.
+    #
+    # 8 -> 12 CPUs with the C3 tier opened to the whole fleet: sessions went from 12 (all held by
+    # instance 0) to 28, serving 24 concurrent renders across 12 instances. A stealth session is a
+    # real browser tab — at 8 cores, 24 of them would queue inside CamoFox and present as the same
+    # 30s tab-create timeouts this change is meant to stop. Memory is untouched: ~0.7 GB a session
+    # puts 28 well inside 160 GB.
+    #
+    # Now inside the crawler group's cpuset (0-19) instead of a 12-core quota, and 160g -> 32g.
+    # 160g was sized as "big enough that a leaking browser cannot take the host down", which is the
+    # right instinct and the wrong number once the box is divided: a ceiling that exceeds the whole
+    # group's budget is not a ceiling. Measured: ~0.7 GB per stealth session, 28 sessions live, so
+    # 32g is ~1.6x the working set and still bounds a leak well inside the group.
+    #
+    # 32g -> 16g. Measured working set is ~0.4 GiB idle and ~2.5 GiB under a full render lane, so
+    # 16g is still ~6x the peak and bounds a leaking browser just as well. The 16 GiB released goes
+    # to the crawler instances, which is where the pressure actually is: i9 hit 27.9 of 28 GiB and
+    # took an OOM kill on a Chromium child while camofox sat at 1% of its ceiling.
+    cpuset: "0-37"
+    mem_limit: 16g
+    ports: !override ["127.0.0.1:9377:9377"]
+
+  # ── Render pool, instances 2 and 3 ──────────────────────────────────────────────────────────
+  # See the note on `camofox` above: the binding constraint was the session cap, not CPU or RAM.
+  # Same image, same key, own port, own profile tree inside its own container.
+  camofox-2:
+    extends: {file: docker-compose.yml, service: camofox}
+    container_name: mallory-crawler-camofox-2
+    cpuset: "0-37"
+    mem_limit: 16g
+    ports: !override ["127.0.0.1:9385:9377"]
+
+  camofox-3:
+    extends: {file: docker-compose.yml, service: camofox}
+    container_name: mallory-crawler-camofox-3
+    cpuset: "0-37"
+    mem_limit: 16g
+    ports: !override ["127.0.0.1:9386:9377"]

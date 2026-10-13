@@ -1,0 +1,389 @@
+[
+ {
+  "category": "domain_change",
+  "url": "https://httpbingo.org/redirect-to?url=https%3A%2F%2Fexample.com%2F",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Deterministic control: the destination is chosen by the query string, so this row proves the scope re-anchoring without depending on any company's redirect surviving a rebrand.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 302 -> https://example.com/ in 1 hop, final HTTP 200, 559 bytes, title 'Example Domain'. Registered domain changed httpbingo.org -> example.com (eTLD+1 compared with tldextract's bundled PSL snapshot).",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "final_url": "https://example.com/",
+  "final_host": "example.com",
+  "seed_registered_domain": "httpbingo.org",
+  "final_registered_domain": "example.com",
+  "redirect_kind": "302",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "302 -> https://example.com/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://postman-echo.com/redirect-to?url=https%3A%2F%2Fwww.iana.org%2Fdomains%2Freserved",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Second deterministic control on a different vendor, and the destination is a DEEP path — so the crawler must land on /domains/reserved and treat www.iana.org as the new scope root, not just iana.org's front page.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 302 -> https://www.iana.org/domains/reserved in 1 hop, final HTTP 200, 10,499 bytes, title 'IANA-managed Reserved Domains'. Registered domain changed postman-echo.com -> iana.org.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "final_url": "https://www.iana.org/domains/reserved",
+  "final_host": "www.iana.org",
+  "seed_registered_domain": "postman-echo.com",
+  "final_registered_domain": "iana.org",
+  "redirect_kind": "302",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "302 -> https://www.iana.org/domains/reserved"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.twitter.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. The canonical real-world instance of the bug class: a whole company moved registered domain, and every seed list still holding twitter.com must follow to x.com or crawl nothing.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 301 https://www.twitter.com/ -> https://twitter.com/, then 301 -> https://x.com/. Final HTTP 200, 34,776 bytes, title 'X. It's what's happening / X'. Registered domain changed twitter.com -> x.com. Note the FIRST hop is same-domain (www stripped) and only the second crosses — a crawler that only inspects hop 1 sees no domain change at all.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://x.com/",
+  "final_host": "x.com",
+  "seed_registered_domain": "twitter.com",
+  "final_registered_domain": "x.com",
+  "redirect_kind": "301 -> 301",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "301 -> https://twitter.com/",
+   "301 -> https://x.com/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://chrome.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Also a path change: the seed is a bare root but the destination is a subdirectory, so re-anchoring scope to 'www.google.com' would put the entire Google site in the frontier when only /chrome/ was meant.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 301 -> https://www.google.com/chrome/ in 1 hop, final HTTP 200, 483,166 bytes, title 'Google Chrome - The Fast & Secure Web Browser...'. Registered domain changed chrome.com -> google.com.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.google.com/chrome/",
+  "final_host": "www.google.com",
+  "seed_registered_domain": "chrome.com",
+  "final_registered_domain": "google.com",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.google.com/chrome/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://mozilla.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A THREE-domain chain: mozilla.com -> mozilla.org -> firefox.com. The scope must end up anchored on the FINAL registered domain, not the intermediate one; a crawler that re-anchors on the first cross-domain hop would scope itself to mozilla.org and then treat the real destination as off-site.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 301 -> https://www.mozilla.org/firefox, 301 -> https://www.firefox.com/, 302 -> /en-US/. Final HTTP 200, 133,172 bytes, title 'Firefox: The fast, private browser...'. Registered domain changed twice: mozilla.com -> mozilla.org -> firefox.com. The last hop is a RELATIVE Location header ('/en-US/'), which must be resolved against the new host.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.firefox.com/en-US/",
+  "final_host": "www.firefox.com",
+  "seed_registered_domain": "mozilla.com",
+  "final_registered_domain": "firefox.com",
+  "redirect_kind": "301 -> 301 -> 302",
+  "hops": 3,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.mozilla.org/firefox",
+   "301 -> https://www.firefox.com/",
+   "302 -> /en-US/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://sun.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Acquisition redirect that also lands deep in the acquirer's site.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 301 -> https://www.oracle.com/us/sun/index.htm, 301 -> https://www.oracle.com/it-infrastructure/. Final HTTP 200, 63,271 bytes, title 'Hardware | Oracle'. Registered domain changed sun.com -> oracle.com.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.oracle.com/it-infrastructure/",
+  "final_host": "www.oracle.com",
+  "seed_registered_domain": "sun.com",
+  "final_registered_domain": "oracle.com",
+  "redirect_kind": "301 -> 301",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.oracle.com/us/sun/index.htm",
+   "301 -> https://www.oracle.com/it-infrastructure/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://netscape.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. The Location header carries an explicit ':443' port on an https URL — a crawler that compares hosts as raw strings will read 'www.aol.com:443' as a different host from 'www.aol.com' and mis-scope the crawl. Canonicalisation must strip the default port before the scope comparison.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 301 -> 'https://www.aol.com:443/' (port written out in the Location header, verbatim). Final HTTP 200 at https://www.aol.com/, 1,840,203 bytes. Registered domain changed netscape.com -> aol.com.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.aol.com/",
+  "final_host": "www.aol.com",
+  "seed_registered_domain": "netscape.com",
+  "final_registered_domain": "aol.com",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.aol.com:443/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://lotus.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Second instance of the explicit ':443' in a Location header, on unrelated infrastructure — so that quirk is a pattern to canonicalise, not a one-off.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 301 -> 'https://www.hcl-software.com:443/domino'. Final HTTP 200, 515,867 bytes, title 'Secure Enterprise AI and Collaboration Platform | ...'. Registered domain changed lotus.com -> hcl-software.com.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.hcl-software.com/domino",
+  "final_host": "www.hcl-software.com",
+  "seed_registered_domain": "lotus.com",
+  "final_registered_domain": "hcl-software.com",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.hcl-software.com:443/domino"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://golang.org/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Clean single-hop rebrand onto a different TLD; the simplest possible form of the case, useful as the baseline the multi-hop rows are compared against.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 301 -> https://go.dev/ in 1 hop, final HTTP 200, 64,185 bytes, title 'The Go Programming Language'. Registered domain changed golang.org -> go.dev.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://go.dev/",
+  "final_host": "go.dev",
+  "seed_registered_domain": "golang.org",
+  "final_registered_domain": "go.dev",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://go.dev/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://docker.io/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A 302 rather than a 301 — a TEMPORARY redirect across registered domains. The crawler must still follow it and re-anchor scope, but must not persist the destination as the canonical URL for the seed the way it may for a 301.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 302 (not 301) -> https://www.docker.com/ in 1 hop, final HTTP 200, 342,839 bytes, title 'Docker: Accelerated Container Application Development'. Registered domain changed docker.io -> docker.com.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.docker.com/",
+  "final_host": "www.docker.com",
+  "seed_registered_domain": "docker.io",
+  "final_registered_domain": "docker.com",
+  "redirect_kind": "302",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "302 -> https://www.docker.com/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://libreoffice.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Same brand, different TLD — .com to .org. A scope check written as 'same second-level label' instead of 'same eTLD+1' would wrongly call this same-domain and never notice the change; a check on the full host would call it a change. Both answers differ, which is why the eTLD+1 rule has to be explicit.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 301 -> https://www.libreoffice.org/ in 1 hop, final HTTP 200, 43,625 bytes, title 'LibreOffice'. Registered domain changed libreoffice.com -> libreoffice.org.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.libreoffice.org/",
+  "final_host": "www.libreoffice.org",
+  "seed_registered_domain": "libreoffice.com",
+  "final_registered_domain": "libreoffice.org",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.libreoffice.org/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.cs.tut.fi/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. A university merger, and the seed is a SUBDOMAIN (www.cs.tut.fi) of the old registered domain. The eTLD+1 of the seed is tut.fi, not cs.tut.fi — a scope rule that compares full hostnames would treat every hop here as off-site.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 302 -> https://www.tuni.fi/, 302 -> https://www.tuni.fi/fi. Final HTTP 200, 172,465 bytes, title 'Ihminen ratkaisee | Tampereen yliopisto ja TAMK'. Registered domain changed tut.fi -> tuni.fi. Both hops are 302 (temporary) despite being a permanent institutional merger.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.tuni.fi/fi",
+  "final_host": "www.tuni.fi",
+  "seed_registered_domain": "tut.fi",
+  "final_registered_domain": "tuni.fi",
+  "redirect_kind": "302 -> 302",
+  "hops": 2,
+  "status": 200,
+  "chain": [
+   "302 -> https://www.tuni.fi/",
+   "302 -> https://www.tuni.fi/fi"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.sybase.com/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Acquisition redirect that lands on a single .html LEAF page, not a section root. Re-anchoring scope to www.sap.com from here admits an enormous corporate site that the seed never asked for — this is the row where 'follow the seed' and 'do not explode the frontier' pull hardest against each other.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 301 -> https://www.sap.com/products/acquired-brands/what-is-sybase.html in 1 hop. Final HTTP 200, 125,652 bytes, title 'Sybase | SAP'. Registered domain changed sybase.com -> sap.com.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.sap.com/products/acquired-brands/what-is-sybase.html",
+  "final_host": "www.sap.com",
+  "seed_registered_domain": "sybase.com",
+  "final_registered_domain": "sap.com",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://www.sap.com/products/acquired-brands/what-is-sybase.html"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://doi.org/10.1038/nature12373",
+  "expect": "DEEP-PAGE case: this URL has a non-root path, i.e. the shape of a link discovered mid-crawl. The crawler must fetch and store it, but must NOT widen the crawl's scope to the destination registered domain — one off-site link cannot recruit a whole new domain into the frontier. A DOI is the archetype: doi.org is a pure resolver, and every one of the ~300 million DOIs points at a different publisher's domain. If a cross-domain redirect on a deep page widened scope, crawling one DOI would enqueue all of nature.com; crawling a list of DOIs would enqueue the whole scholarly web.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 4 hops — 302 to www.nature.com/articles/nature12373, then a 303 -> 302 detour through idp.nature.com (a cookie-setting identity hop) and a 302 back to the article. Final HTTP 200, 322,813 bytes, title 'Nanometre-scale thermometry in a living cell | Nature'. Registered domain changed doi.org -> nature.com. The chain also crosses SUBdomains within nature.com (www -> idp -> www), so a naive host-equality check would fire twice more.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.nature.com/articles/nature12373",
+  "final_host": "www.nature.com",
+  "seed_registered_domain": "doi.org",
+  "final_registered_domain": "nature.com",
+  "redirect_kind": "302 -> 303 -> 302 -> 302",
+  "hops": 4,
+  "status": 200,
+  "chain": [
+   "302 -> https://www.nature.com/articles/nature12373",
+   "303 -> https://idp.nature.com/authorize?response_type=cookie&client_id=grover",
+   "302 -> https://idp.nature.com/transit?redirect_uri=https%3A%2F%2Fwww.nature.com%2F...",
+   "302 -> https://www.nature.com/articles/nature12373"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://w.wiki/4Jx",
+  "expect": "DEEP-PAGE case: this URL has a non-root path, i.e. the shape of a link discovered mid-crawl. The crawler must fetch and store it, but must NOT widen the crawl's scope to the destination registered domain — one off-site link cannot recruit a whole new domain into the frontier. A short-link deep page. Following it must yield exactly one article; widening scope to wikipedia.org would enqueue roughly seven million pages off a single discovered link.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 301 -> https://en.wikipedia.org/wiki/List_of_tz_database_time_zones in 1 hop. Final HTTP 200, 851,453 bytes, title 'List of tz database time zones - Wikipedia'. Registered domain changed w.wiki -> wikipedia.org.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://en.wikipedia.org/wiki/List_of_tz_database_time_zones",
+  "final_host": "en.wikipedia.org",
+  "seed_registered_domain": "w.wiki",
+  "final_registered_domain": "wikipedia.org",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://youtu.be/dQw4w9WgXcQ",
+  "expect": "DEEP-PAGE case: this URL has a non-root path, i.e. the shape of a link discovered mid-crawl. The crawler must fetch and store it, but must NOT widen the crawl's scope to the destination registered domain — one off-site link cannot recruit a whole new domain into the frontier. Uses 303 See Other, the least common of the redirect codes — a status-code allowlist written as (301, 302, 307, 308) drops this on the floor and records the seed as an unfollowable page. The redirect also INJECTS a query parameter (feature=youtu.be), so the final URL is not a pure relocation of the original.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 303 (not 301/302) -> https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=youtu.be in 1 hop. Final HTTP 200, 1,359,403 bytes, title 'Rick Astley - Never Gonna Give You Up (Official Video)'. Registered domain changed youtu.be -> youtube.com, and the path form changed from /VIDEOID to /watch?v=VIDEOID.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=youtu.be",
+  "final_host": "www.youtube.com",
+  "seed_registered_domain": "youtu.be",
+  "final_registered_domain": "youtube.com",
+  "redirect_kind": "303",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "303 -> https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=youtu.be"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://aka.ms/vscode",
+  "expect": "DEEP-PAGE case: this URL has a non-root path, i.e. the shape of a link discovered mid-crawl. The crawler must fetch and store it, but must NOT widen the crawl's scope to the destination registered domain — one off-site link cannot recruit a whole new domain into the frontier. Microsoft's own vanity redirector. The destination carries a tracking query param the seed never had, so the canonical URL recorded for this page must be the final one including (or deliberately stripped of) WT.mc_id — silently keeping the aka.ms URL would store a redirector as the document's identity.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 301 -> https://code.visualstudio.com/?WT.mc_id=devcloud-00000-cxa in 1 hop. Final HTTP 200, 244,752 bytes, title 'Visual Studio Code - The open source AI code editor'. Registered domain changed aka.ms -> visualstudio.com.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://code.visualstudio.com/?WT.mc_id=devcloud-00000-cxa",
+  "final_host": "code.visualstudio.com",
+  "seed_registered_domain": "aka.ms",
+  "final_registered_domain": "visualstudio.com",
+  "redirect_kind": "301",
+  "hops": 1,
+  "status": 200,
+  "chain": [
+   "301 -> https://code.visualstudio.com/?WT.mc_id=devcloud-00000-cxa"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://purl.org/dc/elements/1.1/",
+  "expect": "DEEP-PAGE case: this URL has a non-root path, i.e. the shape of a link discovered mid-crawl. The crawler must fetch and store it, but must NOT widen the crawl's scope to the destination registered domain — one off-site link cannot recruit a whole new domain into the frontier. Four hops through FOUR different redirect codes (307, 302, 301, 303) and two registered-domain changes (purl.org -> archive.org -> dublincore.org), including a DOWNGRADE from https to http on hop 2 before it returns to https. A crawler that refuses to follow an https->http hop stops here; one that follows it must not then treat the whole chain as insecure.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: 307 -> purl.archive.org, 302 -> http:// (scheme downgrade) dublincore.org, 301 -> back to https, 303 -> final. Final HTTP 200, 681,035 bytes, title 'DCMI: DCMI Metadata Terms'. Registered domain changed purl.org -> dublincore.org (via archive.org).",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/",
+  "final_host": "www.dublincore.org",
+  "seed_registered_domain": "purl.org",
+  "final_registered_domain": "dublincore.org",
+  "redirect_kind": "307 -> 302 -> 301 -> 303",
+  "hops": 4,
+  "status": 200,
+  "chain": [
+   "307 -> https://purl.archive.org/dc/elements/1.1/",
+   "302 -> http://www.dublincore.org/specifications/dublin-core/dcmi-terms/dublin-core...",
+   "301 -> https://www.dublincore.org/specifications/dublin-core/dcmi-terms/dublin-core...",
+   "303 -> https://www.dublincore.org/specifications/dublin-core/dcmi-terms/"
+  ]
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.blackberry.net/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. NO HTTP redirect at all — the server answers 200 and the domain change is carried entirely by a <meta http-equiv=refresh> in the body. An engine that only inspects response.history sees a successful 200 with 102 bytes and stores an empty page, ending the crawl at zero content. The meta refresh has to be parsed out of the HTML and followed, and only THEN does the scope re-anchor.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: HTTP 200 (0 redirect hops), 102 bytes, content-type 'text/html'. Body in full: '<html> <head> <meta HTTP-EQUIV=\"REFRESH\" content=\"0; url=https://www.blackberry.com\"> </head> </html>'. Delay is 0 seconds and the attribute name is UPPERCASE, so a case-sensitive matcher on 'http-equiv' misses it. Registered domain would change blackberry.net -> blackberry.com.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.blackberry.com",
+  "final_host": "www.blackberry.net",
+  "seed_registered_domain": "blackberry.net",
+  "final_registered_domain": "blackberry.com",
+  "redirect_kind": "meta-refresh",
+  "hops": 0,
+  "status": 200,
+  "chain": []
+ },
+ {
+  "category": "domain_change",
+  "url": "https://www.rim.net/",
+  "expect": "SEED case: the crawl was pointed at this URL, so the new registered domain IS the crawl's scope — the crawler must re-anchor same_domain_only to the final host and keep crawling there. Scoping against the pre-redirect host would end the crawl at one page. Second meta-refresh instance, from an unrelated registered domain to the same destination — so the mechanism is a pattern worth handling, not a single site's quirk. Also the case where two different seeds converge on one destination: the crawler must not enqueue blackberry.com's scope twice.",
+  "evidence": "measured 2026-07-26, follow_redirects=True, verify=True, two runs ~5s apart, identical both times: HTTP 200 (0 redirect hops), 102 bytes, content-type 'text/html', byte-identical body to www.blackberry.net: '<html> <head> <meta HTTP-EQUIV=\"REFRESH\" content=\"0; url=https://www.blackberry.com\"> </head> </html>'. Registered domain would change rim.net -> blackberry.com.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "final_url": "https://www.blackberry.com",
+  "final_host": "www.rim.net",
+  "seed_registered_domain": "rim.net",
+  "final_registered_domain": "blackberry.com",
+  "redirect_kind": "meta-refresh",
+  "hops": 0,
+  "status": 200,
+  "chain": []
+ }
+]

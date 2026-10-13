@@ -1,0 +1,28 @@
+{
+  "version": "2026-06-29",
+  "note": "REAL source registry. tier 1 = primary/authoritative, 2 = established trade press, 3 = aggregator/blog (corroborate before trusting). The crawler stays inside this registry unless it follows a link OUT from a registry page. L2 service S-28 updates tiers based on accept/dup rates.",
+  "sources": [
+    { "id": "PIB",       "name": "PIB India",                 "domain": "pib.gov.in",          "tier": 1, "type": "gov_primary",  "region": "India" },
+    { "id": "MOD_IN",    "name": "MoD India",                 "domain": "mod.gov.in",          "tier": 1, "type": "gov_primary",  "region": "India" },
+    { "id": "DRDO",      "name": "DRDO",                      "domain": "drdo.gov.in",         "tier": 1, "type": "gov_primary",  "region": "India" },
+    { "id": "COMPANY_IR","name": "Company IR / press pages",  "domain": "*",                   "tier": 1, "type": "primary",      "region": "global" },
+    { "id": "JANES",     "name": "Janes",                     "domain": "janes.com",           "tier": 1, "type": "trade_press",  "region": "global" },
+    { "id": "DEFNEWS",   "name": "Defense News",              "domain": "defensenews.com",     "tier": 2, "type": "trade_press",  "region": "global" },
+    { "id": "BREAKDEF",  "name": "Breaking Defense",          "domain": "breakingdefense.com", "tier": 2, "type": "trade_press",  "region": "global" },
+    { "id": "SHEPHARD",  "name": "Shephard Media",            "domain": "shephardmedia.com",   "tier": 2, "type": "trade_press",  "region": "global" },
+    { "id": "DEFWORLD",  "name": "Defense World",             "domain": "defenseworld.net",    "tier": 2, "type": "trade_press",  "region": "global" },
+    { "id": "ECOTIMES",  "name": "Economic Times Defence",    "domain": "economictimes.indiatimes.com", "tier": 2, "type": "business_press", "region": "India" },
+    { "id": "BSTANDARD", "name": "Business Standard",         "domain": "business-standard.com","tier": 2, "type": "business_press","region": "India" },
+    { "id": "THEPRINT",  "name": "ThePrint Defence",          "domain": "theprint.in",         "tier": 2, "type": "news",         "region": "India" },
+    { "id": "IDRW",      "name": "IDRW",                      "domain": "idrw.org",            "tier": 3, "type": "aggregator",   "region": "India" },
+    { "id": "LIVEFIST",  "name": "Livefist",                  "domain": "livefistdefence.com", "tier": 3, "type": "blog",         "region": "India" },
+    { "id": "ARMYRECOG", "name": "Army Recognition",          "domain": "armyrecognition.com", "tier": 3, "type": "aggregator",   "region": "global" }
+  ],
+  "global_capture_defaults": {
+    "respect_robots_txt": true,
+    "user_agent": "MalloryBot/1.0 (+contact@kssl-intel.example)",
+    "crawl_delay_seconds": 2,
+    "max_retries": 2,
+    "timeout_seconds": 30
+  }
+}

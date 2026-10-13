@@ -1,0 +1,182 @@
+[
+ {
+  "category": "antibot",
+  "vendor": "cloudflare_managed",
+  "url": "https://www.scrapingcourse.com/cloudflare-challenge",
+  "expect": "Plain GET returns HTTP 403 with a Cloudflare interstitial that self-solves via background JS in ~5s; no human click required.",
+  "evidence": "Headers: 'Cf-Mitigated: challenge', 'Server: cloudflare', CF-RAY present. Body: title 'Just a moment...', script path /cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1, window._cf_chl_opt block (7x 'cf_chl_opt') containing cType: 'managed'.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "cloudflare_managed",
+  "url": "https://dexscreener.com",
+  "expect": "Plain GET returns HTTP 403 'Just a moment...' Cloudflare challenge that auto-resolves via background JS; no checkbox needed for normal automation.",
+  "evidence": "Headers: 'Cf-Mitigated: challenge', 'Server: cloudflare', 'CF-RAY: a203f2983ce1e624-BOM', Set-Cookie: __cf_bm=.... Body: title 'Just a moment...', window._cf_chl_opt with cType: 'managed', /cdn-cgi/challenge-platform/ script reference.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "cloudflare_managed",
+  "url": "https://gitlab.com/users/sign_in",
+  "expect": "Non-browser GET to the sign-in page returns 403 with a Cloudflare managed-challenge page instead of the login form; clears silently once JS executes.",
+  "evidence": "Headers: 'Cf-Mitigated: challenge', 'Server: cloudflare', 'CF-RAY: a203f29a5ae5aed9-BOM'. Body: 'Just a moment...' title, cType: 'managed' inside window._cf_chl_opt, cf_chl_opt block x7.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "cloudflare_managed",
+  "url": "https://www.planetminecraft.com/account/sign_in/",
+  "expect": "Same managed-challenge pattern: 403 interstitial that clears automatically once the client executes Cloudflare's JS, no manual click required.",
+  "evidence": "Headers: 'Cf-Mitigated: challenge', 'Server: cloudflare', 'CF-RAY: a203f29ddb543e46-BOM'. Body: 'Just a moment...', cType: 'managed', cf_chl_opt block x7.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "akamai",
+  "url": "https://www.adidas.com/us/confirmed",
+  "expect": "Sneaker-drop page returns HTTP 403 from Akamai Bot Manager with a branded block page that literally names Akamai as the blocking vendor.",
+  "evidence": "HTTP 403. Body JS: window.utag_data.page_owner = \"AKAMAI\", page_name \"REGULAR 403 ERROR\"; visible text 'Reference Error: 18.9df43717.1784907846.ba2417b7'; page copy: 'During high-traffic product releases we have extra security in place to prevent bots... protect customers and give everyone a fair chance of getting the sneakers.'",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "akamai",
+  "url": "https://www.delta.com",
+  "expect": "Homepage GET succeeds (200) but the response carries the full Akamai Bot Manager sensor/cookie suite used to score the session before gating booking endpoints.",
+  "evidence": "Header 'Akamai-GRN: 0.acf5d217.1784907133.ea6cd844', 'X-Akamai-Transformed: 9 2861 0 pmb=mTOE,1mRUM,2'. Set-Cookie: _abck=..., bm_ss=..., bm_s=..., bm_so=..., bm_sz=... (full Akamai Bot Manager cookie jar).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "akamai",
+  "url": "https://www.homedepot.com",
+  "expect": "Plain GET is denied outright (403) with Akamai's generic edge deny page and a Reference # instead of any site content.",
+  "evidence": "HTTP 403, 'Server: AkamaiGHost', header 'Akamai-GRN: 0.bef5d217.1784907499.f926c2c1'; minimal 371-byte 'Access Denied' body.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "akamai",
+  "url": "https://www.g2a.com",
+  "expect": "Plain GET to the digital-goods marketplace homepage is denied (403) by Akamai's edge with a Reference-number deny page naming the exact requested URL.",
+  "evidence": "HTTP 403, 'Server: AkamaiGHost'. Body: 'Access Denied ... permission to access \"http://www.g2a.com/\" ... Reference #18.171cc517.1784907729.5a13a62f', https://errors.edgesuite.net/18.171cc517.1784907729.5a13a62f.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "datadome",
+  "url": "https://www.etsy.com",
+  "expect": "Plain-curl GET is blocked (403) with the origin itself reporting as DataDome and a numeric bot-risk score in the response headers.",
+  "evidence": "HTTP 403, header 'Server: DataDome', 'X-DataDome: protected', 'X-DataDome-riskscore: 0.8383075118538041', 'X-DataDome-CID', 'X-DD-B: 1'. Set-Cookie: datadome=<redacted>; body contains 'dd={' JS config.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "datadome",
+  "url": "https://www.leboncoin.fr",
+  "expect": "French classifieds homepage returns 403 to a non-browser client with DataDome's own headers and cookie rather than site content.",
+  "evidence": "HTTP 403, header 'x-datadome: protected', 'x-datadome-cid: <redacted>', 'x-dd-b: 3'. Set-Cookie: datadome=<redacted>; body contains 'dd={' marker.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "datadome",
+  "url": "https://seatgeek.com",
+  "expect": "Ticket marketplace homepage blocks the plain GET (403) and issues a DataDome session cookie plus diagnostic headers instead of listing content.",
+  "evidence": "HTTP 403, header 'X-DataDome-CID: AHrlqAAAAAMAhCLM16jzPUkAJP-6nQ==', 'X-DD-B: 2', 'Access-Control-Expose-Headers: x-dd-b, x-set-cookie'. Set-Cookie: datadome=<redacted>; body 'dd={' marker.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "datadome",
+  "url": "https://www.g2.com",
+  "expect": "Software-review site sits behind Cloudflare as CDN, but the actual bot gate is DataDome: plain GET gets 403 with DataDome's own protected-status header.",
+  "evidence": "HTTP 403, header 'X-DataDome: protected', 'X-DataDome-CID: AHrlqAAAAAMAHECPhoCP7OYAJP-6nQ==', 'X-DD-B: 1' (Cloudflare present only as CDN layer: Server: cloudflare, CF-RAY). Set-Cookie: datadome=<redacted>; body 'dd={' marker.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "perimeterx",
+  "url": "https://www.fiverr.com",
+  "expect": "Freelance-marketplace homepage returns 403 to a plain client with PerimeterX's client-script cookie and app-id embedded in the block page.",
+  "evidence": "HTTP 403, Set-Cookie: _pxhd=<redacted>; body references '_pxAppId' and the literal string 'perimeterx' (4 occurrences). Fronted by Cloudflare CDN (Server: cloudflare, CF-RAY) with PerimeterX as the actual gate.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "perimeterx",
+  "url": "https://www.zillow.com",
+  "expect": "Real-estate listings homepage denies the plain GET (403) and the block page explicitly names PerimeterX as the mechanism.",
+  "evidence": "HTTP 403, Server: CloudFront. Body contains the literal string 'PerimeterX' and '_pxAppId'.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "imperva",
+  "url": "https://www.giffgaff.com",
+  "expect": "Mobile-carrier site responds 200 but tags the session with Imperva/Incapsula's session and visitor cookies plus its diagnostic X-Iinfo header on every request.",
+  "evidence": "Header 'X-Iinfo: 52-23694586-23694599 NNNN CT(125 253 0) RT(1784907345327 27) q(0 0 3 0) r(6 8) U12'. Set-Cookie: visid_incap_2118422=<redacted>, incap_ses_932_2118422=<redacted>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "imperva",
+  "url": "https://www.copart.com",
+  "expect": "Vehicle-auction site returns a genuine Incapsula incident block page (tiny ~1KB body) rather than the real homepage.",
+  "evidence": "Header 'X-Iinfo: 52-314270912-0 0NNN RT(1784907358622 20) q(0 -1 -1 1) r(0 -1) B12(8,888073,0) U18'. Set-Cookie: visid_incap_242093=<redacted>, incap_ses_939_242093=...; body contains 'Incapsula incident' text.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "kasada",
+  "url": "https://www.canadagoose.com",
+  "expect": "Plain GET is rate-limited with a bare HTTP 429 and Kasada's proof-of-work JS loader instead of any page content or explanation.",
+  "evidence": "HTTP 429, header 'x-kpsdk-ct: <redacted>', Access-Control-Expose-Headers lists x-kpsdk-ct/r/c/h/fc. Set-Cookie: akm_bmfp_b2-ssn=...; body: window.KPSDK bootstrap + script src '/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/ips.js'.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "kasada",
+  "url": "https://www.realtor.com",
+  "expect": "Real-estate search homepage returns a bare HTTP 429 with Kasada's signature headers and script path, no explanatory body copy at all.",
+  "evidence": "HTTP 429, header 'x-kpsdk-ct: <redacted>'. Body: 4x 'KPSDK' references, script src '/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/ips.js'.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "kasada",
+  "url": "https://www.realestate.com.au",
+  "expect": "Australian property-listings homepage returns a bare HTTP 429 gated by Kasada before any listing content, identical script-path signature to other Kasada sites.",
+  "evidence": "HTTP 429, header 'x-kpsdk-ct: <redacted>'. Set-Cookie: KP_UIDz-ssn=..., KP_UIDz=...; body: window.KPSDK bootstrap + script src '/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/ips.js'.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "cloudflare_interactive",
+  "url": "https://www.zoopla.co.uk/to-rent",
+  "expect": "Cloudflare interactive tier: cType:'interactive', ZERO Turnstile iframes injected, never self-clears",
+  "evidence": "verified live 2026-07-24 from our own egress: HTTP 403 + cf-mitigated: challenge, body carries window._cf_chl_opt cType:'interactive'. Camofox coordinate-click and a real-GPU host run both left it walled; SeleniumBase CDP solve_captcha() returned 469,746 chars of real listings in 28.3s.",
+  "source": "verified-live (this project, scripts/solve_challenge.py)",
+  "stable": true
+ }
+]

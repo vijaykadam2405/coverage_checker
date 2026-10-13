@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live crawl data — Mallory</title>
+<style>
+:root{--bg:#0e1116;--card:#161b22;--line:#232a33;--fg:#e6edf3;--dim:#8b949e;--accent:#2f81f7;
+      --ok:#3fb950;--warn:#d29922;--bad:#f85149}
+/* Deliberately low-contrast until hovered: it sits on every row of a table people click to filter,
+   so it must not read as the primary action. */
+button.del{background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:4px;
+  padding:2px 8px;font:11px inherit;cursor:pointer}
+button.del:hover:not(:disabled){border-color:var(--bad);color:var(--bad);background:#2a1414}
+button.del:disabled{opacity:.5;cursor:not-allowed}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+h1{font-size:16px;margin:0;font-weight:600}
+.src{font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+.wrap{padding:18px 20px;max-width:1500px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;margin-bottom:8px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:13px}
+.tile .n{font-size:23px;font-weight:650}
+.tile .l{color:var(--dim);font-size:12px;margin-top:2px}
+.tile .src{margin-top:6px;display:inline-block}
+.section{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.07em;margin:22px 0 9px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:15px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--dim);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line);font-size:12px}
+td{padding:6px 8px;border-bottom:1px solid #1c222b}
+tr:hover td{background:#1a212b}
+.scroll{overflow-x:auto}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600}
+.pill.run{background:#16341f;color:var(--ok)} .pill.idle{background:#2a2f37;color:var(--dim)}
+.pill.off{background:#3d1a1a;color:#f85149}
+a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+.muted{color:var(--dim)} .clk{cursor:pointer}
+.bar{height:4px;background:#1c222b;border-radius:3px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .4s}
+.reco{font-size:12px;margin-top:8px;padding:8px 10px;border-radius:6px}
+.reco.ok{background:#0f2417;color:var(--ok)} .reco.bad{background:#2a1416;color:#f85149}
+</style>
+</head>
+<body>
+<header>
+  <h1>Live crawl data</h1>
+  <span class="muted" id="dbscope">Postgres <b>documents</b> · MinIO · crawler-api :8099</span>
+  <span style="flex:1"></span>
+  <span id="batchPill" class="pill idle">checking…</span>
+  <span class="muted" id="updated"></span>
+</header>
+
+<div class="wrap">
+  <div class="section">Store totals — from Postgres + MinIO, this instant</div>
+  <div class="grid" id="tiles"></div>
+
+  <div class="section">Current running batch — live from crawler-api</div>
+  <div class="card">
+    <div id="batchMeta" class="muted">…</div>
+    <div class="bar"><i id="batchBar" style="width:0%"></i></div>
+    <div class="grid" id="batchTiles" style="margin-top:12px"></div>
+  </div>
+
+  <div class="section">Pages per source — <span class="muted">count(*) grouped by source_id in Postgres</span></div>
+  <div class="card"><div class="scroll"><table id="srcTable">
+    <thead><tr><th>Source</th><th class="num">Pages</th><th class="num">With HTML</th>
+               <th class="num">HTML size</th><th>Last ingested</th><th class="num"></th></tr></thead>
+    <tbody></tbody></table></div></div>
+
+  <div class="section">Recent documents <span class="muted" id="recSel"></span></div>
+  <div class="card"><div class="scroll"><table id="recTable">
+    <thead><tr><th>Title</th><th>URL</th><th>Source</th><th>Via</th><th class="num">Size</th><th>Ingested</th></tr></thead>
+    <tbody></tbody></table></div></div>
+
+  <div class="card">
+    <div class="section" style="margin-top:0">Reconciliation self-check</div>
+    <div id="reco" class="muted">verifying the tiles equal the per-source sum…</div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+// '—' for absent, never 0. "This store holds zero documents" and "we could not read the
+// store" are different facts, and turning the second into the first is how an outage rendered
+// as an empty corpus on this page and on the orchestrator's tile at the same time.
+const fmt=n=>(n===null||n===undefined)?'—':Number(n).toLocaleString();
+// Everything below renders CRAWLED CONTENT — page titles, URLs and source ids that came from
+// third-party sites. Interpolating those into innerHTML unescaped means any site we crawl can put
+// script into this dashboard, so every such value goes through esc() and every URL is checked to
+// be http(s) before it becomes an href (blocks javascript: and data: URLs).
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const href=u=>/^https?:\/\//i.test(String(u||'')) ? esc(u) : '#';
+const kb=b=>b==null?'—':b>1e9?(b/1e9).toFixed(1)+' GB':b>1e6?(b/1e6).toFixed(1)+' MB':b>1e3?(b/1e3).toFixed(0)+' KB':b+' B';
+const ago=s=>!s?'—':new Date(s.replace(' ','T')+(s.includes('+')||s.endsWith('Z')?'':'Z')).toLocaleString();
+let source='';
+
+async function j(u){const r=await fetch(u);if(!r.ok)throw new Error(r.status);return r.json();}
+
+function srcTag(t){return `<span class="src">${t}</span>`;}
+
+async function loadSummary(){
+  const s=await j('/api/live/summary');
+  const pg=s.postgres||{}, mi=s.minio||{}, b=s.batch||{};
+  const pgSrc = pg.error ? ('Postgres: '+pg.error) : 'Postgres';
+  $('#tiles').innerHTML=[
+    [fmt(pg.documents),'documents',pgSrc],
+    [fmt(pg.sources),'sources',pgSrc],
+    [kb(pg.html_bytes),'HTML stored',pgSrc],
+    [fmt(pg.text_chars),'text chars',pgSrc],
+    [mi.error?'—':fmt(mi.objects),'MinIO objects', mi.error?'MinIO: err':(mi.bucket||'MinIO')],
+    [mi.error?'—':kb(mi.bytes),'MinIO size','MinIO'],
+    [fmt(pg.last_5min),'ingested last 5 min',pgSrc],
+  ].map(([n,l,src])=>`<div class="tile"><div class="n">${n}</div><div class="l">${l}</div>${srcTag(src)}</div>`).join('');
+  $('#updated').textContent='updated '+new Date().toLocaleTimeString();
+
+  // batch
+  const pill=$('#batchPill');
+  if(!b.reachable){pill.className='pill off';pill.textContent='crawler offline';}
+  else if(b.running){pill.className='pill run';pill.textContent='batch running';}
+  else{pill.className='pill idle';pill.textContent='idle';}
+  const t=b.totals||{};
+  $('#batchMeta').textContent=b.reachable
+    ? (b.running?`${fmt(b.pages)} pages · ${b.pages_per_sec}/s · ${Math.round(b.elapsed_s/60)}m elapsed · ${b.total_jobs||0} jobs · CPU ${b.cpu_percent??'?'}%`
+                :'No batch running. Totals below are from the last run.')
+    : ('crawler-api unreachable: '+(b.error||''));
+  $('#batchBar').style.width=b.running?'100%':'0%';
+  $('#batchBar').style.opacity=b.running?'.5':'0';
+  // b.totals is absent entirely when crawler-api is unreachable — six zeros under a pill that
+  // reads 'crawler offline' is the dashboard contradicting itself.
+  const bSrc = b.reachable ? 'live batch' : 'crawler offline';
+  $('#batchTiles').innerHTML=['fetched','kept','accepted','sent','skipped_unchanged','dropped_by_gate']
+    .map(k=>`<div class="tile"><div class="n">${b.reachable?fmt(t[k]):'—'}</div><div class="l">${k}</div>${srcTag(bSrc)}</div>`).join('');
+
+  // reconciliation
+  reconcile(pg.documents);
+  return pg.documents;
+}
+
+async function loadSources(){
+  const rows=await j('/api/live/sources?limit=300');
+  window._srcRows=rows; window._srcAt=Date.now();   // when, so reconcile() can allow for read skew
+  $('#srcTable tbody').innerHTML=rows.map(r=>`<tr class="clk" data-s="${esc(r.source_id)}">
+     <td><b>${esc(r.source_id)}</b></td><td class="num">${fmt(r.pages)}</td><td class="num">${fmt(r.with_html)}</td>
+     <td class="num">${kb(r.html_bytes)}</td><td class="muted">${ago(r.last_at)}</td>
+     <td class="num"><button class="del" data-del="${esc(r.source_id)}">delete</button></td></tr>`).join('')
+     || '<tr><td colspan="6" class="muted">No documents in Postgres.</td></tr>';
+  document.querySelectorAll('#srcTable tbody tr.clk').forEach(el=>el.onclick=e=>{
+    if(e.target.closest('button')) return;          // the delete button is not a row selection
+    source=source===el.dataset.s?'':el.dataset.s; loadRecent();
+  });
+  document.querySelectorAll('#srcTable button[data-del]').forEach(b=>b.onclick=e=>{
+    e.stopPropagation(); deleteSource(b.dataset.del);
+  });
+}
+
+/* Two-step and irreversible, so the operator is shown REAL counts from the server before anything
+   is destroyed — never a bare "are you sure?". A source with more than 1000 pages additionally has
+   to be typed out: a misclick on a 17k-page site is not recoverable. */
+async function deleteSource(src){
+  let p;
+  try{ p = await j('/api/live/source/'+encodeURIComponent(src)+'/preview'); }
+  catch(err){ alert('Could not read what would be deleted: '+err.message); return; }
+  if(p.error){ alert('Cannot delete: '+p.error); return; }
+
+  const hist = p.history_rows==null
+    ? '\n\ncrawl history: UNKNOWN (crawler-api unreachable) — it will not be cleared, so re-crawling '
+      + 'this site may skip every page as "unchanged".'
+    : `\n\ncrawl history: ${p.history_rows.toLocaleString()} URL(s) will also be forgotten, so the `
+      + 'site can be crawled again from scratch.';
+  const msg = `DELETE ALL DATA FOR ${src}\n\n`
+    + `documents  : ${(p.documents||0).toLocaleString()}\n`
+    + `html size  : ${kb(p.html_bytes)}\n`
+    + `attachments: ${(p.attachments||0).toLocaleString()} file(s) in MinIO\n`
+    + `ingested   : ${ago(p.first_ingested)}  ->  ${ago(p.last_ingested)}`
+    + hist + '\n\nThis cannot be undone. Continue?';
+  if(!confirm(msg)) return;
+  if((p.documents||0) > 1000){
+    const typed = prompt(`${(p.documents).toLocaleString()} documents is a lot.\n`
+      + `Type the source name to confirm:`, '');
+    if(typed !== src){ alert('Name did not match — nothing was deleted.'); return; }
+  }
+
+  const btn = document.querySelector(`button[data-del="${CSS.escape(src)}"]`);
+  if(btn){ btn.disabled = true; btn.textContent = 'deleting…'; }
+  try{
+    const r = await fetch('/api/live/source/'+encodeURIComponent(src), {method:'DELETE'});
+    const out = await r.json();
+    if(!r.ok) throw new Error(out.detail || r.statusText);
+    alert(`Deleted ${src}\n\n`
+      + `documents deleted : ${(out.documents_deleted||0).toLocaleString()}\n`
+      + `files deleted     : ${(out.files_deleted||0).toLocaleString()} of ${(out.files_orphaned||0).toLocaleString()} orphaned\n`
+      + `history forgotten : ${out.history_forgotten==null?'FAILED — '+(out.history_error||'unknown'):out.history_forgotten.toLocaleString()+' URL(s)'}`
+      + (out.file_errors && out.file_errors.length ? '\n\nfile errors:\n'+out.file_errors.join('\n') : ''));
+    if(source===src) source='';
+    refresh();
+  }catch(err){
+    alert('Delete failed: '+err.message);
+    if(btn){ btn.disabled = false; btn.textContent = 'delete'; }
+  }
+}
+
+async function loadRecent(){
+  const rows=await j('/api/live/recent?limit=80&source='+encodeURIComponent(source));
+  $('#recSel').textContent=source?('· '+source+' (click again to clear)'):'';
+  $('#recTable tbody').innerHTML=rows.map(r=>`<tr>
+     <td>${r.title?esc(r.title):'<span class="muted">(untitled)</span>'}</td>
+     <td><a href="${href(r.url)}" target="_blank" rel="noreferrer">${esc((r.url||'').replace(/^https?:\/\//,'').slice(0,58))}</a></td>
+     <td>${esc(r.source_id||'')}</td><td class="muted">${esc(r.served_by||'')}</td>
+     <td class="num">${kb(r.html_len)}</td><td class="muted">${ago(r.ingested_at)}</td></tr>`).join('')
+     || '<tr><td colspan="6" class="muted">No documents.</td></tr>';
+}
+
+function reconcile(total){
+  const el=$('#reco');
+  // Nothing to reconcile against a store we could not read — and certifying a tick over invented
+  // zeros is worse than saying nothing.
+  if(total===null||total===undefined){
+    el.className='reco';el.innerHTML='Store totals unavailable — nothing to reconcile.';return;}
+  // _srcRows is loaded by a SEPARATE, slower poll (15s vs 3s). Before it has ever run the sum is 0
+  // and this printed "✗ mismatch — investigate" on every page load; during an active crawl the
+  // total outruns the older per-source snapshot and it printed the same thing more or less
+  // continuously. Both were the check being wrong, not the data.
+  if(!window._srcRows){
+    el.className='reco';el.innerHTML='Waiting for the per-source snapshot…';return;}
+  const rows=window._srcRows;
+  const sum=rows.reduce((a,r)=>a+r.pages,0);
+  // by_source is capped at 300; only assert equality when every source fits.
+  if(rows.length>=300){el.className='reco';el.innerHTML=`Σ per-source (top 300) = ${fmt(sum)}; total = ${fmt(total)}. (more than 300 sources — sum is partial)`;return;}
+  if(sum===total){el.className='reco ok';el.innerHTML=`✓ tiles reconcile: Σ per-source pages (${fmt(sum)}) = total documents (${fmt(total)}).`;}
+  else if(window._srcAt && (Date.now()-window._srcAt)>4000){
+    // The two figures were read at different moments. While pages are landing they MUST differ;
+    // that is read skew, not a fault, and calling it one teaches people to ignore the panel.
+    el.className='reco';el.innerHTML=`Σ per-source ${fmt(sum)} vs total ${fmt(total)} — snapshots taken ${Math.round((Date.now()-window._srcAt)/1000)}s apart; they agree once the crawl is idle.`;}
+  else{el.className='reco bad';el.innerHTML=`✗ mismatch: Σ per-source ${fmt(sum)} ≠ total ${fmt(total)} — investigate.`;}
+}
+
+async function refresh(){try{await loadSummary();await loadSources();await loadRecent();}catch(e){}}
+refresh();
+setInterval(loadSummary, 3000);      // realtime batch + totals
+setInterval(()=>{loadSources();loadRecent();}, 15000);
+</script>
+</body>
+</html>

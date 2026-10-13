@@ -1,0 +1,641 @@
+[
+ {
+  "category": "auth_wall",
+  "variant": "sso",
+  "url": "https://drive.google.com/drive/",
+  "expect": "redirect chain ends on accounts.google.com sign-in page with a password field, never on Drive content",
+  "evidence": "curl -L: 200 final=accounts.google.com/v3/signin/identifier?...&service=wise (via ServiceLogin/InteractiveLogin redirects), bytes=1231613; body contains type=\"password\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "sso",
+  "url": "https://calendar.google.com/calendar/",
+  "expect": "redirect chain ends on accounts.google.com sign-in, never on Calendar content",
+  "evidence": "curl -L: 200 final=accounts.google.com/v3/signin/identifier?...&service=cl, bytes=1232052; body contains type=\"password\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login",
+  "url": "https://github.com/settings/profile",
+  "expect": "302 to github.com/login?return_to=... with a password field, never the settings page",
+  "evidence": "HTTP/1.1 302 Found; Location: https://github.com/login?return_to=https%3A%2F%2Fgithub.com%2Fsettings%2Fprofile; final body (46632 bytes) contains type=\"password\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_401",
+  "url": "https://api.github.com/user",
+  "expect": "plain 401 JSON, no HTML at all -- the crawler must treat non-2xx as a wall, not parse it as content",
+  "evidence": "HTTP/1.1 401 Unauthorized, 120 bytes: {\"message\":\"Requires authentication\",\"documentation_url\":\"https://docs.github.com/rest\",\"status\":\"401\"}",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "sso",
+  "url": "https://portal.office.com/",
+  "expect": "redirect chain ends on login.microsoftonline.com oauth2 authorize endpoint, never on the Office portal",
+  "evidence": "302 chain: Location: microsoft365.com/login?ru=... then Location: login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=...&response_type=code%20id_token; final 200 bytes=51096 is the MS login page",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login",
+  "url": "https://www.linkedin.com/feed/",
+  "expect": "302 to linkedin.com/uas/login?session_redirect=..., password field present, never the feed",
+  "evidence": "HTTP/1.1 302 Found; Location: https://www.linkedin.com/uas/login?session_redirect=https%3A%2F%2Fwww.linkedin.com%2Ffeed%2F; final body (555616 bytes) contains type=\"password\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login_next",
+  "url": "https://www.instagram.com/accounts/onetap/",
+  "expect": "302 to accounts/login/?next=... -- the classic login?next= pattern the crawler must recognize and skip",
+  "evidence": "HTTP/1.1 302 Found; Location: https://www.instagram.com/accounts/login/?next=https%3A%2F%2Fwww.instagram.com%2Faccounts%2Fonetap%2F%3F__coig_login%3D1; bytes=604968",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "form_login_in_html",
+  "url": "https://www.scribd.com/document/89826407/Fabian-Society",
+  "expect": "looks like a public document-viewer page (200) but the raw HTML itself contains a sign-in wall the crawler must detect, not store as the document text",
+  "evidence": "HTTP 200, 1108740 bytes; body contains literal strings \"Sign in to continue\" and \"Subscribe to Continue\" alongside the viewer shell",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "form_login",
+  "url": "https://www.canva.com/login/",
+  "expect": "200 login form page whose HTML exposes an OAuth authorize link for SSO options, not the app",
+  "evidence": "HTTP 200 (after 301 from /login), 76067 bytes; body contains \"oauth/authorize\" reference",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "sso_okta",
+  "url": "https://cloudflare.okta.com/",
+  "expect": "a real Okta-hosted sign-in widget (title \"Sign In\") -- proof of a third-party IdP bounce pattern",
+  "evidence": "HTTP 200, 17879 bytes; <title>Sign In</title> and \"okta-sign-in\" widget class both present in raw HTML",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "form_login",
+  "url": "https://login.salesforce.com/",
+  "expect": "200 page whose entire body is a login form, password field present in raw HTML",
+  "evidence": "HTTP 200, 12360 bytes; body contains type=\"password\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_401",
+  "url": "https://api.spotify.com/v1/me",
+  "expect": "plain 401 JSON error, no HTML",
+  "evidence": "HTTP/1.1 401 Unauthorized, 77 bytes: {\"error\": {\"status\": 401, \"message\": \"Valid user authentication required\" } }",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "soft_200_unauth_json",
+  "url": "https://slack.com/api/auth.test",
+  "expect": "HTTP 200 but the JSON body says ok:false/not_authed -- a crawler that only checks status code would wrongly store this as success",
+  "evidence": "HTTP/1.1 200 OK, 33 bytes: {\"ok\":false,\"error\":\"not_authed\"}",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_401",
+  "url": "https://api.twitter.com/2/users/me",
+  "expect": "plain 401 problem+json error, no HTML",
+  "evidence": "HTTP/1.1 401 Unauthorized, 99 bytes, content-type application/problem+json: {\"title\":\"Unauthorized\",\"type\":\"about:blank\",\"status\":401,\"detail\":\"Unauthorized\"}",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_400",
+  "url": "https://graph.facebook.com/me",
+  "expect": "400 error explicitly requiring an access token, no user content",
+  "evidence": "HTTP/1.1 400 Bad Request, 221 bytes: {\"error\":{\"message\":\"An active access token must be used to query information about the current user.\",\"type\":\"OAuthException\",\"code\":2500}}",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "form_login_homepage",
+  "url": "https://www.chase.com/",
+  "expect": "a bank homepage that IS partly a login form -- password field present at 200 on the root URL",
+  "evidence": "HTTP 200, 339164 bytes; body contains type=\"password\" in the sign-on box embedded in the homepage",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "form_login_homepage",
+  "url": "https://www.wellsfargo.com/",
+  "expect": "same pattern: bank homepage embeds a password field at 200",
+  "evidence": "HTTP 200, 125018 bytes; body contains type=\"password\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "form_login_govid",
+  "url": "https://secure.login.gov/",
+  "expect": "the US government's own identity-provider sign-in page -- password field and CSRF token present",
+  "evidence": "HTTP 200, 18099 bytes; body contains name=\"csrf and type=\"password\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "form_login",
+  "url": "https://www.academia.edu/login",
+  "expect": "200 login-form page (the academia.edu root blocks bots with 403, but /login itself renders the form)",
+  "evidence": "HTTP 200, 22835 bytes; body contains name=\"csrf and type=\"password\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login",
+  "url": "https://www.amazon.com/gp/css/order-history",
+  "expect": "302 to Amazon's OpenID sign-in (ap/signin), password field present, never order history",
+  "evidence": "HTTP 302; Location: https://www.amazon.com/ap/signin?openid.pape.max_auth_age=0&openid.return_to=...%2Fyour-orders%2Forders...; final body (315125 bytes) contains type=\"password\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.ft.com/content/019ce313-00c5-4d7d-a26c-acd7250de84a",
+  "expect": "server sends only a subscribe CTA, JSON-LD explicitly marks the article as not free -- full text never reaches the crawler",
+  "evidence": "HTTP 200, 140954 bytes; JSON-LD isAccessibleForFree\":\"False\"; only paragraph present is \"See why over a million readers pay to read the Financial Times\" (no article body)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.ft.com/content/078269b4-5518-4289-b90a-dd722fd7e703",
+  "expect": "same FT hard-paywall pattern on a second article",
+  "evidence": "HTTP 200, 140791 bytes; isAccessibleForFree\":\"False\"; \"Subscribe to read\" marker, no article paragraphs",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.nature.com/articles/s41587-020-0561-9",
+  "expect": "only abstract/metadata paragraphs (funding, affiliations) reach the HTML; the actual paper body is absent",
+  "evidence": "200 (after idp.nature.com cookie-redirect dance), 889477 bytes; isAccessibleForFree\":false; the long <p> tags found are funding/affiliation text only, no results/discussion body",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.nature.com/articles/s41558-025-02541-5",
+  "expect": "same Nature hard-paywall pattern on a second article",
+  "evidence": "200 (idp.nature.com redirect), 231114 bytes; isAccessibleForFree\":false",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.economist.com/asia/2026/07/22/indias-gen-z-protesters-demand-a-proper-education",
+  "expect": "only a Sourcepoint-served subscribe upsell reaches the HTML, not the article",
+  "evidence": "HTTP 200, 238824 bytes; isAccessibleForFree\":false; Sourcepoint marker; the only long paragraphs found are \"Unlock unlimited access to all our award-winning journalism, subscriber-only podcasts and newsletters\" (upsell copy, not article text)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.economist.com/business/2026/07/15/eli-lilly-is-reinventing-the-pharma-business",
+  "expect": "same Economist hard-paywall pattern on a second article",
+  "evidence": "HTTP 200, 246590 bytes; isAccessibleForFree\":false; Sourcepoint marker",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.iso.org/standard/62085.html",
+  "expect": "a standards body: only the title/scope teaser is served, full document is purchase-gated",
+  "evidence": "HTTP 200, 156893 bytes; <title>ISO 9001:2015 - Quality management systems -- Requirements</title>; \"Add to cart\" marker, no document text; Usercentrics CMP present",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://hbr.org/2026/07/glp-1s-and-the-high-cost-of-providing-health-care",
+  "expect": "only HBR-subscription upsell paragraphs reach the HTML, never the article",
+  "evidence": "HTTP 200, 137615 bytes; the only long paragraphs are subscription marketing copy (\"HBR Executive delivers trusted insights and actionable strategies...\"), no article body",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://hbr.org/2026/07/research-why-some-junior-employees-work-well-with-ai-and-others-dont",
+  "expect": "same HBR hard-paywall pattern on a second article",
+  "evidence": "HTTP 200, 154942 bytes; no article paragraphs found, only upsell copy",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.wsj.com/world/middle-east/at-least-five-dead-after-clash-near-palestinian-village-in-west-bank-a1d6d9d2",
+  "expect": "WSJ blocks with a bare 401 before serving any teaser at all -- even harder than a typical hard paywall",
+  "evidence": "HTTP/1.1 401 Unauthorized, 767 bytes, no article content served at all",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.theatlantic.com/books/2026/07/jem-calder-i-want-you-to-be-happy-novel-book-review/688047/",
+  "expect": "the full review text IS present in the raw HTML wrapped in class=\"paywall\" -- readable without rendering, blocked only by CSS/JS overlay",
+  "evidence": "HTTP 200, 146637 bytes; isAccessibleForFree\":false yet 4 full <p class=\"paywall\"> paragraphs of real review prose are present (e.g. \"Both partners are flailing: Chuck is put on a performance-improvement plan...\")",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.theatlantic.com/family/2026/05/divorce-soccer-infidelity-chris-jones/687232/",
+  "expect": "same Atlantic soft-paywall pattern, full text present behind class=\"paywall\"",
+  "evidence": "HTTP 200, 196414 bytes; isAccessibleForFree\":false; 17 full <p class=\"paywall\"> paragraphs of real article text present in raw HTML",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.wired.com/story/silicon-valley-is-completely-divided-over-chinese-ai/",
+  "expect": "full article text present in raw HTML under class=\"paywall\", same Conde Nast metered pattern as New Yorker",
+  "evidence": "HTTP 200, 1383955 bytes; real article paragraphs (e.g. \"A top concern in both DC and the Valley relates to distillation...\") wrapped in <p class=\"paywall\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.wired.com/story/what-is-entropy-really/",
+  "expect": "same Wired soft-paywall pattern on a second article",
+  "evidence": "HTTP 200, 1399944 bytes; real article paragraphs present under class=\"paywall\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.newyorker.com/magazine/2026/08/03/i-want-your-sex-movie-review",
+  "expect": "full review text present in raw HTML under class=\"paywall\"",
+  "evidence": "HTTP 200, 834679 bytes; real review paragraphs (e.g. \"The answer is that this is a Gregg Araki movie...\") wrapped in <p class=\"paywall\">",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.newyorker.com/culture/photo-booth/the-white-house-press-corps-in-the-second-trump-era",
+  "expect": "same New Yorker soft-paywall pattern on a second article",
+  "evidence": "HTTP 200, 1088725 bytes; real article paragraphs present under class=\"paywall\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.latimes.com/california/story/2026-07-24/lapd-racial-bias-traffic-stop-complaints-officer-fired",
+  "expect": "metered paywall: full news text present in raw HTML (9 real paragraphs), gated only visually",
+  "evidence": "HTTP 200, 502060 bytes; 9 full-length <p> paragraphs of genuine article prose found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.latimes.com/california/story/2026-07-24/covid-19-seasonal-summer-uptick-california",
+  "expect": "same LA Times soft/metered pattern on a second article",
+  "evidence": "HTTP 200, 483096 bytes; 6 full-length real article paragraphs found in raw HTML",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.technologyreview.com/2026/07/23/1140765/supercooled-kidneys-have-been-transplanted-into-pigs-in-a-landmark-achievement/",
+  "expect": "MIT Technology Review metered paywall: full article text present in raw HTML",
+  "evidence": "HTTP 200, 445106 bytes; 6 full-length real paragraphs found (e.g. \"scientists have come up with a device that allows organs to be cooled...\")",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.scmp.com/news/world/africa/article/3361804/ebola-virus-first-person-vaccinated-uk-trial-new-jab",
+  "expect": "SCMP's metered model: real article text reaches the raw HTML, no teaser-only wrapper",
+  "evidence": "HTTP 200, 1095171 bytes; genuine article paragraph present (\"A volunteer was injected on Friday with the first dose of a rapidly developed vaccine...\"), not a subscribe-CTA placeholder",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "sourcepoint",
+  "url": "https://www.theguardian.com/international",
+  "expect": "Sourcepoint CMP markup present in the raw HTML; article text still present behind it (client-side overlay)",
+  "evidence": "HTTP 200, 1339892 bytes; \"sourcepoint\" string found in page scripts",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "trustarc",
+  "url": "https://www.philips.com/",
+  "expect": "TrustArc/Optanon consent scripts present in raw HTML; redirects to local site but consent markup persists",
+  "evidence": "302 -> https://www.philips.co.in/, HTTP 200, 316435 bytes; \"Optanon\" marker and consent.trustarc.com script reference found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "onetrust",
+  "url": "https://www.ikea.com/us/en/",
+  "expect": "OneTrust cookie banner scripts present in raw HTML",
+  "evidence": "HTTP 200, 1854605 bytes; \"onetrust\"/\"optanon\" markers found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "didomi",
+  "url": "https://www.20minutes.fr/",
+  "expect": "Didomi CMP JS globals present in raw HTML",
+  "evidence": "HTTP 200, 924591 bytes; window.didomiEventListeners / window.didomiOnReady found in page scripts",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.budweiser.com/",
+  "expect": "a literal age-gate prompt server-rendered before any brand content, plus a OneTrust cookie banner",
+  "evidence": "301 -> /en, HTTP 200, 299488 bytes; literal text \"ARE YOU OVER [legal-age] YEARS OLD?\" with data-yes=\"Yes\" data-no=\"No\"; cdn.cookielaw.org OneTrust script present",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.jackdaniels.com/en-us",
+  "expect": "legal-drinking-age gate text present alongside a OneTrust banner",
+  "evidence": "HTTP 200, 437019 bytes; text \"...anyone under the legal drinking age.\"; cdn.cookielaw.org/scripttemplates/otSDKStub.js (OneTrust) present",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "didomi",
+  "url": "https://www.absolut.com/",
+  "expect": "Didomi CMP present on this alcohol-brand site",
+  "evidence": "302 -> /en/, HTTP 200, 399187 bytes; \"Didomi\"/\"didomi\" markers found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.smirnoff.com/",
+  "expect": "a real date-of-birth form (day/month/year) gates the page before OneTrust's own banner even shows",
+  "evidence": "308 -> /en-us, HTTP 200, 1052053 bytes; JSON config \"Please tell us your date of birth.\",\"dobFormat\":\"DD-MM-YYYY\"; onetrust marker also present",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.guinness.com/en-us/",
+  "expect": "a Date of Birth field gates the page",
+  "evidence": "308 -> /en-us, HTTP 200, 475948 bytes; \"Date of Birth\" field label present in page markup/JSON",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "onetrust",
+  "url": "https://trello.com/",
+  "expect": "OneTrust cookie banner scripts present on the marketing homepage",
+  "evidence": "HTTP 200, 489897 bytes; \"OneTrust\"/\"onetrust\" markers found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "onetrust",
+  "url": "https://www.netflix.com/browse",
+  "expect": "OneTrust present even on the browser-redirect page Netflix serves to non-supported clients",
+  "evidence": "302 chain -> netflix.com/in/unsupportedbrowser, HTTP 200, 2597121 bytes; \"OneTrust\"/\"Optanon\" markers found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "didomi",
+  "url": "https://www.researchgate.net/",
+  "expect": "Didomi CMP present on the homepage",
+  "evidence": "HTTP 200, 37801 bytes; \"didomi\" marker found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "onetrust",
+  "url": "https://zoom.us/signin",
+  "expect": "OneTrust banner scripts present even on the bare sign-in page",
+  "evidence": "HTTP 200, 155668 bytes; \"OneTrust\"/\"Optanon\"/\"cookielaw\" markers found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "onetrust",
+  "url": "https://www.behance.net/login",
+  "expect": "OneTrust banner scripts present on the login page",
+  "evidence": "HTTP 200, 416019 bytes; \"cookielaw\"/\"onetrust\" markers found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "onetrust",
+  "url": "https://www.quora.com/What-is-the-meaning-of-life",
+  "expect": "OneTrust banner plus an embedded date-of-birth signup field on a page that otherwise looks like open Q&A content",
+  "evidence": "HTTP 200, 268029 bytes; \"onetrust\" marker and \"date of birth\" field found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "onetrust",
+  "url": "https://www.udemy.com/",
+  "expect": "OneTrust banner scripts present on the homepage",
+  "evidence": "HTTP 200 (via redirect from /user/login/), 300318 bytes; \"OneTrust\"/\"cookielaw\" markers found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "onetrust",
+  "url": "https://www.gap.com/",
+  "expect": "OneTrust banner scripts present on the homepage",
+  "evidence": "HTTP 200, 812670 bytes; \"oneTrust\" marker found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "onetrust",
+  "url": "https://www.nvidia.com/en-us/",
+  "expect": "OneTrust banner scripts present on the homepage",
+  "evidence": "HTTP 200, 741191 bytes; \"Optanon\"/\"cookielaw\" markers found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "onetrust",
+  "url": "https://www.coca-cola.com/us/en",
+  "expect": "OneTrust banner scripts present on the homepage",
+  "evidence": "HTTP 200, 187221 bytes; \"OneTrust\"/\"Optanon\"/\"cookielaw\" markers found",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "sourcepoint",
+  "url": "https://www.spiegel.de/",
+  "expect": "Sourcepoint CMP present; site also runs a metered paywall behind the same gate",
+  "evidence": "HTTP 200, 2000282 bytes; \"Sourcepoint\" marker found alongside \"Paywall\" text",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "soft_404",
+  "variant": "embedded_json_not_found",
+  "url": "https://www.meetup.com/nope-xyz-123456/",
+  "expect": "HTTP 200 for a nonexistent username; the hydration JSON embedded in the page explicitly says the user wasn't found, but nothing tells an HTTP-status-only crawler that",
+  "evidence": "Replaced pinterest 2026-07-26: pinterest answers a login wall for EVERY url, existing or not, so it can never show a soft 404. Measured on this row: HTTP 200, 54,297 bytes, and the crawler's own diagnose() returns soft_404.",
+  "source": "verified-live-2026-07-26",
+  "stable": true
+ },
+ {
+  "category": "soft_404",
+  "variant": "search_fallback",
+  "url": "https://www.zappos.com/this-page-does-not-exist-abc123xyz",
+  "expect": "HTTP 200 for a bogus path; the server silently treats the URL slug as a search query instead of 404ing it",
+  "evidence": "confirmed HTTP 200 (not 404), 531988 bytes; <title>\"This page does not exist abc123xyz\" + FREE SHIPPING | Zappos</title> and h1Tag \"Search results for \\\"this page does not exist abc123xyz\\\"\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "soft_404",
+  "variant": "nextjs_soft_404",
+  "url": "https://www.goodreads.com/book/show/999999999-this-book-does-not-exist",
+  "expect": "HTTP 200 for a nonexistent book id; Next.js's client-rendered not-found title is served with a 200 status instead of 404",
+  "evidence": "confirmed HTTP 200 (not 404), 60346 bytes; <title data-next-head=\"\">Page not found</title>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "soft_404",
+  "variant": "nextjs_soft_404",
+  "url": "https://www.goodreads.com/book/show/888888888-this-book-also-does-not-exist",
+  "expect": "same Goodreads soft-404 pattern on a second bogus id",
+  "evidence": "confirmed HTTP 200 (not 404), 60566 bytes; <title data-next-head=\"\">Page not found</title>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "soft_404",
+  "variant": "nextjs_soft_404",
+  "url": "https://www.slideshare.net/this-page-does-not-exist-abc123xyz",
+  "expect": "HTTP 200 for a bogus top-level slug; title says the page no longer exists but status is 200",
+  "evidence": "confirmed HTTP 200 (not 404), 371539 bytes; <title data-next-head=\"\">Page no longer exists</title>; notFoundTitleV2/notFoundMessageV2 JSON also present",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "soft_404",
+  "variant": "nextjs_soft_404",
+  "url": "https://www.slideshare.net/this-page-also-does-not-exist-xyz789abc",
+  "expect": "same SlideShare soft-404 pattern on a second bogus slug",
+  "evidence": "confirmed HTTP 200 (not 404), 371601 bytes; <title data-next-head=\"\">Page no longer exists</title>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "soft_404",
+  "variant": "nextjs_soft_404",
+  "url": "https://hashnode.com/this-page-does-not-exist-abc123xyz",
+  "expect": "HTTP 200 for a bogus slug; title clearly says not found but status is 200",
+  "evidence": "confirmed HTTP 200 (not 404), 68587 bytes; <title>User not found | Hashnode</title>, og:description \"User not found\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "soft_404",
+  "variant": "nextjs_soft_404",
+  "url": "https://hashnode.com/@this_user_does_not_exist_abc123xyz",
+  "expect": "same Hashnode soft-404 pattern on the @-username path form",
+  "evidence": "confirmed HTTP 200 (not 404), 68886 bytes; <title>User not found | Hashnode</title>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "soft_404",
+  "variant": "nextjs_soft_404",
+  "url": "https://www.codecademy.com/profiles/this_user_does_not_exist_abc123xyz",
+  "expect": "HTTP 200 for a nonexistent profile; title/og-tags say not found but status is 200",
+  "evidence": "confirmed HTTP 200 (not 404), 118345 bytes; <title data-next-head=\"\">Profile Not Found | Codecademy</title>, og:description \"Codecademy Profile Not Found\"",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "soft_404",
+  "variant": "nextjs_soft_404",
+  "url": "https://www.meetup.com/this-group-does-not-exist-abc123xyz/",
+  "expect": "HTTP 200 for a nonexistent group slug; title says group not found but status is 200",
+  "evidence": "confirmed HTTP 200 (not 404), 54378 bytes; <title data-next-head=\"\">Meetup | Group not found</title>",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "soft_404",
+  "variant": "embedded_json_not_found",
+  "url": "https://www.pinterest.com/this_page_does_not_exist_abc123xyz/",
+  "expect": "HTTP 200 for a nonexistent username; the hydration JSON embedded in the page explicitly says the user wasn't found, but nothing tells an HTTP-status-only crawler that",
+  "evidence": "confirmed HTTP 200 (not 404), 1090827 bytes; embedded JSON contains \"code\":30,\"message\":\"User not found.\"",
+  "source": "verified-live",
+  "stable": true
+ }
+]

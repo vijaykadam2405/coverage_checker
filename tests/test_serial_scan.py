@@ -105,7 +105,7 @@ def test_corpus_failure_pauses_discovery_and_resume_uses_saved_snapshot(tmp_path
     assert events[4] == ('website', config.target_url+'child')
 
 
-def test_duplicates_merge_evidence_at_limit_without_overwriting_validated_type(tmp_path):
+def test_duplicates_merge_evidence_without_legacy_count_limit_or_type_overwrite(tmp_path):
     config = AuditConfig(target_url='https://example.test/', database_path=tmp_path/'db.sqlite', max_urls=1)
     auditor = CoverageAuditor(config)
     try:
@@ -117,6 +117,8 @@ def test_duplicates_merge_evidence_at_limit_without_overwriting_validated_type(t
         assert row['page_type'] == 'HTML' and row['min_depth'] == 2
         assert json.loads(row['discovery_methods']) == ['SITEMAP', 'STATIC']
         assert len(auditor.db.report_rows(auditor.run_id)) == 1
+        assert auditor._add_discovery('https://example.test/second', 'STATIC', 3, config.target_url, '')
+        assert len(auditor.db.report_rows(auditor.run_id)) == 2
         assert normalize_url('https://example.test/page') != normalize_url('https://example.test/Page')
         assert normalize_url('https://example.test/?page=2') != normalize_url('https://example.test/?page=3')
         assert normalize_url('https://example.test/#/route') != normalize_url('https://example.test/#/other')
@@ -138,7 +140,7 @@ def test_legacy_pacing_settings_cannot_enable_bulk_or_parallel_workers(tmp_path,
     config = jobs.start('https://example.test/', tmp_path/'db.sqlite', tmp_path/'reports', 'https://api.test/',
         settings={'max_concurrency': 8, 'corpus_batch_size': 500, 'website_delay_seconds': 0, 'corpus_interval_seconds': 0})
     assert config.max_concurrency == config.corpus_batch_size == 1
-    assert config.website_delay_seconds == 1.5 and config.corpus_interval_seconds == 3
+    assert config.website_delay_seconds == 1 and config.corpus_interval_seconds == 2
     assert not config.discovery_only
 
 

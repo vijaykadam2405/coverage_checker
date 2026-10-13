@@ -1,0 +1,15 @@
+[Unit]
+Description=Mallory crawler daily health check
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# Set these to your own deploy user and the path where you cloned the repo.
+User=mallory
+WorkingDirectory=/opt/mallory-crawler
+ExecStart=/opt/mallory-crawler/healthcheck/run_daily.sh
+# The box can be busy; don't let a wedged run hang forever.
+TimeoutStartSec=1800
+# A FAILED health check exits non-zero -> the unit goes `failed`, which shows in
+# `systemctl list-units --failed` and can drive an OnFailure= alert unit.

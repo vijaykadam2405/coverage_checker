@@ -36,37 +36,11 @@ export const SOURCES = {
   ],
   LOAD_MORE: [
     "Load More / scrolling",
-    "Explore more results until content stabilizes or a safeguard is reached.",
+    "Explore more results until no new content appears or you stop the scan.",
   ],
 };
 export const NUMERIC_CONTROLS = {
-  scope: [
-    [
-      "max_urls",
-      "Inventory safeguard",
-      100,
-      200000,
-      100,
-      "No depth cutoff. Reaching this limit records incomplete exploration.",
-    ],
-  ],
   browser: [
-    [
-      "max_browser_pages",
-      "Rendered-page safeguard",
-      1,
-      2000,
-      1,
-      "Maximum pages inspected in the browser.",
-    ],
-    [
-      "max_browser_actions",
-      "Actions per page",
-      1,
-      200,
-      1,
-      "Bounded filter, tab and Load More interactions.",
-    ],
     [
       "browser_challenge_wait_seconds",
       "Public verification wait (seconds)",
@@ -76,29 +50,11 @@ export const NUMERIC_CONTROLS = {
       "Wait for ordinary browser verification; never solve a CAPTCHA automatically.",
     ],
   ],
-  pagination: [
-    [
-      "max_filter_values",
-      "Values per filter",
-      1,
-      500,
-      1,
-      "Site-provided values only; combinations are not blindly generated.",
-    ],
-    [
-      "maximum_pagination_probe",
-      "Numeric probe safeguard",
-      2,
-      1048576,
-      1,
-      "A safeguard, not an asserted website maximum.",
-    ],
-  ],
   performance: [
     [
       "website_delay_seconds",
       "Website request spacing (seconds)",
-      1.5,
+      1,
       30,
       0.05,
       "Minimum per-host delay; robots and Retry-After may increase it.",
@@ -124,7 +80,7 @@ export const NUMERIC_CONTROLS = {
     [
       "corpus_interval_seconds",
       "Corpus spacing (seconds)",
-      3,
+      2,
       30,
       0.5,
       "Minimum spacing, with adaptive slowdown and Retry-After.",

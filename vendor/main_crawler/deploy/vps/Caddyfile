@@ -1,0 +1,52 @@
+# TLS terminator in front of the tunnelled dashboard.
+#
+# `tls internal` = Caddy's own CA, no domain required. The browser shows a trust warning once; that
+# warning is about the ISSUER, not about the connection — the password and every OTP are encrypted
+# from the first byte, which is the whole point of not serving this on plain HTTP.
+{
+	# No ACME: there is no domain here, and letting Caddy try Let's Encrypt against a bare IP just
+	# produces a retry loop in the logs and a fallback certificate on the socket.
+	auto_https disable_redirects
+	local_certs
+	admin off
+
+	# REQUIRED when the site is reached by IP. SNI carries a HOSTNAME, and RFC 6066 forbids sending
+	# an IP literal in it — so a browser (or curl) connecting to the dashboard by IP (https://<vps-ip>:8443)
+	# sends no server name at all, Caddy has nothing to match its certificate against, and the handshake
+	# dies with "tlsv1 alert internal error" on a socket that is otherwise listening and healthy.
+	# This names the certificate to serve when the client presents no SNI.
+	default_sni {$DASH_PUBLIC_HOST}
+}
+
+# Address, port and all, so the certificate names the thing the browser actually connects to and
+# the site block matches the Host header it sends.
+https://{$DASH_PUBLIC_HOST}:{$DASH_PUBLIC_PORT} {
+	bind 0.0.0.0
+	tls internal
+
+	# The dashboard polls hard (a 3s timer plus 20-30s rollups), so the read timeout has to clear
+	# the slowest endpoint or long panels die mid-flight and render as "the crawler is not
+	# answering" — the exact failure this dashboard's one rule exists to prevent.
+	reverse_proxy dc-tunnel:8091 {
+		transport http {
+			read_timeout 300s
+			write_timeout 300s
+		}
+		header_up X-Forwarded-Proto https
+		header_up X-Real-IP {remote_host}
+	}
+
+	header {
+		# This page is an admin console; it has no business being framed or sniffed, and its URLs
+		# should not leak to anywhere the operator clicks through to.
+		X-Frame-Options DENY
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

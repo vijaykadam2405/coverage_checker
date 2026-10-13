@@ -1,0 +1,2354 @@
+[
+ {
+  "job_id": "compbreadth_adanidefence_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://adanidefence.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "adanidefence.com"
+ },
+ {
+  "job_id": "compnews_adanidefence_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://adanidefence.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "adanidefence.com"
+ },
+ {
+  "job_id": "compbreadth_anduril_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://anduril.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "anduril.com"
+ },
+ {
+  "job_id": "compnews_anduril_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://anduril.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "anduril.com"
+ },
+ {
+  "job_id": "compbreadth_avinc_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://avinc.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "avinc.com"
+ },
+ {
+  "job_id": "compnews_avinc_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://avinc.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "avinc.com"
+ },
+ {
+  "job_id": "compbreadth_aweil_in",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://aweil.in/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "aweil.in"
+ },
+ {
+  "job_id": "compnews_aweil_in",
+  "job_type": "news",
+  "seed_urls": [
+   "https://aweil.in/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "aweil.in"
+ },
+ {
+  "job_id": "compbreadth_bdl_india_in",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://bdl-india.in/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "bdl-india.in"
+ },
+ {
+  "job_id": "compnews_bdl_india_in",
+  "job_type": "news",
+  "seed_urls": [
+   "https://bdl-india.in/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "bdl-india.in"
+ },
+ {
+  "job_id": "compbreadth_brahmos_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://brahmos.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "brahmos.com"
+ },
+ {
+  "job_id": "compnews_brahmos_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://brahmos.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "brahmos.com"
+ },
+ {
+  "job_id": "compbreadth_diehl_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://diehl.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "diehl.com"
+ },
+ {
+  "job_id": "compnews_diehl_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://diehl.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "diehl.com"
+ },
+ {
+  "job_id": "compbreadth_elbitsystems_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://elbitsystems.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "elbitsystems.com"
+ },
+ {
+  "job_id": "compnews_elbitsystems_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://elbitsystems.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "elbitsystems.com"
+ },
+ {
+  "job_id": "compbreadth_gd_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://gd.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "gd.com"
+ },
+ {
+  "job_id": "compnews_gd_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://gd.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "gd.com"
+ },
+ {
+  "job_id": "compbreadth_hanwhaaerospace_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://hanwhaaerospace.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "hanwhaaerospace.com"
+ },
+ {
+  "job_id": "compnews_hanwhaaerospace_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://hanwhaaerospace.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "hanwhaaerospace.com"
+ },
+ {
+  "job_id": "compbreadth_hii_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://hii.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "hii.com"
+ },
+ {
+  "job_id": "compnews_hii_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://hii.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "hii.com"
+ },
+ {
+  "job_id": "compbreadth_hsw_pl",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://hsw.pl/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "hsw.pl"
+ },
+ {
+  "job_id": "compnews_hsw_pl",
+  "job_type": "news",
+  "seed_urls": [
+   "https://hsw.pl/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "hsw.pl"
+ },
+ {
+  "job_id": "compbreadth_iai_co_il",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://iai.co.il/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "iai.co.il"
+ },
+ {
+  "job_id": "compnews_iai_co_il",
+  "job_type": "news",
+  "seed_urls": [
+   "https://iai.co.il/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "iai.co.il"
+ },
+ {
+  "job_id": "compbreadth_idvgroup_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://idvgroup.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "idvgroup.com"
+ },
+ {
+  "job_id": "compnews_idvgroup_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://idvgroup.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "idvgroup.com"
+ },
+ {
+  "job_id": "compbreadth_iwi_net",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://iwi.net/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "iwi.net"
+ },
+ {
+  "job_id": "compnews_iwi_net",
+  "job_type": "news",
+  "seed_urls": [
+   "https://iwi.net/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "iwi.net"
+ },
+ {
+  "job_id": "compbreadth_knds_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://knds.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "knds.com"
+ },
+ {
+  "job_id": "compnews_knds_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://knds.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "knds.com"
+ },
+ {
+  "job_id": "compbreadth_kongsberg_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://kongsberg.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "kongsberg.com"
+ },
+ {
+  "job_id": "compnews_kongsberg_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://kongsberg.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "kongsberg.com"
+ },
+ {
+  "job_id": "compbreadth_l3harris_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://l3harris.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "l3harris.com"
+ },
+ {
+  "job_id": "compnews_l3harris_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://l3harris.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "l3harris.com"
+ },
+ {
+  "job_id": "compbreadth_larsentoubro_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://larsentoubro.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "larsentoubro.com"
+ },
+ {
+  "job_id": "compnews_larsentoubro_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://larsentoubro.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "larsentoubro.com"
+ },
+ {
+  "job_id": "compbreadth_leonardo_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://leonardo.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "leonardo.com"
+ },
+ {
+  "job_id": "compnews_leonardo_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://leonardo.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "leonardo.com"
+ },
+ {
+  "job_id": "compbreadth_lockheedmartin_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://lockheedmartin.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "lockheedmartin.com"
+ },
+ {
+  "job_id": "compnews_lockheedmartin_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://lockheedmartin.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "lockheedmartin.com"
+ },
+ {
+  "job_id": "compbreadth_mahindra_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://mahindra.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "mahindra.com"
+ },
+ {
+  "job_id": "compnews_mahindra_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://mahindra.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "mahindra.com"
+ },
+ {
+  "job_id": "compbreadth_mbda_systems_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://mbda-systems.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "mbda-systems.com"
+ },
+ {
+  "job_id": "compnews_mbda_systems_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://mbda-systems.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "mbda-systems.com"
+ },
+ {
+  "job_id": "compbreadth_munitionsindia_in",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://munitionsindia.in/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "munitionsindia.in"
+ },
+ {
+  "job_id": "compnews_munitionsindia_in",
+  "job_type": "news",
+  "seed_urls": [
+   "https://munitionsindia.in/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "munitionsindia.in"
+ },
+ {
+  "job_id": "compbreadth_nammo_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://nammo.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "nammo.com"
+ },
+ {
+  "job_id": "compnews_nammo_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://nammo.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "nammo.com"
+ },
+ {
+  "job_id": "compbreadth_naval_group_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://naval-group.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "naval-group.com"
+ },
+ {
+  "job_id": "compnews_naval_group_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://naval-group.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "naval-group.com"
+ },
+ {
+  "job_id": "compbreadth_norinco_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://norinco.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "norinco.com"
+ },
+ {
+  "job_id": "compnews_norinco_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://norinco.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "norinco.com"
+ },
+ {
+  "job_id": "compbreadth_otokar_com_tr",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://otokar.com.tr/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "otokar.com.tr"
+ },
+ {
+  "job_id": "compnews_otokar_com_tr",
+  "job_type": "news",
+  "seed_urls": [
+   "https://otokar.com.tr/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "otokar.com.tr"
+ },
+ {
+  "job_id": "compbreadth_paramountgroup_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://paramountgroup.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "paramountgroup.com"
+ },
+ {
+  "job_id": "compnews_paramountgroup_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://paramountgroup.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "paramountgroup.com"
+ },
+ {
+  "job_id": "compbreadth_patriagroup_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://patriagroup.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "patriagroup.com"
+ },
+ {
+  "job_id": "compnews_patriagroup_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://patriagroup.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "patriagroup.com"
+ },
+ {
+  "job_id": "compbreadth_pelgel_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://pelgel.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "pelgel.com"
+ },
+ {
+  "job_id": "compnews_pelgel_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://pelgel.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "pelgel.com"
+ },
+ {
+  "job_id": "compbreadth_poongsan_co_kr",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://poongsan.co.kr/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "poongsan.co.kr"
+ },
+ {
+  "job_id": "compnews_poongsan_co_kr",
+  "job_type": "news",
+  "seed_urls": [
+   "https://poongsan.co.kr/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "poongsan.co.kr"
+ },
+ {
+  "job_id": "compbreadth_rafael_co_il",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://rafael.co.il/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "rafael.co.il"
+ },
+ {
+  "job_id": "compnews_rafael_co_il",
+  "job_type": "news",
+  "seed_urls": [
+   "https://rafael.co.il/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "rafael.co.il"
+ },
+ {
+  "job_id": "compbreadth_rheinmetall_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://rheinmetall.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "rheinmetall.com"
+ },
+ {
+  "job_id": "compnews_rheinmetall_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://rheinmetall.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "rheinmetall.com"
+ },
+ {
+  "job_id": "compbreadth_roshel_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://roshel.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "roshel.com"
+ },
+ {
+  "job_id": "compnews_roshel_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://roshel.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "roshel.com"
+ },
+ {
+  "job_id": "compbreadth_rostec_ru",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://rostec.ru/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "rostec.ru"
+ },
+ {
+  "job_id": "compnews_rostec_ru",
+  "job_type": "news",
+  "seed_urls": [
+   "https://rostec.ru/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "rostec.ru"
+ },
+ {
+  "job_id": "compbreadth_rtx_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://rtx.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "rtx.com"
+ },
+ {
+  "job_id": "compnews_rtx_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://rtx.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "rtx.com"
+ },
+ {
+  "job_id": "compbreadth_saab_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://saab.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "saab.com"
+ },
+ {
+  "job_id": "compnews_saab_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://saab.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "saab.com"
+ },
+ {
+  "job_id": "compbreadth_solargroup_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://solargroup.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "solargroup.com"
+ },
+ {
+  "job_id": "compnews_solargroup_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://solargroup.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "solargroup.com"
+ },
+ {
+  "job_id": "compbreadth_sssdefence_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://sssdefence.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "sssdefence.com"
+ },
+ {
+  "job_id": "compnews_sssdefence_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://sssdefence.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "sssdefence.com"
+ },
+ {
+  "job_id": "compbreadth_tataadvancedsystems_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://tataadvancedsystems.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "tataadvancedsystems.com"
+ },
+ {
+  "job_id": "compnews_tataadvancedsystems_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://tataadvancedsystems.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "tataadvancedsystems.com"
+ },
+ {
+  "job_id": "compbreadth_thyssenkrupp_com",
+  "job_type": "profile",
+  "seed_urls": [
+   "https://thyssenkrupp.com/"
+  ],
+  "keyword": false,
+  "render_js": false,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "thyssenkrupp.com"
+ },
+ {
+  "job_id": "compnews_thyssenkrupp_com",
+  "job_type": "news",
+  "seed_urls": [
+   "https://thyssenkrupp.com/"
+  ],
+  "keyword": false,
+  "render_js": true,
+  "click_discovery": true,
+  "incremental": false,
+  "max_pages": 0,
+  "max_depth": -1,
+  "same_domain_only": true,
+  "path_scope": [
+   "/news",
+   "/newsroom",
+   "/press",
+   "/media",
+   "/article",
+   "/story",
+   "/insight",
+   "/press-release",
+   "/press-releases",
+   "/blog"
+  ],
+  "freshness_days": null,
+  "capture": [
+   "html",
+   "text",
+   "pdf"
+  ],
+  "max_pdfs_per_page": 0,
+  "source_id": "thyssenkrupp.com"
+ }
+]

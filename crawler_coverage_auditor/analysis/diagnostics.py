@@ -4,6 +4,10 @@ from collections import defaultdict
 
 def issue_info(stage: str, message: str, *, readable: bool = False, url: str | None = None) -> tuple[str, str, str]:
     text = message.lower()
+    if stage == 'Historical pause':
+        return ('Saved pause checkpoint', 'Historical', 'The scan continued from its saved checkpoint and exhausted its pending work. This pause is retained as history, not a current discovery boundary. Other website/Corpus errors still apply.')
+    if stage == 'Historical count cutoff':
+        return ('Recovered historical discovery cutoff', 'Historical', 'The old count cutoff was followed by an uncapped rediscovery pass. Its original evidence is retained; this is not a current count limit or proof that every website page exists in the inventory.')
     if stage == 'Document text':
         return ('Historical document extraction', 'Historical', 'No longer performed: files are URL-only. Keep this record as scan history; no OCR/decryption is required.')
     if 'javascript error:' in text and readable:
@@ -11,13 +15,19 @@ def issue_info(stage: str, message: str, *, readable: bool = False, url: str | N
     if stage.lower().startswith('corpus') or 'corpus api' in text:
         return ('Corpus database / service unavailable' if any(t in text for t in ('timed out', 'unreachable', 'unavailable', '503', '429', 'timeout')) else 'Corpus verification needs review',
                 'Verification', 'Checks remain unverified. Retry with paced recovery; persistent failures require Corpus database/server investigation, not a missing-page label.')
+    if 'too_large' in text or 'decoded response limit' in text:
+        return ('Website response exceeds safety limit', 'Discovery', 'The partial body was not accepted as complete content. Inspect the URL and declared size; discovery remains incomplete here. Files continue to be URL-only.')
+    if 'redirect_loop' in text or 'maximum allowed redirects' in text:
+        return ('Redirect loop / hop limit', 'Discovery', 'The redirect chain was stopped without repeatedly following it. Check the website redirect configuration; the URL is not proven absent from Corpus.')
+    if 'ssl_error' in text:
+        return ('Website certificate verification failed', 'Discovery', 'TLS verification remains enabled. Check the site certificate chain or local trust configuration; no insecure connection was attempted.')
     if any(t in text for t in ('name_not_resolved', 'getaddrinfo', 'dns')):
         return ('DNS resolution failed', 'Discovery', 'Bounded navigation retries are used. If persistent, check DNS/network availability; the URL is not proven absent.')
     if '404' in text:
         if url and url != url.strip():
             return ('Historical untrimmed URL / 404', 'Historical', 'This scan requested a URL with surrounding whitespace. Current code trims it before deduplication and fetching. Rescan to validate corrected URLs; old records are retained.')
         return ('Website link returned 404', 'Website', 'Excluded from valid HTML coverage. The website returned a missing page; CrawlScope cannot repair its broken link.')
-    if any(t in text for t in ('403', 'captcha', 'bot_', 'login', 'robots')):
+    if any(t in text for t in ('403', 'captcha', 'bot_', 'login', 'robots', 'paywall', 'consent_', 'age_verification')):
         return ('Website access restriction', 'Discovery', 'Respect access rules. Use an authorized public browser session where applicable; blocked content remains unverified.')
     if '429' in text or 'rate limit' in text:
         return ('Website rate limit', 'Discovery', 'Honor Retry-After and reduce website request frequency. Other permitted URLs may continue; the blocked boundary remains unknown.')

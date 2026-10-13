@@ -46,6 +46,13 @@ if (existing) {
         "This server uses the older workflow. Stop it with Ctrl+C in its terminal, then run this command again to load the updated backend.",
       );
     }
+    if (state.backend_update_available) {
+      console.log(
+        state.active
+          ? "Backend source has changed. Pause the current scan in CrawlScope and wait for it to save, then stop the server with Ctrl+C and run this command again. Do not interrupt an active write."
+          : "Backend source has changed. Stop this server with Ctrl+C in its terminal, then run this command again to load the latest code. Saved inventory is retained.",
+      );
+    }
     process.exit(0);
   }
   console.error(

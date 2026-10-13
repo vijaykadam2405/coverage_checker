@@ -180,8 +180,9 @@ export function ControlRoom({
                   Selected website: {target || "No inventory selected"}
                 </strong>
                 <p>
-                  The inventory safeguard below bounds work, not navigation
-                  depth.
+                  No fixed URL count, browser-page count or navigation-depth
+                  cutoff. Discovery continues while new eligible content is
+                  found.
                 </p>
                 <strong>Robots policy: ON</strong>
                 <p>
@@ -227,7 +228,8 @@ export function ControlRoom({
               <p>
                 Follow site-supplied cursors/offset links; never invent opaque
                 values. Numeric exponential/binary probes require a monotonic
-                series; blocking, repetition or safeguards leave the maximum
+                series. There is no fixed page-number, action or filter-value
+                ceiling; blocking or inconclusive repetition leaves the maximum
                 unknown.
               </p>
             </div>
@@ -241,7 +243,7 @@ export function ControlRoom({
               <p>
                 API-only verification. No dashboard/browser fallback, no file
                 text. Each URL is checked automatically during the scan, before
-                moving to the next URL. One URL per request; at least 3 seconds
+                moving to the next URL. One URL per request; at least 2 seconds
                 between Corpus requests, with additional backoff under load.
               </p>
             </div>

@@ -1,0 +1,74 @@
+[
+ {
+  "category": "infinite_scroll",
+  "url": "https://webscraper.io/test-sites/e-commerce/scroll/phones/touch",
+  "expect": "Web Scraper's own infinite-scroll fixture. The LISTING page, not the category index: a first batch of phones is in the HTML and the rest are appended over AJAX as the viewport reaches the bottom, with no pager link.",
+  "evidence": "Replaces https://webscraper.io/test-sites/e-commerce/scroll, which is the category INDEX of the same fixture and has no scroll behaviour at all: measured 2026-07-27 in CamoFox, document height 1348px unchanged over 6 scroll rounds, 6 images all decoded before scrolling, 0 load-more control, 0 pager links, and the render probe scored -81 chars. This URL is the listing the index links to. HTTP 200, 21,774 bytes, 3 <img>, 0 rel=\"next\", 0 paged <a href>. Render probe, 2 consecutive runs: images 6 -> 12, nodes 289 -> 397, height 1150 -> 1772px, text 784 -> 1,022 chars. Verdict pass 2/2 (+6 images).",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.boredpanda.com/",
+  "expect": "Article feed appends batch after batch on scroll; the document grows to several times its initial height without a URL change.",
+  "evidence": "Replaces https://medium.com/, which is now a STATIC marketing landing page: measured 2026-07-27 in CamoFox, document height 720px == window.innerHeight, so the page does not scroll at all (canScroll false, scrollY still 0 after 4 scroll rounds), 323 DOM nodes, 1 image, 336 chars of text reading 'Human stories & ideas / A place to read, write, and deepen your understanding'. HTTP 200, 1,644,025 bytes, 122 <img>, loading=\"lazy\" x108, the literal string 'infinite-scroll' x13. Render probe, 2 consecutive runs: text 18,327 -> 37,862 and 21,484 -> 44,533 chars, images 19 -> 224 and 19 -> 268, nodes 11,014 -> 35,054 and 15,044 -> 43,018, height 20,735 -> 96,250px and 31,298 -> 120,535px. Verdict pass 2/2 (+19,535 and +23,049 chars). Note: the page also emits 1 rel=\"next\" for SEO; the appended batches measured above are not reachable through it.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.tumblr.com/explore/trending",
+  "expect": "Trending post feed is built entirely by JS and extended on scroll; new posts arrive as DOM nodes and decoded images, never as a new URL.",
+  "evidence": "Replaces https://weheartit.com/, which serves an empty shell: measured 2026-07-27 in CamoFox, document height 720px == window.innerHeight (canScroll false), 54 DOM nodes, 3 images, and 187 chars of text that are only the copyright/legal footer - no feed exists to scroll. That row already carried \"stable\": false. HTTP 200, 245,490 bytes, 0 <img> and 119 chars of text in the raw HTML, so the feed is JS-built. Render probe, 2 consecutive runs: text 23,873 -> 49,598 and 23,881 -> 27,475 chars, images 76 -> 620 and 76 -> 265, nodes 7,759 -> 19,453 and 7,754 -> 10,728, height 3,174 -> 11,039px and 3,174 -> 5,783px. Verdict pass 2/2 (+25,725 chars, +189 images).",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://society6.com/art",
+  "expect": "Marketplace grid appends further product tiles on scroll; the decoded-image count roughly doubles while the URL stays put.",
+  "evidence": "Replaces https://www.papermag.com/, whose infinite feed is gone. The old row's proof was the string '.infinite-scroll-wrapper' in the raw HTML, but measured 2026-07-27 in CamoFox the RENDERED document contains 0 elements matching [class*=infinite]/[class*=sentinel]/[class*=load-more], height is 4,436px unchanged over 6 scroll rounds, all 117 images are already decoded before scrolling (0 loading=\"lazy\", 0 data-src), and there is no load-more control and no pager link - nothing is left to recover. HTTP 200, 2,208,031 bytes, 59 <img>, loading=\"lazy\" x42. Render probe, 2 consecutive runs: images 52 -> 111 and 56 -> 110. Verdict pass 2/2 (+59 and +54 images). Note: the page also emits 1 rel=\"next\" and 4 paged <a href>; the tiles measured above arrive by scroll, not through them.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.arabnews.com/saudiarabia",
+  "expect": "The Drupal gd_infinite_scroll feed the old row was aiming at, on the page that actually mounts it: the story list appends further batches from its load-more control, with no pager.",
+  "evidence": "Replaces https://www.arabnews.com/, which is the front page and does not mount the feed. The old row's proof was that the raw HTML loads gd_infinite_scroll.js with {\"items_selector\":\".objects-list .object-item\",\"load_more\":1}, but that config ships site-wide; measured 2026-07-27 in CamoFox the rendered FRONT PAGE has 0 elements matching [class*=infinite]/[class*=load-more], 0 load-more control, all 80 images decoded before scrolling, and document height 7,040 -> 7,040px (one run 7,040 -> 7,016, i.e. it SHRANK) with nodes and items identical - 3 runs, chars -8. This section page mounts the same module and it works. Render probe: images 26 -> 65, nodes 1,561 -> 2,392, height 3,732 -> 12,138px, text 6,589 -> 11,189 chars (+4,600). Sibling /media behaves identically (images 26 -> 62, height 3,762 -> 10,161px). NOTE: the control is a <span>/<div> whose handler is bound with addEventListener, so it is reachable only with the widened _LOADMORE_JS selector in the patch report - with the shipped 'button,a,[role=button],[onclick]' selector this row still fails.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.aljazeera.com/",
+  "expect": "Story-card images are deferred and the card list itself extends on scroll, so the page moves four independent signals rather than only the decoded-image count.",
+  "evidence": "Replaces https://www.mit.edu/, which cannot demonstrate the category because its ceiling is below the scoring floor: that page has 7 <img> in total, of which 3 are decoded on load, so the largest possible gain is +4 against an images floor of 5, and measured 2026-07-27 it hits exactly that ceiling (3 -> 7 decoded, 5/5 runs) while nodes, items, height and chars are all unchanged. Lazy loading demonstrably works there; the page is simply too small to prove it. This row was chosen for margin: render probe, 2 consecutive runs, identical both times - images 16 -> 97, nodes 1,251 -> 2,205, height 3,995 -> 14,629px, text 7,037 -> 19,138 chars (+12,101). Passing on chars and pixels as well as images means it does not depend on images finishing their decode inside the probe's settle window, which is what makes the small-image rows flaky.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.theverge.com/",
+  "expect": "Nearly the whole image set is deferred: the lead renders, the remaining 90-odd images decode only as the page is scrolled.",
+  "evidence": "Replaces https://en.wikipedia.org/wiki/Lazy_loading, which is an encyclopedia ARTICLE about the technique rather than a page that exercises it, and whose ceiling is likewise below the floor: 6 <img> in total, 2 of them loading=\"lazy\", 4 decoded on load, so the largest possible gain is +2 against a floor of 5 - measured 4 -> 6 decoded on 4/4 runs 2026-07-27, with nodes, items and height unchanged. HTTP 200, 878,914 bytes, 93 <img>, loading=\"lazy\" x91. Render probe, 2 consecutive runs: images 8 -> 145 both times. Verdict pass 2/2 (+137 images).",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.artsy.net/",
+  "expect": "Artwork rail images are placeholders until intersection; the decoded-image count multiplies once the viewport moves.",
+  "evidence": "Replaces https://torquemag.io/, which no longer defers anything by the time the render tier measures it: measured 2026-07-27 in CamoFox, all 55 images are already decoded before any scrolling (0 loading=\"lazy\" remaining in the rendered DOM), height 7,792px unchanged, so the ceiling for 'scrolling recovers content' is exactly 0. Its 55 data-src attributes are what the shipped _LAZY_RESOLVE_JS then re-points, which DROPS the decoded count to 39-46 (see the absolute-URL bug in the patch report). HTTP 200, 300,493 bytes, 18 <img>, loading=\"lazy\" x16. Render probe, 2 consecutive runs: images 6 -> 62 both times, nodes 1,926 -> 2,118, text 7,219 -> 7,907 chars. Verdict pass 2/2 (+56 images).",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ }
+]

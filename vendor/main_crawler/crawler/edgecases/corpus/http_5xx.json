@@ -1,0 +1,202 @@
+[
+ {
+  "category": "http_5xx",
+  "url": "https://httpbingo.org/status/500",
+  "expect": "HTTP 500 Internal Server Error is transient by policy: policy_for_status(500)='retry_later'. The crawler must requeue with backoff, and must NOT mark the URL gone.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 500 / 500, 0 bytes, content-type 'text/plain; charset=utf-8', server 'Fly/c12ea07533'. httpbingo.org is the only one of the five status-mock services that is healthy today AND serves the Cloudflare 52x range verbatim.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 500
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbingo.org/status/502",
+  "expect": "HTTP 502 Bad Gateway — a proxy could not get a valid answer from upstream. Policy 'retry_later'; the upstream may well be back on the next pass.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 502 / 502, 0 bytes, content-type 'text/plain; charset=utf-8'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 502
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbingo.org/status/503",
+  "expect": "HTTP 503 Service Unavailable is the one 5xx mapped to 'cooldown' rather than plain retry_later — the whole host is asked to slow down, not just this URL. Also the status where a Retry-After header, if present, promotes it to rate_limit in diagnose(); this row sends none, so it must take the plain cooldown path.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 503 / 503, 0 bytes, content-type 'text/plain; charset=utf-8'. Retry-After ABSENT (checked explicitly).",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 503
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbingo.org/status/504",
+  "expect": "HTTP 504 Gateway Timeout — the proxy gave up waiting on upstream. Policy 'retry_later'. Distinct from the network/timeout corpus: here a response ARRIVED promptly, and it is the status that reports the timeout.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 504 / 504, 0 bytes, content-type 'text/plain; charset=utf-8', answered in under a second — no client-side wait at all.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 504
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://mock.codes/507",
+  "expect": "HTTP 507 Insufficient Storage (WebDAV). Unmapped by _STATUS_POLICY, so it takes the >=500 fallback 'retry_later'. Proves the fallback covers the long tail of 5xx rather than the classifier only knowing 500/502/503/504.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 507 / 507, 55 bytes, body '{\"statusCode\":507,\"description\":\"Insufficient Storage\"}}', content-type 'text/plain; charset=utf-8', server 'Fly/c12ea07533'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 507
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://mock.codes/508",
+  "expect": "HTTP 508 Loop Detected (WebDAV) — the server itself found an infinite loop resolving the request. Unmapped -> 'retry_later' by the >=500 fallback.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 508 / 508, 48 bytes, body '{\"statusCode\":508,\"description\":\"Loop Detected\"}', content-type 'text/plain; charset=utf-8'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 508
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbingo.org/status/520",
+  "expect": "Cloudflare 520 Web Server Returned an Unknown Error. Cloudflare's 52x range describes the ORIGIN, not the edge: the edge answered us in milliseconds, so this is not a network fault the crawler can see with a socket timer. diagnose() special-cases 522/523/524 as timeouts but NOT 520, so this row lands in the generic >=500 'retry_later' path — recorded deliberately so the gap is visible rather than assumed.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 520 / 520, 0 bytes, content-type 'text/plain; charset=utf-8'. Synthetic control for the real 520 in this same file (http://twitter.com/).",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 520
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbingo.org/status/521",
+  "expect": "Cloudflare 521 Web Server Is Down — the origin actively refused the edge's connection. Cloudflare's 52x range describes the ORIGIN, not the edge: the edge answered us in milliseconds, so this is not a network fault the crawler can see with a socket timer. Semantically a connection refusal, so retrying soon is reasonable but the host should be cooled down.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 521 / 521, 0 bytes, content-type 'text/plain; charset=utf-8'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 521
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbingo.org/status/522",
+  "expect": "Cloudflare 522 Connection Timed Out — the edge's TCP connection to the origin never completed. diagnose() maps 522 to timeout + retry_later rather than a generic server error, which is the correct read: the failure is a timeout wearing a 5xx.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 522 / 522, 0 bytes, content-type 'text/plain; charset=utf-8'. Synthetic control for the real 522 in this same file (cliqset.com).",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 522
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbingo.org/status/523",
+  "expect": "Cloudflare 523 Origin Is Unreachable — no route to the origin at all. diagnose() maps 523 to timeout + retry_later alongside 522/524.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 523 / 523, 0 bytes, content-type 'text/plain; charset=utf-8'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 523
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbingo.org/status/524",
+  "expect": "Cloudflare 524 A Timeout Occurred — the origin accepted the connection but never finished the response inside Cloudflare's 100s budget. This is the 52x that most looks like a healthy site to a crawler, because the edge answers instantly; diagnose() maps it to timeout + retry_later.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 524 / 524, 0 bytes, content-type 'text/plain; charset=utf-8'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 524
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbingo.org/status/525",
+  "expect": "Cloudflare 525 SSL Handshake Failed — the TLS handshake between the EDGE and the ORIGIN failed. Critically this is not an ssl_error for us: our own handshake to the edge succeeded and verified, so the crawler's TLS path saw nothing wrong and this must be classified from the status alone.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 525 / 525, 0 bytes, content-type 'text/plain; charset=utf-8'. Our client-side verify=True handshake succeeded on both fetches.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 525
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbingo.org/status/526",
+  "expect": "Cloudflare 526 Invalid SSL Certificate — the origin presented a certificate the edge refused. Same trap as 525: a TLS failure that our own TLS stack cannot see, because it happened on the far side of the edge.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 526 / 526, 0 bytes, content-type 'text/plain; charset=utf-8'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 526
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://httpbingo.org/status/530",
+  "expect": "Cloudflare 530 (always paired with a 1xxx Cloudflare error code in the body). Unmapped -> 'retry_later' via the >=500 fallback. Included because 530 is outside the 52x block and a range check written as 520 <= s <= 526 would silently miss it.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 530 / 530, 0 bytes, content-type 'text/plain; charset=utf-8'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 530
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://mock.codes/500",
+  "expect": "Second-vendor 500 so the category does not rest on a single host. Same requirement: 'retry_later', never mark_gone.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 500 / 500, 56 bytes, body '{\"statusCode\":500,\"description\":\"Internal Server Error\"}}', server 'Fly/c12ea07533'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 500
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://postman-echo.com/status/502",
+  "expect": "A 502 that Cloudflare INTERCEPTED and replaced with its own 6.4 KB branded error page, and which carries Retry-After: 60. Two things to get right: the 6,416-byte HTML body is an error page and must not be stored as a document, and the Retry-After must be honoured even though diagnose()'s rate-limit branch only reads Retry-After for 429/503/403 — a 502 with a stated wait should not be retried sooner than 60s.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 502 / 502, 6,416 bytes, content-type 'text/html; charset=UTF-8', server 'cloudflare' (cf-ray a212fa2b99dc3ada-BOM), Retry-After: 60. Body opens with the Cloudflare conditional-comment error template ('<!--[if lt IE 7]> <html class=\"no-js ie6 oldie\"...').",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 502
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://postman-echo.com/status/504",
+  "expect": "Same interception at 504, with a longer stated wait. Confirms the Retry-After value is read from the header rather than assumed constant.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 504 / 504, 6,431 bytes, content-type 'text/html; charset=UTF-8', server 'cloudflare' (cf-ray a212fa2bdddd47c4-BOM), Retry-After: 120 (twice the 502's 60).",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "synthetic",
+  "status": 504
+ },
+ {
+  "category": "http_5xx",
+  "url": "http://twitter.com/",
+  "expect": "A REAL Cloudflare 520 on a live, famous registered domain: the edge is healthy and answers instantly, but the plain-HTTP origin behind twitter.com no longer exists after the move to x.com. Cloudflare's 52x range describes the ORIGIN, not the edge: the edge answered us in milliseconds, so this is not a network fault the crawler can see with a socket timer. The crawler must not read the fast, well-formed 7 KB response as a working page.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 520 / 520 on both fetches, 7,323 bytes, content-type 'text/html; charset=UTF-8', server 'cloudflare', cf-ray a212fa2d091bc617-BOM, Retry-After: 60. Body is Cloudflare's own error template. Note https://www.twitter.com/ by contrast 301s cleanly to x.com — the 520 is specific to the bare http://twitter.com/ origin.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 520
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://cliqset.com/",
+  "expect": "A REAL Cloudflare 522: a defunct startup whose DNS still points at Cloudflare while the origin server is gone, so the edge's TCP connection to it times out. Cloudflare's 52x range describes the ORIGIN, not the edge: the edge answered us in milliseconds, so this is not a network fault the crawler can see with a socket timer. Must be read as timeout + retry_later (or better, cooled down as a dead host) rather than as a generic server error.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 522 / 522 on both fetches, 7,219 bytes, content-type 'text/html; charset=UTF-8', server 'cloudflare', cf-ray a212fa2d5a6cb85f-BOM, Retry-After: 120. Edge responded in well under a second — the 120s origin timeout is Cloudflare's, not ours. The same host appears in network.json as a conn/timeout case; here it is the STATUS that is the measurement.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 522
+ },
+ {
+  "category": "http_5xx",
+  "url": "https://blab.im/",
+  "expect": "A REAL Cloudflare 525 SSL Handshake Failed. Our own TLS to the edge verified cleanly with verify=True — the handshake that failed is the edge-to-origin one, which no client-side TLS check can observe. This is the row that separates ssl_error (our handshake failed) from a 5xx that merely reports somebody else's TLS failure.",
+  "evidence": "measured 2026-07-26, follow_redirects=False, verify=True, two fetches ~6s apart: 525 / 525 on both fetches, 7,005 bytes, content-type 'text/html; charset=UTF-8', server 'cloudflare', cf-ray a212fa2dba6f29d8-BOM. No Retry-After (unlike the 520/522 rows). Found by sweeping ~130 defunct domains for 5xx; 520/522/525 were the only real Cloudflare origin errors that reproduced.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "status": 525
+ }
+]

@@ -1,0 +1,11 @@
+[
+ {
+  "category": "antibot",
+  "vendor": "akamai",
+  "url": "https://www.homedepot.com/",
+  "expect": "Plain GET to the homepage is refused at the Akamai edge with the classic AkamaiGHost deny page: HTTP 403, <title>Access Denied</title>, \"You don't have permission to access ...\", an Akamai Reference # and an errors.edgesuite.net link. diagnose() must return antibot; nothing about the request reaches the origin. Collected as the REPLACEMENT for the https://www.sephora.com row, which is the same vendor but not a wall: sephora answers a plain GET with its complete 809 KB homepage and only tags the session with Akamai Bot Manager cookies, so no detector can ever return antibot for it without also condemning every Akamai-fronted page on the web.",
+  "evidence": "measured live 2026-07-27 ~09:14 UTC from our own India egress with httpx (verify=True, follow_redirects=True, UA=Chrome/120) and again with curl; three consecutive probes, all identical: HTTP 403, 369-371 bytes, 'Server: AkamaiGHost', 'Akamai-GRN: 0.0f1cc517.1785143647.73fcf4d3', 'Akamai-Request-BC: [a=23.197.28.15,...,n=IN_MH_VASHI,...]', Set-Cookie names akavpau_prod / akacd_usbeta / _bman / HD_DC. Body verbatim: '<TITLE>Access Denied</TITLE> ... <H1>Access Denied</H1> You don't have permission to access \"http://www.homedepot.com/\" on this server. Reference #18.f1cc517.1785143647.73fcf4f1 https://errors.edgesuite.net/18.f1cc517.1785143647.73fcf4f1'. crawler.captcha.detect_http identifies vendor=akamai and crawler.edgecase.diagnose returns case=antibot on every probe.",
+  "source": "verified-live",
+  "stable": true
+ }
+]

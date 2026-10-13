@@ -68,6 +68,55 @@ export function Analysis({ snapshot }) {
           <DataTable rows={typeRows} />
         </Panel>
       </div>
+      <Panel
+        title="Coverage by area"
+        subtitle="Unique URLs in each area · areas may overlap"
+      >
+        <DataTable
+          rows={(a.segments || []).map((row) =>
+            Object.fromEntries(
+              [
+                "Area",
+                "Valid URLs",
+                "Found",
+                "Missing",
+                "Unverified",
+                "Coverage %",
+              ].map((key) => [key, row[key]]),
+            ),
+          )}
+        />
+      </Panel>
+      {[
+        ["Pagination", "Pagination coverage and missing ranges", a.pagination],
+        ["Filters", "Filter coverage", a.filter_states],
+        ["Archives", "Archive coverage by year", a.years],
+      ].map(([area, title, rows]) => {
+        const assessment = a.discovery_status?.find(
+          (item) => item.Area === area,
+        );
+        return (
+          <details className="analysis-disclosure" key={area}>
+            <summary>
+              {title}
+              <span>
+                {a.segments?.find((item) => item.Area === area)?.[
+                  "Valid URLs"
+                ] || 0}{" "}
+                URLs
+              </span>
+            </summary>
+            <p className="footnote">
+              {assessment?.Evidence ||
+                "No comparable URL evidence was recorded for this view; coverage cannot be inferred from an empty table."}
+            </p>
+            <DataTable
+              rows={rows || []}
+              empty="N/A - no measurable URL states recorded in this inventory."
+            />
+          </details>
+        );
+      })}
       <div className="overview-grid">
         <Panel
           title="First discovery source"
@@ -102,24 +151,9 @@ export function Analysis({ snapshot }) {
       )}
       {[
         [
-          "Pagination and missing ranges",
-          a.pagination,
-          "Observed maximum is distinct from a verified boundary. Blocks, repetition and safeguard limits remain unknown.",
-        ],
-        [
-          "Archives by year",
-          a.years,
-          "Years inferred from explicit URL years, not every article publication date.",
-        ],
-        [
           "Pagination probe evidence",
           a.pagination_probes,
           "Up to 200 recorded probes; blocking or non-monotonic content does not prove a maximum.",
-        ],
-        [
-          "Filter coverage",
-          a.filter_states,
-          "Confirmed URL-backed filter states; DOM-only states may need a website adapter.",
         ],
         [
           "Coverage by website section",

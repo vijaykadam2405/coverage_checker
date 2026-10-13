@@ -8,7 +8,7 @@ from dataclasses import dataclass, field, fields
 from pathlib import Path
 
 from crawler_coverage_auditor.auditor import CoverageAuditor
-from crawler_coverage_auditor.config import AuditConfig
+from crawler_coverage_auditor.config import AuditConfig, paced_scan_settings
 from crawler_coverage_auditor.corpus.credentials import api_url, load_key
 from crawler_coverage_auditor.validation.text_coverage import TEXT_API_VERSION
 
@@ -38,11 +38,9 @@ class AuditJobs:
 
     def start(self, target: str, database: Path, reports: Path, corpus: str, *, capture_types: set[str] | None = None, settings: dict | None = None) -> AuditJob:
         load_key()  # Fail before discovery if automatic verification is not configured.
-        values = dict(use_browser=True, include_subdomains=True, max_concurrency=1, website_delay_seconds=1.5, corpus_interval_seconds=3.0, max_retries=2)
+        values = dict(use_browser=True, include_subdomains=True, max_retries=2)
         values.update(settings or {})
-        values.update(max_concurrency=1, corpus_batch_size=1,
-            website_delay_seconds=max(1.5, values.get('website_delay_seconds', 1.5)),
-            corpus_interval_seconds=max(3.0, values.get('corpus_interval_seconds', 3.0)))
+        values = paced_scan_settings(values)
         config = AuditConfig(target_url=target, database_path=database, output_dir=reports, corpus_url=corpus,
             discovery_only=False, **values)
         if capture_types is not None:
@@ -53,19 +51,19 @@ class AuditJobs:
     def resume(self, run_id: int, database: Path, reports: Path) -> AuditJob:
         """Continue interrupted discovery, or update an already saved inventory."""
         from crawler_coverage_auditor.services.queries import run
+        from crawler_coverage_auditor.services.recovery import needs_count_recovery
         saved = run(database, run_id)
         if not saved:
             raise ValueError('Saved scan not found')
-        if saved.get('discovery_completed_at'):
+        if saved.get('discovery_completed_at') and not needs_count_recovery(database, run_id):
             return self.start_corpus(run_id, database, reports)
         load_key()
         values = {name: value for name, value in saved['config'].items() if name in {item.name for item in fields(AuditConfig)}}
         values.update(target_url=saved['target_url'], corpus_url=api_url(), database_path=database,
             output_dir=reports / f'run_{run_id}', discovery_only=False, resume=True,
             seed_hosts=set(values.get('seed_hosts', [])) if isinstance(values.get('seed_hosts', []), (list, set, tuple)) else set(),
-            max_concurrency=1, corpus_batch_size=1,
-            website_delay_seconds=max(1.5, values.get('website_delay_seconds', 1.5)),
-            corpus_interval_seconds=max(3.0, values.get('corpus_interval_seconds', 3.0)))
+            max_concurrency=1, corpus_batch_size=1)
+        values = paced_scan_settings(values, upgrade_legacy=True)
         return self._launch(AuditConfig(**values), reports, 'discovery', run_id)
 
     def start_corpus(self, run_id: int, database: Path, reports: Path) -> AuditJob:
@@ -82,8 +80,8 @@ class AuditJobs:
         seed_hosts = values.get('seed_hosts', [])
         values.update(target_url=saved['target_url'], corpus_url=api_url(), corpus_provider='coverage_api', database_path=database,
                       output_dir=reports / f'run_{run_id}', seed_hosts=set(seed_hosts) if isinstance(seed_hosts, (list, tuple, set)) else set(),
-                      corpus_interval_seconds=max(3.0, values.get('corpus_interval_seconds', 3.0)),
                       corpus_timeout_seconds=max(60.0, values.get('corpus_timeout_seconds', 60.0)))
+        values = paced_scan_settings(values, upgrade_legacy=True)
         return self._launch(AuditConfig(**values), reports, 'corpus', run_id)
 
     def _launch(self, config: AuditConfig, reports: Path, action: str, run_id: int | None = None) -> AuditJob:

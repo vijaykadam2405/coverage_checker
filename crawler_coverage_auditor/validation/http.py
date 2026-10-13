@@ -5,8 +5,6 @@ import random
 import inspect
 from urllib.parse import urlsplit
 from collections.abc import Callable
-from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
 from dataclasses import dataclass
 from http.cookiejar import DefaultCookiePolicy
 from urllib.request import Request as CookieRequest
@@ -14,6 +12,7 @@ from urllib.request import Request as CookieRequest
 import httpx
 
 from crawler_coverage_auditor.validation.site_session import import_cookies
+from crawler_coverage_auditor.validation.failure_policy import retry_after, quota_delay, retryable_status, transport_reason, status_reason
 
 
 @dataclass(slots=True)
@@ -25,10 +24,19 @@ class FetchResult:
     content: bytes
     error: str | None = None
     url_only: bool = False
+    failure_reason: str | None = None
+    captured_at: str | None = None
 
     @property
     def text(self) -> str:
-        return httpx.Response(200, headers=self.headers, content=self.content).text
+        response = httpx.Response(200, headers=self.headers, content=self.content)
+        if response.charset_encoding or not self.content:
+            return response.text
+        # Without a transport charset, HTML may declare one in meta or a BOM.
+        # Preserve meaningful multilingual text instead of silently dropping bytes.
+        from bs4 import UnicodeDammit
+        decoded = UnicodeDammit(self.content, is_html=True)
+        return decoded.unicode_markup if decoded.unicode_markup is not None else response.text
 
 
 class PoliteHttpClient:
@@ -40,10 +48,14 @@ class PoliteHttpClient:
 
     def __init__(self, concurrency: int, timeout: float, retries: int, user_agent: str,
                  *, verify: bool = True, on_event: Callable | None = None, allowed: Callable | None = None,
-                 min_interval: float = 0.0, stopped: Callable | None = None) -> None:
+                 min_interval: float = 0.0, stopped: Callable | None = None,
+                 max_response_bytes: int = 8 * 1024 * 1024) -> None:
         self._semaphore = asyncio.Semaphore(concurrency)
         self._retries = retries
         self._attempt_budget = timeout
+        if max_response_bytes < 1:
+            raise ValueError('Response byte limit must be positive')
+        self.max_response_bytes = max_response_bytes
         self._on_event = on_event
         self._allowed = allowed
         self.min_interval = max(0.0, min_interval)
@@ -96,23 +108,14 @@ class PoliteHttpClient:
         host = urlsplit(url).netloc.lower().removeprefix('www.')
         interval = self._host_intervals.get(host, self.min_interval)
         headers = {name.lower(): value for name, value in headers.items()}
-        value = headers.get('retry-after')
-        cooldown = 0.0
-        if value:
-            try:
-                cooldown = max(0.0, float(value))
-            except ValueError:
-                try:
-                    date = parsedate_to_datetime(value)
-                    if date.tzinfo is None:
-                        date = date.replace(tzinfo=timezone.utc)
-                    cooldown = max(0.0, (date - datetime.now(timezone.utc)).total_seconds())
-                except (TypeError, ValueError, OverflowError):
-                    pass
-        if status in {429, 503}:
+        budget_delay = quota_delay(headers)
+        cooldown = max(retry_after(headers.get('retry-after')) or 0.0, budget_delay or 0.0)
+        if status in {429, 503} or budget_delay is not None:
             interval = max(interval, min(5.0, max(0.25, interval * 2)))
             self._host_intervals[host] = interval
             cooldown = max(cooldown, interval)
+            if budget_delay is not None and self._on_event:
+                self._on_event('HOST_COOLDOWN', f'Website request quota exhausted; preserving this response and waiting at least {cooldown:.1f}s before another request', url, severity='WARNING')
         self._next_allowed[host] = max(self._next_allowed.get(host, 0.0),
             asyncio.get_running_loop().time() + max(interval, cooldown))
         return cooldown
@@ -145,7 +148,7 @@ class PoliteHttpClient:
             self._next_allowed[host] = asyncio.get_running_loop().time() + self._host_intervals.get(host, self.min_interval)
             return True
 
-    async def get(self, url: str, *, check_policy: bool = True, referer: str | None = None, discovery_metadata: bool = False, corpus_html_text: bool = False) -> FetchResult:
+    async def get(self, url: str, *, check_policy: bool = True, referer: str | None = None, discovery_metadata: bool = False) -> FetchResult:
         if check_policy and self._allowed:
             decision = self._allowed(url)
             decision = await decision if inspect.isawaitable(decision) else decision
@@ -178,15 +181,26 @@ class PoliteHttpClient:
                                 # Robots and sitemap XML are discovery instructions,
                                 # not website documents whose content is audited.
                                 metadata_body = discovery_metadata and ('xml' in mime or 'text/plain' in mime or 'gzip' in mime)
-                                html_text_body = corpus_html_text and mime.split(';', 1)[0].strip() == 'text/plain'
-                                if (kind in URL_ONLY_TYPES or attachment) and not (metadata_body or html_text_body):
+                                if (kind in URL_ONLY_TYPES or attachment) and not metadata_body:
                                     if 200 <= streamed.status_code < 300:
                                         self.observe_response(url, streamed.status_code, dict(streamed.headers))
                                         return FetchResult(url, str(streamed.url), streamed.status_code, dict(streamed.headers), b'', url_only=True)
                                     # Keep error/retry handling without downloading a file body.
                                     content = b''
                                 else:
-                                    content = await streamed.aread()
+                                    length = streamed.headers.get('content-length', '')
+                                    if length.isdigit() and int(length) > self.max_response_bytes:
+                                        self.observe_response(url, streamed.status_code, dict(streamed.headers))
+                                        return FetchResult(url, str(streamed.url), streamed.status_code, dict(streamed.headers), b'',
+                                            f'TOO_LARGE: declared body exceeds {self.max_response_bytes} bytes; not downloaded', failure_reason='TOO_LARGE')
+                                    buffer = bytearray()
+                                    async for chunk in streamed.aiter_bytes(chunk_size=64 * 1024):
+                                        if len(buffer) + len(chunk) > self.max_response_bytes:
+                                            self.observe_response(url, streamed.status_code, dict(streamed.headers))
+                                            return FetchResult(url, str(streamed.url), streamed.status_code, dict(streamed.headers), b'',
+                                                f'TOO_LARGE: decoded response exceeds {self.max_response_bytes} bytes; partial body discarded', failure_reason='TOO_LARGE')
+                                        buffer.extend(chunk)
+                                    content = bytes(buffer)
                                 decoded_headers = {key: value for key, value in streamed.headers.items()
                                                    if key.lower() not in {'content-encoding', 'content-length'}}
                                 response = httpx.Response(streamed.status_code, headers=decoded_headers,
@@ -194,27 +208,27 @@ class PoliteHttpClient:
                     cooldown = self.observe_response(url, response.status_code, dict(response.headers))
                     if cooldown > 60 or self._stopped():
                         # Never retry before a long server-requested delay; report the boundary instead.
-                        return FetchResult(str(response.request.url), str(response.url), response.status_code, dict(response.headers), response.content)
-                if response.status_code in {429, 500, 502, 503, 504} and attempt < self._retries:
-                    retry_after = response.headers.get("Retry-After")
-                    delay = min(60, float(retry_after)) if retry_after and retry_after.isdigit() else min(20, 2 ** attempt)
-                    if retry_after and not retry_after.isdigit():
-                        try:
-                            delay = min(60, max(0, (parsedate_to_datetime(retry_after) - datetime.now(timezone.utc)).total_seconds()))
-                        except (TypeError, ValueError):
-                            pass
+                        return FetchResult(str(response.request.url), str(response.url), response.status_code, dict(response.headers), response.content,
+                                           failure_reason=status_reason(response.status_code) if response.status_code >= 400 else None)
+                if retryable_status(response.status_code) and attempt < self._retries:
+                    requested_delay = retry_after(response.headers.get('Retry-After'))
+                    delay = requested_delay if requested_delay is not None else min(20, 2 ** attempt)
                     if self._on_event:
                         self._on_event("RETRY", f"HTTP {response.status_code}; retry {attempt + 1} in {delay:.0f}s", url, severity="WARNING")
                     if not await self._wait(delay + random.uniform(0, 0.4)):
                         return FetchResult(url, url, 0, {}, b"", "Stopped by user")
                     continue
                 return FetchResult(str(response.request.url), str(response.url), response.status_code,
-                                   dict(response.headers), response.content)
+                                   dict(response.headers), response.content,
+                                   failure_reason=status_reason(response.status_code) if response.status_code >= 400 else None)
             except (httpx.HTTPError, ValueError, TimeoutError) as exc:
-                last_error = f"{type(exc).__name__}: {exc}"
+                reason = transport_reason(exc)
+                last_error = f"{reason}: {type(exc).__name__}: {exc}"
                 if self._on_event:
                     self._on_event("RETRY", last_error, url, severity="WARNING")
+                if reason in {'SSL_ERROR', 'REDIRECT_LOOP', 'INVALID_REQUEST'}:
+                    return FetchResult(url, url, 0, {}, b'', last_error, failure_reason=reason)
                 if attempt < self._retries:
                     if not await self._wait(min(20, 1.5 ** attempt) + random.uniform(0, 0.4)):
                         return FetchResult(url, url, 0, {}, b"", "Stopped by user")
-        return FetchResult(url, url, 0, {}, b"", last_error or "request failed")
+        return FetchResult(url, url, 0, {}, b"", last_error or "request failed", failure_reason=reason if last_error else 'FETCH_ERROR')

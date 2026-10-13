@@ -1,0 +1,202 @@
+[
+ {
+  "category": "broken_html",
+  "url": "http://info.cern.ch/hypertext/WWW/TheProject.html",
+  "expect": "The first web page ever published, still served unchanged. It predates every HTML standard the parser knows: no DOCTYPE, no </html>, tags that were never standardised, and a stray </a>. The crawler must still extract the title and the 19 links — bailing out or returning empty text here means every pre-1995 archive page is lost.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 2,217 bytes, content-type 'text/html' with NO charset. No <!DOCTYPE> at all and no closing </html> (</body> is present, </html> is not). lxml reported 4 errors: 'line 1: Tag header invalid', 'line 3: Tag nextid invalid', 'line 5: htmlParseStartTag: misplaced <body> tag', 'line 71: Unexpected end tag : a'. Tag-balance walk: 19 unclosed (<dt> x9, <dd> x9, <p> x1), 1 stray close (</a>), 1 mismatched (<nextid>). Title still parses as 'The World Wide Web project'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "no DOCTYPE; no closing </html>; unknown tags; stray end tag"
+ },
+ {
+  "category": "broken_html",
+  "url": "http://www.columbia.edu/~fdc/sample.html",
+  "expect": "Deep unclosed-tag nesting is the classic recovery test: 240 elements are opened and never closed, including 59 <td> and 24 <tr>, so a parser that requires balance produces a single collapsed node and loses the table content. The page also embeds an HTML close tag inside a <script>, which terminates the script element early for any parser that scans for '</' instead of tracking script CDATA.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 35,912 bytes, 1,114 lines. Tag-balance walk: 240 unclosed tags — <p> x88, <td> x59, <li> x47, <tr> x24, <th> x12, <dt> x5, <dd> x5 — and 0 stray closes. lxml reported 3 errors: 'line 722: ID tables already defined' (duplicate id attribute), 'line 787: htmlParseCharRef: missing semicolon', 'line 1107: Element script embeds close tag'. Also 5 unescaped '&', 1 bare '<' in text, and legacy presentational tags <font> x5, <big> x3, <tt> x10. NOTE: this host answered 403 once when fetched at concurrency 5 inside a 22-URL burst, then 200 with identical measurements on two subsequent unhurried fetches — crawl it politely.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "240 unclosed tags; HTML markup inside <script>; character reference missing its semicolon"
+ },
+ {
+  "category": "broken_html",
+  "url": "http://www.textfiles.com/",
+  "expect": "The worst-nested real page found: end tags that close elements never opened, elements closed by the wrong tag, and a tag that does not exist in any HTML version. This is what 'recover' mode is for — the parser must resynchronise and still return the document's text and links rather than truncating at the first mismatch.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 10,584 bytes, DOCTYPE 'HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\"'. lxml reported 47 errors, including 'line 37: Unexpected end tag : b', 'line 37: Unexpected end tag : a', 'line 54: Opening and ending tag mismatch: center and font', 'line 58: Opening and ending tag mismatch: table and font', 'line 169: Opening and ending tag mismatch: td and table'. Tag-balance walk: 20 stray end tags (</b> x12, </a> x2, </table> x2, </td>, </tr>, </font>, and </bling> — a tag that has never existed), 19 mismatched nestings (<font> x15, <center> x2, <table>, <blink>), 17 unclosed. Plus 10 unescaped '&' and legacy <font> x17, <center> x5, <blink> x1.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "tag soup: 20 stray end tags, 19 mismatched nestings, an invented <bling> tag"
+ },
+ {
+  "category": "broken_html",
+  "url": "http://www.heavensgate.com/",
+  "expect": "A 1997 page kept online verbatim. It contains an end tag the tokenizer cannot even terminate and an attribute whose name is not parseable — errors at the TOKENIZER level, below the tree-building level the other rows exercise. A crawler must survive a byte sequence that is not merely badly nested but not well-formed as tokens.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 13,782 bytes, no DOCTYPE, content-type 'text/html' with no charset. lxml reported 57 errors: 'line 27: End tag : expected \\'>\\'', 'line 30: error parsing attribute name', 'line 55: Opening and ending tag mismatch: font and strong', 'line 58: Unexpected end tag : strong', 'line 227: Opening and ending tag mismatch: h3 and center', 'line 272: Unexpected end tag : center'. Tag-balance walk: 18 unclosed, 7 stray closes (</strong> x6, </center>), 7 mismatched. Legacy <font> x47, <center> x5. Title still parses as \"Heaven's Gate - How and When It May Be Entered\".",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "malformed end tag ('End tag : expected >'); unparseable attribute name; 7 mismatched nestings"
+ },
+ {
+  "category": "broken_html",
+  "url": "http://www.chick.net/",
+  "expect": "Truncated document plus crossed nesting in one page: the markup simply stops without closing <body> or <html>, and inline elements are closed by each other's tags. A parser that treats EOF-with-open-elements as a fatal error returns nothing for this page.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, only 1,299 bytes, no DOCTYPE, no </body>, no </html>. lxml reported 5 errors: 'line 18: Opening and ending tag mismatch: pre and font', 'line 23: htmlParseEntityRef: no name', 'line 26: Opening and ending tag mismatch: font and tt', 'line 46: Tag nobr invalid', 'line 46: Opening and ending tag mismatch: nobr and font'. Tag-balance walk: 13 unclosed (including <html> and <body> themselves, still open at EOF), 3 mismatched (<font> x2, <tt>). No <title> element at all.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "no DOCTYPE, no </body>, no </html>; <pre> closed by </font>, <font> closed by </tt>"
+ },
+ {
+  "category": "broken_html",
+  "url": "https://clintonwhitehouse4.archives.gov/",
+  "expect": "A 1990s federal site preserved byte-for-byte in the National Archives. The table rows are closed by the wrong tag, which is the specific defect that makes a parser silently drop table CONTENT while still reporting a successful parse — the crawler stores the page and loses most of its text.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 13,206 bytes, content-type 'text/html; charset=UTF-8', no DOCTYPE. lxml reported 3 errors, all crossed nesting: 'line 86: Opening and ending tag mismatch: form and font', 'line 252: Opening and ending tag mismatch: td and table', 'line 253: Opening and ending tag mismatch: tr and table'. Tag-balance walk: 3 stray closes (</td>, </tr>, </table>), 2 mismatched, 3 unclosed. Legacy <font> x23, <center> x1.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "table nesting crossed: <td> and <tr> closed by </table>; <form> closed by </font>"
+ },
+ {
+  "category": "broken_html",
+  "url": "https://georgewbush-whitehouse.archives.gov/",
+  "expect": "Two defects at once, and both are the 'served as HTML' class. The document declares XHTML 1.0 Transitional (XML rules: every element closed, attributes quoted) but is delivered as text/html, so an XML parser must not be used on it. Separately the transport declares charset=UTF-8 while the bytes are not decodable as UTF-8 — a strict decode raises, and the crawler must fall back rather than drop the page.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 34,787 bytes, content-type 'text/html; charset=UTF-8', DOCTYPE 'html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"'. bytes.decode('utf-8') RAISES UnicodeDecodeError even though the header promises UTF-8 (2 non-ASCII bytes, neither of them a valid UTF-8 sequence). lxml's HTML parser reported 0 errors — proof that 'the HTML parser is happy' is not the same as 'the document is well-formed'; the tag-balance walk still found 1 mismatched <div>, and the XHTML document carries 29 <font> tags, which XHTML 1.0 Transitional permits but XHTML Strict does not.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "XHTML 1.0 Transitional served as text/html; body is NOT valid UTF-8 despite charset=UTF-8"
+ },
+ {
+  "category": "broken_html",
+  "url": "https://www.spacejam.com/1996/",
+  "expect": "The original 1996 Space Jam site, preserved. No DOCTYPE means quirks-mode parsing, and the unescaped ampersands are the common real-world entity defect: '&' followed by text that is not a valid entity name. A parser that errors on a bad entity reference instead of emitting a literal '&' loses the URLs those ampersands sit inside.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 6,846 bytes, 637 lines, content-type 'text/html; charset=UTF-8' but NO <meta charset> in the document. No <!DOCTYPE>. lxml reported 5 errors including 'line 81: Tag nobr invalid' and 'line 441: htmlParseEntityRef: expecting \\';\\''. 14 unescaped '&' (regex-counted: '&' not followed by a valid named/numeric entity). Legacy <font> x5, <center> x4, <nobr> x3. Title parses as 'Space Jam'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "no DOCTYPE; nonstandard <nobr>; 14 unescaped '&' in attribute values and text"
+ },
+ {
+  "category": "broken_html",
+  "url": "http://www.arngren.net/",
+  "expect": "A famously chaotic live commercial site: 260 KB of absolutely-positioned <font> soup with no DOCTYPE. The volume is the test — 868 presentational elements in one document is a stress case for any parser that builds a DOM, and the page is real, live and updated.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 260,723 bytes, 677 lines, longest line 9,702 chars, content-type 'text/html' with NO charset and NO <meta charset>. No <!DOCTYPE>. Legacy tag census: <font> x868. lxml reported 10 errors including 'line 77: htmlParseEntityRef: expecting \\';\\''. 10 unescaped '&'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "no DOCTYPE; 868 <font> tags; 10 unescaped '&'; 9,702-char longest line"
+ },
+ {
+  "category": "broken_html",
+  "url": "https://www.cs.princeton.edu/~bwk/",
+  "expect": "A hand-written academic homepage: 67 elements opened and never closed, plus end tags with no matching open. Both defects at once means the parser has to both auto-close and ignore, and the page's link list is exactly what a crawler needs off it.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 12,733 bytes, 346 lines, no DOCTYPE. Tag-balance walk: 67 unclosed (<li> x30, <p> x16, <td> x14, <tr> x7), 5 stray end tags (</b> x3, </a>, </blockquote>). lxml reported 9 errors: 'line 144: Unexpected end tag : a', 'line 208: htmlParseEntityRef: expecting \\';\\'', 'line 231: Unexpected end tag : blockquote', 'line 277: Unexpected end tag : b'. One malformed character reference ('&T'), 4 unescaped '&', 1 bare '<' in text.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "67 unclosed tags; 5 stray end tags; bad character reference '&T'"
+ },
+ {
+  "category": "broken_html",
+  "url": "https://people.eecs.berkeley.edu/~jrs/",
+  "expect": "A document that declares HTML 3.2 (1997) but contains HTML5 elements, so it is invalid against its own declared DTD. A crawler that trusts the DOCTYPE to pick a parsing mode gets it wrong; the DOCTYPE is a claim, not a fact.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 48,650 bytes, 1,046 lines, DOCTYPE 'html PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\"'. lxml reported 9 errors including 'line 121: Tag aside invalid' (an HTML5 element inside an HTML 3.2 document), 'line 95: htmlParseEntityRef: expecting \\';\\'', 'line 476: Unexpected end tag : a'. Tag-balance walk: 39 unclosed (<p> x27, <li> x10, <tr> x2), 1 stray close (</a>). 11 unescaped '&'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "HTML 3.2 DOCTYPE containing an HTML5-only <aside>; 39 unclosed tags"
+ },
+ {
+  "category": "broken_html",
+  "url": "http://www.mathpuzzle.com/",
+  "expect": "Absent transport charset: the HTTP Content-Type is a bare 'text/html' with no charset parameter, so the only encoding declaration is a <meta> inside the body — which cannot be read until the bytes have already been decoded. The crawler must sniff the meta before committing to an encoding, and must not default to UTF-8 on a page that says iso-8859-1.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 78,743 bytes, 991 lines. Content-Type header is 'text/html' with NO charset parameter; the document's <meta> declares charset=iso-8859-1. 3 non-ASCII bytes present, so the declaration is load-bearing. DOCTYPE 'HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"'. lxml reported 30 errors, including 'line 300: Unexpected end tag : dd' and 'line 327: htmlParseEntityRef: expecting \\';\\''. 29 unescaped '&'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "charset declared ONLY in <meta> (iso-8859-1) and nowhere in the HTTP header; 29 unescaped '&'"
+ },
+ {
+  "category": "broken_html",
+  "url": "http://www.vim.org/",
+  "expect": "The two encoding declarations directly contradict each other. Per spec the transport header wins, but plenty of parsers prefer the meta, so the same bytes decode two different ways depending on which the crawler believes. This row exists to pin the precedence rule down rather than leave it to whichever library is in the path.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 20,119 bytes, 518 lines. Content-Type header: 'text/html; charset=UTF-8'. Document <meta> charset: 'iso-8859-1'. The two disagree, measured in the same response on two separate fetches. DOCTYPE 'HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"'. lxml reported 3 errors including 'line 275: Unexpected end tag : p'; tag-balance walk found 7 unclosed <p>.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "charset CONFLICT: HTTP header says UTF-8, <meta> in the same document says iso-8859-1"
+ },
+ {
+  "category": "broken_html",
+  "url": "http://www.drudgereport.com/",
+  "expect": "The unescaped-delimiter case at scale on a live, high-traffic site: 22 literal '<' characters that are not tag starts, so the tokenizer has to decide where the tag it just started actually ends, plus a comment that is opened incorrectly. Every '<' the parser mis-reads as a tag swallows the text after it.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 91,593 bytes, 467 lines, longest line 27,015 chars, content-type 'text/html; charset=utf-8', NO DOCTYPE. 22 bare '<' not followed by a name/'/'/'!'/'?', and 393 unescaped '&'. lxml reported 30 errors: 'line 101: Incorrectly opened comment', 'line 104: htmlParseEntityRef: expecting \\';\\'', 'line 132: Unexpected end tag : b', 'line 137: Unexpected end tag : tt', 'line 465: Opening and ending tag mismatch: body and center'. Tag-balance walk: 2 stray closes, 1 mismatched. Title parses (with a raw numeric entity in it) as 'DRUDGE REPORT&#174; 2027'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "22 bare '<' in text; 393 unescaped '&'; malformed comment; <body> closed by </center>"
+ },
+ {
+  "category": "broken_html",
+  "url": "https://old.reddit.com/",
+  "expect": "Giant single-line minified HTML: the whole document is one physical line, so any line-oriented handling (line-numbered errors, chunked reads, regex with '.' not matching newlines) degenerates. It also carries 247 HTML tags inside <script> bodies, so a link extractor that regexes the raw HTML will pull hrefs out of JavaScript string literals that are not links on this page at all.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 301,041 bytes in exactly 1 line (longest line = the whole file; measured 315,383 bytes / 1 line on the first fetch and 301,041 / 1 line on the second — the site is dynamic, the single-line shape is constant). 247 HTML tag matches inside <script>...</script> bodies. lxml reported 100 errors ({CEIL}), including 'line 1: Tag section invalid', 'line 1: Tag time invalid', 'line 1: Element script embeds close tag' — every error attributed to line 1, because there is only one.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "entire 301 KB document on ONE line; 247 HTML tags inside <script> bodies"
+ },
+ {
+  "category": "broken_html",
+  "url": "https://www.nytimes.com/",
+  "expect": "The largest single line measured anywhere in this corpus — one line holds 65% of a 1.3 MB document. Combined with 33 bare '<' and over a thousand unescaped '&', this is the modern-minified analogue of the old tag-soup rows: the defects are the same, the scale is not.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 1,368,163 bytes across 669 lines with a longest line of 893,092 chars. 33 bare '<' in text and 1,064 unescaped '&'. lxml reported 100 errors ({CEIL}), all attributed to line 631: 'Tag header invalid', 'Tag section invalid', 'Tag svg invalid', 'Tag path invalid', 'Tag nav invalid', 'Tag dialog invalid'. Byte size drifts between fetches (live front page); the single-huge-line shape and the defect counts did not.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "893,092-char single line; 33 bare '<'; 1,064 unescaped '&'"
+ },
+ {
+  "category": "broken_html",
+  "url": "https://www.flipkart.com/",
+  "expect": "Three separate </html> end tags in one document is the defect that matters here: a parser that stops at the first </html> discards two thirds of the page, and a crawler that chunks on '</html>' splits one document into three. Wrapped in a 749 KB single line.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 1,188,216 bytes across 1,907 lines, longest line 749,353 chars. Tag-balance walk found 3 stray </html> end tags (only one <html> is ever opened). 531 unescaped '&' and 4 bare '<'. lxml reported 100 errors ({CEIL}), all at line 1,646: 'Tag svg invalid', 'Tag path invalid', 'Tag header invalid', 'Tag picture invalid', 'Tag source invalid'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "749,353-char single line; THREE stray </html> end tags in one document; 531 unescaped '&'"
+ },
+ {
+  "category": "broken_html",
+  "url": "https://www.163.com/",
+  "expect": "Highest unescaped-ampersand count measured, on a large multibyte (Chinese) document. The combination is the point: the entity-recovery path and the multibyte-decoding path have to work at the same time, and a parser that resynchronises on '&' byte-wise can land mid-character in a UTF-8 sequence.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 273,296 bytes across 3,848 lines, content-type 'text/html; charset=utf-8' agreeing with the <meta> charset. 625 unescaped '&' and 6 bare '<'. 43,840 non-ASCII bytes (the body decodes as valid UTF-8). lxml reported 100 errors ({CEIL}), including 'line 247: htmlParseEntityRef: expecting \\';\\''. DOCTYPE is the bare legacy 'HTML'. Title parses as '网易'.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "625 unescaped '&' in a 43,840-non-ASCII-byte document"
+ },
+ {
+  "category": "broken_html",
+  "url": "https://www.sohu.com/",
+  "expect": "Most bare '<' characters measured, again on a multibyte document, and this time with crossed nesting as well: end tags for elements that were never opened. 209 KB compressed onto 26 lines with a 67 KB longest line.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 209,233 bytes across only 26 lines, longest line 67,831 chars, content-type 'text/html;charset=utf-8' (no space after the semicolon). 47 bare '<' and 81 unescaped '&'. Tag-balance walk: 3 stray end tags (</div> x2, </nav>) and 1 mismatched <nav>. lxml reported 15 errors, all at line 3: 'Tag header invalid', 'Tag add-desktop invalid' (a custom element), 'Tag nav invalid', 'Unexpected end tag : nav', 'Unexpected end tag : div', 'Tag main invalid'. 31,821 non-ASCII bytes. 7 HTML tags inside <script>.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "47 bare '<' in text; stray </div> x2 and </nav>; 31,821 non-ASCII bytes on 26 lines"
+ },
+ {
+  "category": "broken_html",
+  "url": "https://feeds.bbci.co.uk/news/rss.xml",
+  "expect": "The XML-served-where-HTML-is-expected case. The crawler's harness passes any body whose content-type contains 'xml' to the same diagnose()/visible_text() path as HTML, so an XML document does get run through HTML machinery. Every RSS element is unknown to the HTML parser and <link> is void in HTML but has content in RSS, so </link> reads as a stray end tag on every single item. It must degrade to 'unknown tags, still readable text', not to an exception.",
+  "evidence": "measured 2026-07-26 (two fetches, identical counts both times) by feeding the live body to BOTH lxml.etree.HTMLParser(recover=True) — quoting its error_log verbatim — and a html.parser tag-balance walk that separates optional-end unclosed tags from genuinely mismatched nesting: HTTP 200, 25,020 bytes, 274 lines, content-type 'text/xml; charset=utf-8'. Starts with an '<?xml' declaration; has NO <!DOCTYPE>, NO </body>, NO </html>. lxml's HTML parser reported 100 errors ({CEIL}): 'line 1: Tag rss invalid', 'line 2: Tag channel invalid', 'line 3: Incorrectly opened comment', 'line 4: Tag description invalid', 'line 5: Unexpected end tag : link', 'line 6: Tag image invalid'. The HTML title regex still matches, returning the raw CDATA wrapper '<![CDATA[BBC News]]>' rather than 'BBC News' — a concrete extraction bug this row pins down.",
+  "source": "verified-live",
+  "stable": true,
+  "variant": "real",
+  "defect": "XML document (RSS 2.0 with an <?xml?> declaration) that an HTML parser must not choke on"
+ }
+]

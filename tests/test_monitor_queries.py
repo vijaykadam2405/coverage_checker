@@ -115,10 +115,10 @@ def test_controls_are_validated_persisted_and_passed_to_worker(tmp_path):
     restored=TestClient(create_app(path,tmp_path/'reports',jobs=jobs)).get('/api/state').json()['settings']
     assert restored['discovery_sources']==['STATIC']
     assert client.post('/api/discover',headers=HEADERS,json={'target_url':'https://example.test/'}).status_code==202
-    assert jobs.settings['max_urls']==500 and jobs.settings['website_delay_seconds']==1.5
+    assert 'max_urls' not in jobs.settings and jobs.settings['website_delay_seconds']==1.5
     assert jobs.settings['corpus_batch_size']==1 and jobs.settings['capture_types']==['API','HTML']
     jobs.job=None
-    for invalid in ({'max_concurrency':2},{'corpus_batch_size':10},{'corpus_interval_seconds':0},{'website_delay_seconds':0},{'maximum_pagination_probe':0},{'discovery_sources':['STEALTH']}):
+    for invalid in ({'max_concurrency':2},{'corpus_batch_size':10},{'corpus_interval_seconds':0},{'website_delay_seconds':0},{'max_retries':5},{'discovery_sources':['STEALTH']}):
         assert client.put('/api/settings',headers=HEADERS,json=settings|invalid).status_code==422
 
 

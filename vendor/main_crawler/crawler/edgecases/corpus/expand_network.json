@@ -1,0 +1,1077 @@
+[
+ {
+  "category": "ssl_error",
+  "url": "https://no-common-name.badssl.com/",
+  "expect": "server presents a certificate whose notAfter is in the past; OpenSSL path validation fails closed and the crawler must record a TLS error, not an empty page",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 4.5s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') ; probe2 1.8s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://no-subject.badssl.com/",
+  "expect": "server presents a certificate whose notAfter is in the past; OpenSSL path validation fails closed and the crawler must record a TLS error, not an empty page",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.7s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') ; probe2 0.7s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://reversed-chain.badssl.com/",
+  "expect": "server does not send a chain the client can build back to a trusted root (missing/mis-ordered intermediate); an OpenSSL-based crawler cannot repair it the way Windows/schannel AIA-fetching does",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.7s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1006)') ; probe2 2.2s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://sha1-intermediate.badssl.com/",
+  "expect": "server does not send a chain the client can build back to a trusted root (missing/mis-ordered intermediate); an OpenSSL-based crawler cannot repair it the way Windows/schannel AIA-fetching does",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.7s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1006)') ; probe2 2.4s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://dh1024.badssl.com/",
+  "expect": "server only offers a Diffie-Hellman group modern TLS stacks consider too weak; the key exchange, not the certificate, is what fails",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.9s -> ConnectError('[SSL: DH_KEY_TOO_SMALL] dh key too small (_ssl.c:1006)') ; probe2 2.7s -> ConnectError('[SSL: DH_KEY_TOO_SMALL] dh key too small (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://dh-composite.badssl.com/",
+  "expect": "server only offers a Diffie-Hellman group modern TLS stacks consider too weak; the key exchange, not the certificate, is what fails",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.7s -> ConnectError('[SSL: DH_KEY_TOO_SMALL] dh key too small (_ssl.c:1006)') ; probe2 0.7s -> ConnectError('[SSL: DH_KEY_TOO_SMALL] dh key too small (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://3des.badssl.com/",
+  "expect": "server offers only cipher suites the client has removed; the server aborts the handshake with a fatal alert before any certificate is validated",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> ConnectError('[SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1006)') ; probe2 1.7s -> ConnectError('[SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://invalid-expected-sct.badssl.com/",
+  "expect": "server does not send a chain the client can build back to a trusted root (missing/mis-ordered intermediate); an OpenSSL-based crawler cannot repair it the way Windows/schannel AIA-fetching does",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1006)') ; probe2 0.7s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://tls-v1-0.badssl.com:1010/",
+  "expect": "server speaks only an obsolete TLS version that the client's minimum-version policy refuses; failure happens at version negotiation",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.7s -> ConnectError('[SSL: UNSUPPORTED_PROTOCOL] unsupported protocol (_ssl.c:1006)') ; probe2 0.7s -> ConnectError('[SSL: UNSUPPORTED_PROTOCOL] unsupported protocol (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://tls-v1-1.badssl.com:1011/",
+  "expect": "server speaks only an obsolete TLS version that the client's minimum-version policy refuses; failure happens at version negotiation",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 8.4s -> ConnectError('[SSL: UNSUPPORTED_PROTOCOL] unsupported protocol (_ssl.c:1006)') ; probe2 0.7s -> ConnectError('[SSL: UNSUPPORTED_PROTOCOL] unsupported protocol (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://10000-sans.badssl.com/",
+  "expect": "server's certificate message is larger than the client's TLS record/message limit; the handshake aborts on message size, a failure mode unrelated to trust",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 5.3s -> ConnectError('[SSL: EXCESSIVE_MESSAGE_SIZE] excessive message size (_ssl.c:1006)') ; probe2 0.9s -> ConnectError('[SSL: EXCESSIVE_MESSAGE_SIZE] excessive message size (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://subdomain.preloaded-hsts.badssl.com/",
+  "expect": "certificate is well-formed and trusted but its SAN list does not cover the hostname requested; hostname verification must fail rather than fall back to the served name",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 2.1s -> ConnectError(\"[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'subdomain.preloaded-hsts.badssl.com'. (_ssl.c:1006)\") ; probe2 0.7s -> ConnectError(\"[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'subdomain.preloaded-hsts.badssl.com'. (_ssl.c:1006)\") (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://expired-rsa-dv.ssl.com/",
+  "expect": "server presents a certificate whose notAfter is in the past; OpenSSL path validation fails closed and the crawler must record a TLS error, not an empty page",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.6s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') ; probe2 0.7s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://expired-rsa-ev.ssl.com/",
+  "expect": "server presents a certificate whose notAfter is in the past; OpenSSL path validation fails closed and the crawler must record a TLS error, not an empty page",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.7s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') ; probe2 0.6s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://expired-ecc-dv.ssl.com/",
+  "expect": "server presents a certificate whose notAfter is in the past; OpenSSL path validation fails closed and the crawler must record a TLS error, not an empty page",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.6s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') ; probe2 1.6s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://expired-ecc-ev.ssl.com/",
+  "expect": "server presents a certificate whose notAfter is in the past; OpenSSL path validation fails closed and the crawler must record a TLS error, not an empty page",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.7s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') ; probe2 0.6s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://ftp.us.debian.org/",
+  "expect": "certificate is well-formed and trusted but its SAN list does not cover the hostname requested; hostname verification must fail rather than fall back to the served name",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 3.0s -> ConnectError(\"[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'ftp.us.debian.org'. (_ssl.c:1006)\") ; probe2 2.3s -> ConnectError(\"[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'ftp.us.debian.org'. (_ssl.c:1006)\") (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://sunsite.unc.edu/",
+  "expect": "certificate is well-formed and trusted but its SAN list does not cover the hostname requested; hostname verification must fail rather than fall back to the served name",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.7s -> ConnectError(\"[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'sunsite.unc.edu'. (_ssl.c:1006)\") ; probe2 1.3s -> ConnectError(\"[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'sunsite.unc.edu'. (_ssl.c:1006)\") (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://tom7.org/",
+  "expect": "server does not support RFC 5746 secure renegotiation; OpenSSL 3 refuses the connection by default, so an otherwise-reachable site is unreachable to a modern crawler",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.6s -> ConnectError('[SSL: UNSAFE_LEGACY_RENEGOTIATION_DISABLED] unsafe legacy renegotiation disabled (_ssl.c:1006)') ; probe2 0.6s -> ConnectError('[SSL: UNSAFE_LEGACY_RENEGOTIATION_DISABLED] unsafe legacy renegotiation disabled (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://www.faqs.org/",
+  "expect": "port answers plain HTTP, not TLS, so the ServerHello parse fails; a crawler that upgraded an http:// link to https:// lands here and must not treat the bytes as a page",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.2s -> ConnectError('[SSL: WRONG_VERSION_NUMBER] wrong version number (_ssl.c:1006)') ; probe2 1.2s -> ConnectError('[SSL: WRONG_VERSION_NUMBER] wrong version number (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://blogcatalog.com/",
+  "expect": "leaf certificate is its own issuer with no CA in any trust store; chain-of-trust validation fails",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.3s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1006)') ; probe2 0.3s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1006)') (httpx timeout budget 12s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://opsound.org/",
+  "expect": "leaf certificate is its own issuer with no CA in any trust store; chain-of-trust validation fails",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 2.0s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1006)') ; probe2 1.8s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1006)') (httpx timeout budget 12s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://thisismyjam.com/",
+  "expect": "server presents a certificate whose notAfter is in the past; OpenSSL path validation fails closed and the crawler must record a TLS error, not an empty page",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.1s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') ; probe2 1.2s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1006)') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://netj.com/",
+  "expect": "server rejects the SNI hostname with an unrecognized_name alert; the vhost is not configured for TLS on this name",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> ConnectError('[SSL: TLSV1_UNRECOGNIZED_NAME] tlsv1 unrecognized name (_ssl.c:1006)') ; probe2 0.6s -> ConnectError('[SSL: TLSV1_UNRECOGNIZED_NAME] tlsv1 unrecognized name (_ssl.c:1006)') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://labpixies.com/",
+  "expect": "server closes the TCP connection mid-handshake without a TLS alert; the client reports a protocol-violating EOF rather than a certificate verdict",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 3.6s -> ConnectError('[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1006)') ; probe2 0.2s -> ConnectError('[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1006)') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "ssl_error",
+  "url": "https://ftp.novell.com/",
+  "expect": "server does not send a chain the client can build back to a trusted root (missing/mis-ordered intermediate); an OpenSSL-based crawler cannot repair it the way Windows/schannel AIA-fetching does",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1006)') ; probe2 1.8s -> ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1006)') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://beenz.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.3s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://brightkite.com/",
+  "expect": "resolver returns no usable answer for the name (SERVFAIL / non-authoritative not-found); no TCP attempt is ever made, so the crawler must mark the host dead rather than schedule retries against it",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.2s -> ConnectError('[Errno 11002] getaddrinfo failed') ; probe2 0.3s -> ConnectError('[Errno 11002] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://flynn.io/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://ftp.cisco.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.9s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://ftp.ibm.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://koprol.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://pheed.com/",
+  "expect": "resolver returns no usable answer for the name (SERVFAIL / non-authoritative not-found); no TCP attempt is ever made, so the crawler must mark the host dead rather than schedule retries against it",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.2s -> ConnectError('[Errno 11002] getaddrinfo failed') ; probe2 0.2s -> ConnectError('[Errno 11002] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://pipes.yahoo.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.5s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://prodigy.net/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://teracent.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://agnilux.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.4s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://angstro.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.4s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://glassmap.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://kosmix.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://sonyericsson.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://blippy.com/",
+  "expect": "resolver returns no usable answer for the name (SERVFAIL / non-authoritative not-found); no TCP attempt is ever made, so the crawler must mark the host dead rather than schedule retries against it",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.7s -> ConnectError('[Errno 11002] getaddrinfo failed') ; probe2 0.8s -> ConnectError('[Errno 11002] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://catch.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.4s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://directr.co/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.5s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://hello.is/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.4s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://jelly.co/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.4s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://meerkatapp.co/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.6s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.4s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://munchery.com/",
+  "expect": "resolver returns no usable answer for the name (SERVFAIL / non-authoritative not-found); no TCP attempt is ever made, so the crawler must mark the host dead rather than schedule retries against it",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.3s -> ConnectError('[Errno 11002] getaddrinfo failed') ; probe2 0.3s -> ConnectError('[Errno 11002] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://nitrous.io/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://orchestrate.io/",
+  "expect": "resolver returns no usable answer for the name (SERVFAIL / non-authoritative not-found); no TCP attempt is ever made, so the crawler must mark the host dead rather than schedule retries against it",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 2.9s -> ConnectError('[Errno 11002] getaddrinfo failed') ; probe2 0.2s -> ConnectError('[Errno 11002] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://shippable.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.4s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://showyou.com/",
+  "expect": "resolver returns no usable answer for the name (SERVFAIL / non-authoritative not-found); no TCP attempt is ever made, so the crawler must mark the host dead rather than schedule retries against it",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.4s -> ConnectError('[Errno 11002] getaddrinfo failed') ; probe2 0.4s -> ConnectError('[Errno 11002] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://spoonrocket.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.3s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://timeful.com/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.4s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.5s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "dns_failure",
+  "url": "https://turntable.fm/",
+  "expect": "name does not resolve (NXDOMAIN); no TCP attempt is ever made, so the crawler must mark the host permanently dead, not retry",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') ; probe2 0.2s -> ConnectError('[Errno 11001] getaddrinfo failed') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://textfiles.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 8.8s -> ConnectTimeout('timed out') ; probe2 8.7s -> ConnectTimeout('timed out') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://www.textfiles.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 8.8s -> ConnectTimeout('timed out') ; probe2 8.7s -> ConnectTimeout('timed out') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://mirror.centos.org/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 8.8s -> ConnectTimeout('timed out') ; probe2 8.2s -> ConnectTimeout('timed out') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://bizzy.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 10.3s -> ConnectTimeout('timed out') ; probe2 10.3s -> ConnectTimeout('timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://broadcast.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 20.4s -> ConnectTimeout('timed out') ; probe2 20.3s -> ConnectTimeout('timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://cloudcontrol.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 10.2s -> ConnectTimeout('timed out') ; probe2 10.2s -> ConnectTimeout('timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://hashable.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 10.4s -> ConnectTimeout('timed out') ; probe2 10.3s -> ConnectTimeout('timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://launch.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 20.4s -> ConnectTimeout('timed out') ; probe2 20.2s -> ConnectTimeout('timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://macromedia.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 10.4s -> ConnectTimeout('timed out') ; probe2 10.3s -> ConnectTimeout('timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://blekko.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 20.3s -> ConnectTimeout('timed out') ; probe2 20.2s -> ConnectTimeout('timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://mvp.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 10.6s -> ConnectTimeout('timed out') ; probe2 10.3s -> ConnectTimeout('timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://humin.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 8.5s -> ConnectTimeout('timed out') ; probe2 8.4s -> ConnectTimeout('timed out') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://kitchit.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 8.4s -> ConnectTimeout('timed out') ; probe2 8.4s -> ConnectTimeout('timed out') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://modulus.io/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 8.4s -> ConnectTimeout('timed out') ; probe2 8.2s -> ConnectTimeout('timed out') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://finetune.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 12.6s -> ConnectTimeout('timed out') ; probe2 12.2s -> ConnectTimeout('timed out') (httpx timeout budget 12s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://ovi.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 12.2s -> ConnectTimeout('timed out') ; probe2 12.3s -> ConnectTimeout('timed out') (httpx timeout budget 12s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://seeqpod.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 15.4s -> ConnectTimeout('timed out') ; probe2 15.0s -> ConnectTimeout('timed out') (httpx timeout budget 12s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://sunmicrosystems.com/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 12.2s -> ConnectTimeout('timed out') ; probe2 12.2s -> ConnectTimeout('timed out') (httpx timeout budget 12s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://joost.tv/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 10.8s -> ConnectTimeout('timed out') ; probe2 10.6s -> ConnectTimeout('timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://revver.tv/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 20.6s -> ConnectTimeout('timed out') ; probe2 20.6s -> ConnectTimeout('timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://example.com:81/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default The port is a well-known-closed one on a live host, so this exercises the closed-port path without any DNS or TLS involvement.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 16.3s -> ConnectTimeout('timed out') ; probe2 16.2s -> ConnectTimeout('timed out') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://github.com:81/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default The port is a well-known-closed one on a live host, so this exercises the closed-port path without any DNS or TLS involvement.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 8.3s -> ConnectTimeout('timed out') ; probe2 8.2s -> ConnectTimeout('timed out') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://www.cloudflare.com:81/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default The port is a well-known-closed one on a live host, so this exercises the closed-port path without any DNS or TLS involvement.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 16.3s -> ConnectTimeout('timed out') ; probe2 16.3s -> ConnectTimeout('timed out') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://www.iana.org:81/",
+  "expect": "SYN is silently dropped -- no RST, no answer; the crawler's connect timeout must bound this or the worker hangs for the OS default The port is a well-known-closed one on a live host, so this exercises the closed-port path without any DNS or TLS involvement.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 16.3s -> ConnectTimeout('timed out') ; probe2 16.3s -> ConnectTimeout('timed out') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://rapleaf.com/",
+  "expect": "TCP connects but the TLS handshake never completes; the crawler's connect/handshake budget must fire or the worker blocks in ssl.do_handshake forever",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 20.5s -> ConnectTimeout('_ssl.c:989: The handshake operation timed out') ; probe2 20.6s -> ConnectTimeout('_ssl.c:989: The handshake operation timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://sixdegrees.com/",
+  "expect": "connection is established but the server never sends response bytes within the budget; the crawler's read timeout must fire independently of the connect timeout",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 15.5s -> ReadTimeout('The read operation timed out') ; probe2 11.2s -> ReadTimeout('The read operation timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "http://nmap.org:443/",
+  "expect": "connection is established but the server never sends response bytes within the budget; the crawler's read timeout must fire independently of the connect timeout This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 11.9s -> ReadTimeout('timed out') ; probe2 17.8s -> ReadTimeout('timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "http://www.sqlite.org:443/",
+  "expect": "connection is established but the server never sends response bytes within the budget; the crawler's read timeout must fire independently of the connect timeout This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 11.4s -> ReadTimeout('timed out') ; probe2 10.9s -> ReadTimeout('timed out') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "timeout",
+  "url": "https://httpbun.com/delay/10",
+  "expect": "connection is established but the server never sends response bytes within the budget; the crawler's read timeout must fire independently of the connect timeout",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 6.1s -> ReadTimeout('The read operation timed out') ; probe2 6.2s -> ReadTimeout('The read operation timed out') (httpx timeout budget 5s, verify=True, no redirects) | harness pins timeout_s=5 because the server's advertised delay is longer than 5s but shorter than the default 20s budget; at the default this URL simply returns a slow 200",
+  "source": "verified-live",
+  "stable": true,
+  "timeout_s": 5
+ },
+ {
+  "category": "timeout",
+  "url": "https://nghttp2.org/httpbin/delay/10",
+  "expect": "connection is established but the server never sends response bytes within the budget; the crawler's read timeout must fire independently of the connect timeout",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 5.7s -> ReadTimeout('The read operation timed out') ; probe2 5.9s -> ReadTimeout('The read operation timed out') (httpx timeout budget 5s, verify=True, no redirects) | harness pins timeout_s=5 because the server's advertised delay is longer than 5s but shorter than the default 20s budget; at the default this URL simply returns a slow 200",
+  "source": "verified-live",
+  "stable": true,
+  "timeout_s": 5
+ },
+ {
+  "category": "timeout",
+  "url": "https://postman-echo.com/delay/8",
+  "expect": "connection is established but the server never sends response bytes within the budget; the crawler's read timeout must fire independently of the connect timeout",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 5.5s -> ReadTimeout('The read operation timed out') ; probe2 5.6s -> ReadTimeout('The read operation timed out') (httpx timeout budget 5s, verify=True, no redirects) | harness pins timeout_s=5 because the server's advertised delay is longer than 5s but shorter than the default 20s budget; at the default this URL simply returns a slow 200",
+  "source": "verified-live",
+  "stable": true,
+  "timeout_s": 5
+ },
+ {
+  "category": "conn_error",
+  "url": "https://neverssl.com/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 6.5s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 6.5s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "https://www.ai.mit.edu/",
+  "expect": "host resolves and is routable but the TCP port is closed and answers with RST; the crawler must classify this as a connection error distinct from DNS death and from a timeout",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 4.6s -> ConnectError('[WinError 10061] No connection could be made because the target machine actively refused it') ; probe2 7.4s -> ConnectError('[WinError 10061] No connection could be made because the target machine actively refused it') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "https://symbian.com/",
+  "expect": "host resolves and is routable but the TCP port is closed and answers with RST; the crawler must classify this as a connection error distinct from DNS death and from a timeout",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 13.5s -> ConnectError('[WinError 10061] No connection could be made because the target machine actively refused it') ; probe2 13.6s -> ConnectError('[WinError 10061] No connection could be made because the target machine actively refused it') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "https://wowd.com/",
+  "expect": "host resolves and is routable but the TCP port is closed and answers with RST; the crawler must classify this as a connection error distinct from DNS death and from a timeout",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 3.6s -> ConnectError('[WinError 10061] No connection could be made because the target machine actively refused it') ; probe2 6.7s -> ConnectError('[WinError 10061] No connection could be made because the target machine actively refused it') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.reddit.com:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> RemoteProtocolError('illegal request line') ; probe2 0.9s -> RemoteProtocolError('illegal request line') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "https://value-america.com/",
+  "expect": "peer resets the connection during connection setup rather than refusing or answering; the crawler must not read this RST as an empty-but-valid response",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.9s -> ConnectError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 1.1s -> ConnectError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "https://editorially.com/",
+  "expect": "peer resets the connection during connection setup rather than refusing or answering; the crawler must not read this RST as an empty-but-valid response",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.7s -> ConnectError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 0.8s -> ConnectError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "https://runnable.com/",
+  "expect": "peer resets the connection during connection setup rather than refusing or answering; the crawler must not read this RST as an empty-but-valid response",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.2s -> ConnectError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 3.9s -> ConnectError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "https://hub.dummyapis.com/delay?seconds=10",
+  "expect": "peer resets the connection during connection setup rather than refusing or answering; the crawler must not read this RST as an empty-but-valid response",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 2.1s -> ConnectError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 1.0s -> ConnectError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 12s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "https://httpstat.us/200?sleep=20000",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.1s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 1.4s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 8s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.google.com:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 0.8s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.wikipedia.org:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.9s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 1.1s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.eff.org:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.9s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 0.5s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.github.com:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.6s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 1.4s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://bitbucket.org:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.5s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 0.4s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://go.dev:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.7s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 0.8s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.drupal.org:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 0.9s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.gutenberg.org:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.1s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 1.1s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.jenkins.io:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.6s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 0.4s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.mediawiki.org:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.7s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 0.8s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.netbsd.org:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 0.8s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.postgresql.org:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.7s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 2.0s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.ubuntu.com:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.2s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 1.2s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.wikimedia.org:443/",
+  "expect": "server accepts the connection then disconnects without sending any HTTP response; httpx raises RemoteProtocolError and the crawler must treat it as a connection error, not a timeout and not an empty document This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.6s -> RemoteProtocolError('Server disconnected without sending a response.') ; probe2 0.6s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 12s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.apache.org:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.2s -> RemoteProtocolError('illegal request line') ; probe2 1.0s -> RemoteProtocolError('illegal request line') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.kernel.org:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> RemoteProtocolError('illegal request line') ; probe2 2.0s -> RemoteProtocolError('illegal request line') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.mozilla.org:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> RemoteProtocolError('illegal request line') ; probe2 1.0s -> RemoteProtocolError('illegal request line') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.python.org:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> RemoteProtocolError('illegal request line') ; probe2 2.0s -> RemoteProtocolError('illegal request line') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://curl.se:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.5s -> RemoteProtocolError('illegal request line') ; probe2 0.6s -> RemoteProtocolError('illegal request line') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.bbc.co.uk:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.6s -> RemoteProtocolError('illegal request line') ; probe2 0.9s -> RemoteProtocolError('illegal request line') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.docker.com:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.6s -> RemoteProtocolError('illegal request line') ; probe2 0.3s -> RemoteProtocolError('illegal request line') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.gnome.org:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.6s -> RemoteProtocolError('illegal request line') ; probe2 0.6s -> RemoteProtocolError('illegal request line') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.gov.uk:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> RemoteProtocolError('illegal request line') ; probe2 0.9s -> RemoteProtocolError('illegal request line') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.openbsd.org:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.4s -> RemoteProtocolError('illegal request line') ; probe2 2.2s -> RemoteProtocolError('illegal request line') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.perl.org:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.0s -> RemoteProtocolError('illegal request line') ; probe2 1.7s -> RemoteProtocolError('illegal request line') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.rust-lang.org:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.5s -> RemoteProtocolError('illegal request line') ; probe2 0.7s -> RemoteProtocolError('illegal request line') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.cam.ac.uk:443/",
+  "expect": "server answers the request with non-HTTP bytes (a TLS alert record), so the HTTP parser rejects the response line; the crawler must classify this as a protocol/connection error rather than a malformed page This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.9s -> RemoteProtocolError('illegal request line') ; probe2 0.4s -> RemoteProtocolError('illegal request line') (httpx timeout budget 12s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.amazon.com:443/",
+  "expect": "connection is accepted then reset by the peer before any HTTP response bytes arrive; the crawler must surface a connection error, not a zero-length body This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 5.8s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 6.4s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.apple.com:443/",
+  "expect": "connection is accepted then reset by the peer before any HTTP response bytes arrive; the crawler must surface a connection error, not a zero-length body This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.6s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 0.4s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.microsoft.com:443/",
+  "expect": "connection is accepted then reset by the peer before any HTTP response bytes arrive; the crawler must surface a connection error, not a zero-length body This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 1.4s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.ibm.com:443/",
+  "expect": "connection is accepted then reset by the peer before any HTTP response bytes arrive; the crawler must surface a connection error, not a zero-length body This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 0.9s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.mysql.com:443/",
+  "expect": "connection is accepted then reset by the peer before any HTTP response bytes arrive; the crawler must surface a connection error, not a zero-length body This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.7s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 1.0s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.openssl.org:443/",
+  "expect": "connection is accepted then reset by the peer before any HTTP response bytes arrive; the crawler must surface a connection error, not a zero-length body This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 0.5s -> RemoteProtocolError('Server disconnected without sending a response.') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.oracle.com:443/",
+  "expect": "connection is accepted then reset by the peer before any HTTP response bytes arrive; the crawler must surface a connection error, not a zero-length body This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 0.9s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.redhat.com:443/",
+  "expect": "connection is accepted then reset by the peer before any HTTP response bytes arrive; the crawler must surface a connection error, not a zero-length body This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.8s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 0.9s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.fsf.org:443/",
+  "expect": "connection is accepted then reset by the peer before any HTTP response bytes arrive; the crawler must surface a connection error, not a zero-length body This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 1.9s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 1.4s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 12s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.mit.edu:443/",
+  "expect": "connection is accepted then reset by the peer before any HTTP response bytes arrive; the crawler must surface a connection error, not a zero-length body This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 0.5s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 0.3s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 12s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "conn_error",
+  "url": "http://www.imdb.com:443/",
+  "expect": "connection is accepted then reset by the peer before any HTTP response bytes arrive; the crawler must surface a connection error, not a zero-length body This URL is the real-world 'http:// link written against the TLS port' hazard: the crawler speaks cleartext HTTP to port 443, the TLS server never sees a valid ClientHello, and no HTTP response is ever produced.",
+  "evidence": "measured 2026-07-27, two httpx GETs ~6s apart, identical class: probe1 8.4s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') ; probe2 10.0s -> ReadError('[WinError 10054] An existing connection was forcibly closed by the remote host') (httpx timeout budget 10s, verify=True, no redirects)",
+  "source": "verified-live",
+  "stable": true
+ }
+]

@@ -30,6 +30,11 @@ rebuild the frontend and restart the backend to load changed Python modules. Sto
 your old server with Ctrl+C in its terminal first; rebuilding does not restart it.
 Direct alternative: `.\.venv\Scripts\python.exe dashboard.py`.
 
+The backend now records its loaded source revision. If Python source changes while
+it is running, the dashboard and launcher show restart guidance instead of silently
+claiming to use the new code. Pause an active scan and wait for it to save before
+stopping its server. Restart on the same port, then resume the saved inventory.
+
 For development only, run the backend alongside
 `npm.cmd --prefix frontend run dev` (Vite port 5173, API proxy to 8000).
 Normal use requires only port 8000. Do not run a CLI audit and dashboard as
@@ -39,15 +44,18 @@ simultaneous writers to the same database.
 
 1. In **Control room**, select capture types and real discovery/safety settings.
    They are persisted locally, locked while an audit is active and apply to the
-   next inventory. Saved inventories retain their original scope and pacing.
+   next inventory. Saved inventories retain their original capture/discovery scope.
+   On resume, old default pacing is upgraded; intentional slower settings are preserved.
 2. In **Overview**, enter a public website and click **Start website scan**.
    Each URL is processed serially: discover/validate → render if enabled →
    Corpus presence → HTML text comparison → next URL. There is no separate Corpus
    Check button. A configured key is required before starting a dashboard scan.
-3. Website requests are spaced at least 1.5 seconds apart per host. Corpus
-   requests contain **one URL**, are serialized, and are spaced at least 3 seconds
+3. Website requests are spaced at least 1 second apart per host. Corpus
+   requests contain **one URL**, are serialized, and are spaced at least 2 seconds
    apart after responses; slow reads/rate limits increase the delay. Selected
    file links are never downloaded or text-extracted.
+   These defaults reduce deliberate waiting from the previous 1.5/3-second
+   website/Corpus intervals without parallel workers or skipped discovery/text checks.
 4. If scanning pauses, completed checks remain saved. **Resume scan** continues
    unresolved checks before fetching the next queued page. Saved successful
    website snapshots and comparisons are reused. **Update saved analysis** upgrades
@@ -83,11 +91,86 @@ coverage by type and depth, source composition, validation outcomes, host counts
 pagination maxima/probes/missing ranges, filters, archive years, sitemap/API evidence
 and comparable history. Empty sections are omitted; tables retain exact values.
 
+The coverage-by-area table shows only Area, Valid URLs, Found, Missing,
+Unverified and Coverage %. Pagination, filters and archives count unique URLs,
+not controls, clicks or years. URL patterns and learned site-specific
+filter names contribute even when their original discovery tag was static/API.
+Numeric maxima require saved boundary proof; cursor/offset URLs do not imply
+a verified last page. DOM-only filters and same-page tabs are not separate URLs.
+N/A means unavailable measurement, not zero coverage or proof of no website content.
+Areas overlap and must not be summed. Archive years use URL dates or website
+publication metadata. Existing snapshots can recover a displayed article date
+only when it immediately precedes a corroborated article heading; footer years,
+incidental dates and Corpus capture dates are excluded. Browser pagination/filter
+actions retain their discovery tags only for independent URL changes, not
+same-page sections. Coverage uses confirmed found / (found + missing).
+
+Refresh an inactive saved inventory's HTML/Excel reports after reporting updates,
+without rediscovery, Corpus requests or database writes:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\refresh_reports.py --run-id 1
+```
+
+Use `--output` for a separate export directory. Active scans must finish or pause
+before refreshing their report files. Restart the backend after an active scan
+finishes to load changed analysis modules; rebuilding React does not restart it.
+
 **Activity** loads bounded incremental saved events with filters and plain-language
 failure impact/continuation/recommended actions. Historical script/document notes
 are separated from current coverage boundaries, not erased.
 
+## Pause and continue from a checkpoint
+
+Click **Pause scan**, wait until **Saving & stopping…** finishes, then use **Resume
+scan** on the same saved inventory. You can also restart the application and resume
+that inventory. Do not start a new scan if you want to continue existing work.
+
+Progress is saved automatically in the audit SQLite database: the current URL,
+its first unfinished stage, the last completed URL, queued URLs, sitemap files and
+entry positions, and completed pagination probes. Finished website discovery and
+browser stages are reused. A saved successful Corpus presence check is not repeated
+just because its HTML text check was interrupted. Fully completed URLs are skipped.
+
+If a browser interaction was stopped halfway through, the browser may reopen that
+**one current page** to reconstruct its DOM. It does not restart the website scan or
+repeat completed URLs. After an abrupt process exit, only work not durably committed
+can be retried. Browser memory/click state cannot be restored byte-for-byte. Sitemap
+resume rereads only the unfinished file; if that file changed, its entry cursor is
+reset so new entries cannot be skipped. Numeric probe HTML is saved locally with its
+original capture time; blocked responses and file bodies are not cached.
+
+Existing inventories remain compatible. Older completed URL results stay saved;
+an older in-flight stage without a checkpoint may need to be retried once. A former
+count-limited inventory still uses the documented one-time recovery pass to restore
+links discarded by that old limit; normal pause/resume does not replay finished pages.
+Pause history becomes a historical note only after pending work has been exhausted;
+real website/Corpus restrictions remain visible.
+
+The read-only `/api/runs/<id>/checkpoint` endpoint (also included in the run summary)
+returns the saved URL/stage, last completed URL and pause timestamp. It never starts
+a scan or exposes cached HTML, session cookies or credentials. See
+[checkpoint implementation](docs/CHECKPOINTS.md) for storage and recovery details.
+
 ## Discovery and boundaries
+
+### Performance review
+
+See [the measured bottlenecks and changes](docs/PERFORMANCE_REVIEW.md).
+Local discovery writes use short durability checkpoints instead of a disk commit
+for every link/event. Every URL, source method, edge and event is still stored;
+the checkpoint size is not a collection limit. No transaction spans a network or
+browser wait. Source pages stay resumable until their links have been saved.
+Equivalent filter coverage groups are indexed and counted once while retaining
+each source control's evidence. Unchanged static controls are not rewritten twice
+for the same HTTP/rendered page; new values and URL dependencies are still explored.
+Historical article snapshots are read only when missing publication evidence needs
+recovery. Live URL polling does not recalculate whole-inventory totals.
+
+These changes reduce local CPU/disk work, not Corpus safety delays. HTML text still
+needs a separate API read after a confirmed URL match. Full rendered discovery on
+large news archives can remain time-consuming; there is no promise of a universal
+scan duration or of access to blocked content.
 
 Existing capabilities are preserved: recursive static links, navigation/button URLs,
 frames, canonical/redirect evidence, sitemap indexes, feeds, structured-data links,
@@ -95,16 +178,57 @@ HTTP Link headers, rendered links, observed XHR/API URLs, supported read-only fi
 lazy tabs, Load More, scrolling and numeric/path/observed cursor pagination.
 Loaded same-page tabs are content sections, not separate pages or filters.
 
-No navigation-depth cutoff is imposed. URL/browser/action/filter/probe safeguards
-bound work and report incomplete exploration. Robots policy and request cooldowns
+Browser readiness tracks documents, scripts, styles and content API requests instead
+of waiting for every background network request to stop. Known third-party telemetry
+does not hold up discovery; same-site and unknown API requests still count, with the
+500ms quiet window retained. Unfinished content requests remain disclosed. Unchanged
+frame HTML is not repeatedly reparsed, HTTP responses are decoded once, redundant
+filter baseline reloads are avoided, and pending URLs use a depth-ordered database
+index. These optimizations do not skip rendered discovery or increase Corpus traffic.
+
+No navigation-depth or fixed URL/browser-page/action/filter-value/pagination-number
+cutoff is imposed. Old saved count limits are ignored, including on resume.
+Recursive sitemap discovery also has no fixed file-count ceiling. Discovery continues
+until observed work is exhausted, content stops changing, access is blocked or the user
+stops the scan. Duplicate and crawler-trap detection, serial processing, request/body
+timeouts and size protection remain in place. Robots policy and request cooldowns
 are respected. Sitemaps are discovery hints; robots.txt is permission policy, not
 a completeness inventory. Numeric pagination uses exponential probes and binary
 search under a contiguous monotonic-series assumption. Blocking, repeated content,
-observed non-monotonic behavior or safeguards leave the maximum unknown. Observed
+observed non-monotonic behavior leave the maximum unknown. Observed
 cursor values are followed; arbitrary cursors are not generated.
 
-Public pages only. No automated login, CAPTCHA solving, stealth or access-control
-bypass. Where authorized, manually prepare a public session:
+Resuming an inventory that recorded an old count cutoff schedules a one-time
+rediscovery pass over processed HTML/API/feed source pages. Existing URLs, file links,
+snapshots and Corpus results are retained. Unchanged HTML comparisons are reused;
+changed live text is rechecked without repeating a successful presence lookup.
+After the rediscovery work is exhausted, old count cutoffs become historical notes.
+Other access errors remain visible. Interrupted recovery continues without repeatedly
+resetting completed work. No files are downloaded or text-extracted by this recovery.
+
+The expanded production ZIP adaptation adds streamed HTML size limits,
+HTTP-200 wall detection, typed retry/error policy, quota-header cooldowns, lazy
+resource links, conservative response-backed JSON pagination and bounded browser
+cleanup. See [feature review and exclusions](docs/ZIP_FEATURE_REVIEW.md); it does
+not claim complete 116-feature parity or unrestricted website access.
+
+The complete main-crawler source is now retained under `vendor/main_crawler/`
+(311 Python files). Reviewed original parsing/challenge helpers are connected to
+discovery; the other production features remain optional, preserving this audit's
+HTML-only text, URL-only resources, serial processing and read-only Corpus rules.
+See [complete source integration](docs/MAIN_CRAWLER_INTEGRATION.md) for the manifest,
+active/optional states, browser identity switch and configuration prerequisites.
+Inspect or verify without starting services:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\main_crawler_features.py
+.\.venv\Scripts\python.exe -W ignore scripts\main_crawler_features.py --verify
+```
+
+Normal scans remain public-page audits. Account/solver features are retained as
+optional source, not automatically executed. Original browser identity helpers
+are opt-in; they do not grant protected access. Where authorized, manually prepare
+a public session:
 
 ```powershell
 .\.venv\Scripts\python.exe -m crawler_coverage_auditor.validation.site_session --url https://example.com/
@@ -120,7 +244,7 @@ The dedicated authenticated **POST `/v1/held`** checks URL presence;
 stored HTML text. The key needs `text` access. No Corpus dashboard/browser search,
 resource download or document-text fallback is used. Although the API permits 500
 URLs per presence batch, scans always send **one URL per request**. Dashboard and
-CLI spacing is at least 3 seconds, with a separate 60-second Corpus timeout.
+CLI Corpus spacing is at least 2 seconds, with a separate 60-second Corpus timeout.
 Backoff may increase pacing; a slower configured minimum is never shortened.
 Although the text endpoint accepts up to 25 items, CrawlScope checks **one HTML page
 per request**, on the same serial paced lane as presence checks, to limit HDD load.

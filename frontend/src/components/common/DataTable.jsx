@@ -1,5 +1,14 @@
 import { number } from "../../utils/format.js";
 
+const COLUMN_WIDTHS = {
+  Series: 260,
+  "Website page": 260,
+  "Filter state": 180,
+  Status: 180,
+  Evidence: 320,
+  Assessment: 320,
+};
+
 export function DataTable({
   rows,
   empty = "No data recorded in this scan.",
@@ -13,7 +22,16 @@ export function DataTable({
         <thead>
           <tr>
             {keys.map((key) => (
-              <th key={key}>{key}</th>
+              <th
+                key={key}
+                style={
+                  COLUMN_WIDTHS[key]
+                    ? { minWidth: COLUMN_WIDTHS[key] }
+                    : undefined
+                }
+              >
+                {key}
+              </th>
             ))}
           </tr>
         </thead>
@@ -21,14 +39,28 @@ export function DataTable({
           {rows.slice(0, limit).map((row, i) => (
             <tr key={i}>
               {keys.map((key) => (
-                <td key={key}>
+                <td
+                  key={key}
+                  style={
+                    COLUMN_WIDTHS[key]
+                      ? { minWidth: COLUMN_WIDTHS[key] }
+                      : undefined
+                  }
+                >
                   {typeof row[key] === "boolean"
                     ? row[key]
                       ? "Yes"
                       : "No"
                     : typeof row[key] === "object" && row[key]
                       ? JSON.stringify(row[key])
-                      : String(row[key] ?? "—")}
+                      : String(
+                          row[key] ??
+                            (key.endsWith("%")
+                              ? "N/A"
+                              : key === "Website maximum"
+                                ? "Unknown"
+                                : "—"),
+                        )}
                 </td>
               ))}
             </tr>

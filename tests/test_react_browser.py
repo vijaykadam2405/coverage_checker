@@ -80,6 +80,12 @@ def test_react_inventory_controls_and_responsive_layout(tmp_path):
             expect(page.get_by_role('tab',name='Discovery',exact=True)).to_be_focused()
             page.keyboard.press('Home')
             expect(page.get_by_role('tab',name='Capture',exact=True)).to_be_focused()
+            for group, removed in [('Scope', ['Inventory safeguard']),
+                                   ('Browser', ['Rendered-page safeguard', 'Actions per page']),
+                                   ('Pagination & filters', ['Values per filter', 'Numeric probe safeguard'])]:
+                page.get_by_role('tab',name=group,exact=True).click()
+                for label in removed:
+                    assert page.get_by_role('spinbutton',name=label,exact=True).count()==0
             page.get_by_role('tab',name='Performance',exact=True).click()
             assert page.get_by_role('spinbutton',name='Website concurrency').count()==0
             page.get_by_role('spinbutton',name='Website request spacing (seconds)').fill('1.5')
@@ -125,7 +131,12 @@ def test_react_inventory_controls_and_responsive_layout(tmp_path):
                     page.get_by_role('button',name=view,exact=True).click()
                     if view=='Overview': expect(page.get_by_role('heading',name='Corpus coverage analysis')).to_be_visible()
                     elif view=='URL inventory': expect(page.get_by_role('heading',name='Discovered inventory')).to_be_visible()
-                    elif view=='Analysis': expect(page.get_by_role('heading',name='First discovery source')).to_be_visible()
+                    elif view=='Analysis':
+                        expect(page.get_by_role('heading',name='First discovery source')).to_be_visible()
+                        expect(page.get_by_role('heading',name='Coverage by area',exact=True)).to_be_visible()
+                        expect(page.locator('.analysis-disclosure').filter(has_text='Pagination coverage and missing ranges')).to_contain_text('0 URLs')
+                        expect(page.locator('.analysis-disclosure').filter(has_text='Filter coverage')).to_contain_text('N/A')
+                        expect(page.locator('.analysis-disclosure').filter(has_text='Archive coverage by year')).to_contain_text('N/A')
                     elif view=='Activity': expect(page.get_by_role('heading',name='Live activity')).to_be_visible()
                     else: expect(page.get_by_role('heading',name='Capture control room')).to_be_visible()
                     assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'), (width,view)

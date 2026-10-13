@@ -5,6 +5,7 @@ from pathlib import Path
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from crawler_coverage_auditor.analysis.coverage import is_inventory_url
+from crawler_coverage_auditor.analysis.dashboard import build_analysis
 
 
 SHEETS = ("Executive Summary", "All Discovered URLs", "Missing From Corpus", "Partial Text", "Depth Coverage",
@@ -35,6 +36,7 @@ def write_excel(path: Path, summary: dict, rows: list[dict], depth_rows: list[di
                 filter_rows: list[dict], document_rows: list[dict], archive_rows: list[dict], sitemap_rows: list[dict], js_rows: list[dict], *,
                 limits: list[dict] | None = None, events: list[dict] | None = None, errors: list[dict] | None = None) -> None:
     workbook = Workbook()
+    analysis = build_analysis(rows, {'pagination': pagination_rows, 'filters': filter_rows, 'limits': limits or []}, include_details=False)
     first = workbook.active
     first.title = "Executive Summary"
     _write_table(first, [summary])
@@ -43,8 +45,8 @@ def write_excel(path: Path, summary: dict, rows: list[dict], depth_rows: list[di
         "Missing From Corpus": [row for row in rows if row.get("match_status") == "NOT_FOUND" and is_inventory_url(row)],
         "Partial Text": [row for row in rows if row.get('page_type', 'HTML') == 'HTML' and row.get("text_status") in {"FOUND_PARTIAL_TEXT", "FOUND_VERY_PARTIAL_TEXT"}],
         "Depth Coverage": depth_rows,
-        "Pagination Analysis": pagination_rows,
-        "Filter Analysis": filter_rows, "Archive Coverage": archive_rows, "Sitemap Coverage": sitemap_rows, "Documents": document_rows, "JS Only URLs": js_rows,
+        "Pagination Analysis": analysis['pagination'],
+        "Filter Analysis": filter_rows, "Archive Coverage": analysis['years'], "Sitemap Coverage": sitemap_rows, "Documents": document_rows, "JS Only URLs": js_rows,
         "Redirects & Canonicals": [row for row in rows if row.get("canonical_url") or row.get("final_url")],
         "Blocked And Errors": [row for row in rows if row.get("validity") not in {None, "VALID_PAGE", "URL_ONLY"}],
         "Structural Gaps": issues,
@@ -52,7 +54,10 @@ def write_excel(path: Path, summary: dict, rows: list[dict], depth_rows: list[di
     }
     for name in SHEETS[1:]:
         _write_table(workbook.create_sheet(name), mappings[name])
-    for name, records in [("Coverage Boundaries", limits or []), ("Activity", events or []), ("Errors", errors or []),
+    for name, records in [('Coverage by Area', analysis['segments']), ('Discovery Assessment', analysis['discovery_status']),
+                          ('Filter Coverage', analysis['filter_states']), ('Filter Controls', analysis['filter_controls']),
+                          ('Pagination Evidence', pagination_rows),
+                          ("Coverage Boundaries", limits or []), ("Activity", events or []), ("Errors", errors or []),
                           ("Unverified Corpus", [row for row in rows if is_inventory_url(row) and row.get("match_status") in {None, "REVIEW_REQUIRED"}])]:
         _write_table(workbook.create_sheet(name), records)
     path.parent.mkdir(parents=True, exist_ok=True)

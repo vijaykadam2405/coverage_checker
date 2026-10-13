@@ -1,0 +1,668 @@
+[
+ {
+  "category": "js_render",
+  "url": "https://reporter.nih.gov/search",
+  "expect": "NIH RePORTER's project search is an Angular SPA: the raw HTML is a bootstrap shell and every grant record is fetched and rendered by JS.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 3,273 bytes; visible text (script/style/noscript stripped) = 15 chars (\"RePORT RePORTER\"); 10 <script> tags; 0 <img> tags. an empty app-mount div is present; zero grant/project rows in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://sam.gov/search/",
+  "expect": "The US federal contract-opportunities search is an Angular SPA; the raw response carries no opportunity/notice records at all.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 43,308 bytes; visible text (script/style/noscript stripped) = 16 chars (\"SAM.gov | Search\"); 5 <script> tags; 0 <img> tags. zero notice titles, solicitation numbers or agency names in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://www.usaspending.gov/search",
+  "expect": "USAspending's award search is a React SPA; the award table only exists after the bundle runs.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 2,917 bytes; visible text (script/style/noscript stripped) = 15 chars (\"USAspending.gov\"); 6 <script> tags; 0 <img> tags. an empty root mount div is present; zero award rows in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://data.census.gov/",
+  "expect": "The US Census data explorer is a React SPA served as a near-empty shell; all tables and geographies are client-rendered.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 3,016 bytes; visible text (script/style/noscript stripped) = 19 chars (\"Explore Census Data\"); 4 <script> tags; 0 <img> tags. an empty root mount div is present; zero table or dataset names in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://data-explorer.oecd.org/",
+  "expect": "The OECD Data Explorer ships a large HTML file whose entire body is script and state; nothing is readable without running JS.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 173,987 bytes; visible text (script/style/noscript stripped) = 0 chars (literally zero); 5 <script> tags; 0 <img> tags. a six-figure byte count that yields zero characters of visible text - a pure client-rendered shell.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://ec.europa.eu/eurostat/databrowser/explore/all/all_themes",
+  "expect": "Eurostat's data browser is an Angular SPA; the raw HTML contains only an accessibility skip-link plus the JS bundle tags.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 8,629 bytes; visible text (script/style/noscript stripped) = 15 chars (\"Skip to Content\"); 10 <script> tags; 0 <img> tags. the only visible string is the skip-link; zero dataset names in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://worldview.earthdata.nasa.gov/",
+  "expect": "NASA Worldview is a JS map application; the raw HTML is a title plus bundle tags with no layer or imagery markup.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 4,315 bytes; visible text (script/style/noscript stripped) = 14 chars (\"NASA Worldview\"); 3 <script> tags; 0 <img> tags. no map, layer list or imagery markup in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://ppubs.uspto.gov/pubwebapp/",
+  "expect": "USPTO Patent Public Search is a client-rendered app; the initial GET returns a tiny bootstrap document with no patent data.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 1,164 bytes; visible text (script/style/noscript stripped) = 75 chars (\"Patent Public Search | USPTO Patent Public Search | USPTO - extended window\"); 4 <script> tags; 0 <img> tags. zero patent numbers, titles or claims in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://www.webofscience.com/wos/",
+  "expect": "Web of Science serves a bare SPA shell; the search UI and all bibliographic records are built by JS.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 3,058 bytes; visible text (script/style/noscript stripped) = 14 chars (\"Web of Science\"); 5 <script> tags; 0 <img> tags. zero record or citation markup in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://www.getty.edu/art/collection/",
+  "expect": "The Getty museum collection browser is client-rendered; the raw HTML carries the page title and nothing of the collection.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 9,098 bytes; visible text (script/style/noscript stripped) = 25 chars (\"Museum Collection | Getty\"); 5 <script> tags; 0 <img> tags. zero artwork titles, artists or object records in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://tldraw.com/",
+  "expect": "tldraw's whiteboard is drawn entirely by JS; the raw HTML root div is empty.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 12,822 bytes; visible text (script/style/noscript stripped) = 88 chars (\"tldraw • very good free whiteboard tldraw - free and instant collaborative whiteboarding\"); 3 <script> tags; 0 <img> tags. an empty root mount div is present; the visible text is only the title/tagline meta copy.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://editor.p5js.org/",
+  "expect": "The p5.js web editor is a React SPA; the raw HTML is a bootstrap page with an empty root div.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 2,446 bytes; visible text (script/style/noscript stripped) = 16 chars (\"p5.js Web Editor\"); 3 <script> tags; 0 <img> tags. an empty root mount div is present; no editor, sketch list or canvas markup in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://mermaid.live/",
+  "expect": "The Mermaid Live Editor is a Svelte SPA; the raw HTML has no editor pane, no preview and no diagram markup.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 3,562 bytes; visible text (script/style/noscript stripped) = 54 chars (\"Online FlowChart Diagrams Editor - Mermaid Live Editor\"); 1 <script> tags; 0 <img> tags. the visible text is the <title> only; the editor and SVG preview are built by JS.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://vega.github.io/editor/",
+  "expect": "The Vega/Vega-Lite editor is a React SPA on GitHub Pages; the served document is a stub with an empty root div.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 1,289 bytes; visible text (script/style/noscript stripped) = 11 chars (\"Vega Editor\"); 1 <script> tags; 0 <img> tags. an empty root mount div is present; no spec editor or chart markup in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://threejs.org/editor/",
+  "expect": "The three.js editor builds its whole UI and WebGL canvas from JS modules; the raw HTML has no UI markup.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 7,989 bytes; visible text (script/style/noscript stripped) = 15 chars (\"three.js editor\"); 24 <script> tags; 0 <img> tags. the document is a title plus module script tags only; zero UI or canvas markup.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://jsoncrack.com/editor",
+  "expect": "JSON Crack's editor is a Next.js client app; the raw HTML has only toolbar labels, no graph and no JSON.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 29,750 bytes; visible text (script/style/noscript stripped) = 94 chars (\"Editor | JSON Crack JSON CRACK File View Tools Upgrade to Pro Editor Valid Live Transform JSON\"); 33 <script> tags; 0 <img> tags. the visible text is toolbar/menu labels only; the node graph is drawn by JS.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://astexplorer.net/",
+  "expect": "AST Explorer is a React SPA; the only text in the raw HTML is the footer credit line.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 10,697 bytes; visible text (script/style/noscript stripped) = 115 chars (\"AST explorer Built with React , Babel , Font Awesome , CodeMirror , Express , and webpack | GitHub | Build: 88\"); 6 <script> tags; 0 <img> tags. the visible text is entirely the footer credits ('Built with React, Babel, ...'); no editor or AST tree in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://petstore.swagger.io/",
+  "expect": "The canonical Swagger UI demo: the raw HTML is a mount point, and every endpoint and operation is rendered from the OpenAPI spec by JS.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 1,258 bytes; visible text (script/style/noscript stripped) = 10 chars (\"Swagger UI\"); 4 <script> tags; 0 <img> tags. zero endpoint paths or operation names in the served HTML.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://redocly.github.io/redoc/",
+  "expect": "The Redoc interactive demo renders an entire API reference client-side from a spec URL; the served document contains none of it.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 1,609 bytes; visible text (script/style/noscript stripped) = 22 chars (\"Redoc Interactive Demo\"); 2 <script> tags; 0 <img> tags. zero API paths, schemas or descriptions in the served HTML.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://app.element.io/",
+  "expect": "The Element Matrix web client is a bare bootstrap page; the whole messenger UI is constructed by JS.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 4,767 bytes; visible text (script/style/noscript stripped) = 7 chars (\"Element\"); 1 <script> tags; 6 <img> tags. no room list, timeline or composer markup in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://discord.com/app",
+  "expect": "Discord's web app ships a very large script manifest and essentially no text; the entire client is JS-built.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 43,574 bytes; visible text (script/style/noscript stripped) = 7 chars (\"Discord\"); 204 <script> tags; 0 <img> tags. an unusually high script-tag count against single-digit visible text.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://mail.proton.me/",
+  "expect": "Proton Mail's web client is a JS-built application; the raw HTML is a shell carrying the product name only.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 4,810 bytes; visible text (script/style/noscript stripped) = 11 chars (\"Proton Mail\"); 5 <script> tags; 0 <img> tags. no mailbox, folder or message markup in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://teams.microsoft.com/",
+  "expect": "Microsoft Teams serves a large bootstrap document with no readable text at all; the client is 100% JS-rendered.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 362,296 bytes; visible text (script/style/noscript stripped) = 0 chars (literally zero); 24 <script> tags; 0 <img> tags. a six-figure byte count that yields zero characters of visible text; an empty app-mount div is present.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://portal.azure.com/",
+  "expect": "The Azure portal serves a shell whose only text is the product name; every blade is client-rendered.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 73,014 bytes; visible text (script/style/noscript stripped) = 15 chars (\"Microsoft Azure\"); 1 <script> tags; 0 <img> tags. no navigation, resource or blade markup in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://public.tableau.com/app/discover",
+  "expect": "Tableau Public's discover feed returns a tiny stub with no readable text; the whole gallery is client-rendered.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 1,442 bytes; visible text (script/style/noscript stripped) = 0 chars (literally zero); 5 <script> tags; 0 <img> tags. zero visualisation titles or author names in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://cloud.digitalocean.com/",
+  "expect": "The DigitalOcean cloud console is a React SPA served as an empty shell.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 52,186 bytes; visible text (script/style/noscript stripped) = 12 chars (\"DigitalOcean\"); 35 <script> tags; 0 <img> tags. an empty root mount div is present; no console UI in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "js_render",
+  "url": "https://bsky.app/",
+  "expect": "Bluesky's web client is a React Native Web SPA; the raw HTML is an empty root div and the feed never appears without JS.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 6,948 bytes; visible text (script/style/noscript stripped) = 7 chars (\"Bluesky\"); 3 <script> tags; 0 <img> tags. an empty root mount div is present; zero post text in source.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "spa-shell"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://collections.vam.ac.uk/",
+  "expect": "The V&A museum collection search defers essentially every result thumbnail with native lazy loading.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 595,849 bytes; 261 <img> tags; loading=\"lazy\" x260; data-src/data-srcset x0; visible text = 18,380 chars. near-total coverage - almost every <img> on the page carries loading=\"lazy\".",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.express.co.uk/",
+  "expect": "UK tabloid homepage: article thumbnails below the fold are natively lazy-loaded, with an IntersectionObserver driving further deferral.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 411,418 bytes; 196 <img> tags; loading=\"lazy\" x193; data-src/data-srcset x1; IntersectionObserver x2; visible text = 24,549 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://picjumbo.com/",
+  "expect": "Free-stock-photo gallery: the full-page photo grid is deferred with native lazy loading plus an IntersectionObserver.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 750,967 bytes; 380 <img> tags; loading=\"lazy\" x358; data-src/data-srcset x0; IntersectionObserver x1; visible text = 21,176 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.zappos.com/men-shoes",
+  "expect": "Product-grid images on this shoe category page are natively lazy-loaded almost without exception.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 1,141,384 bytes; 102 <img> tags; loading=\"lazy\" x100; data-src/data-srcset x0; visible text = 38,359 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.euronews.com/",
+  "expect": "Pan-European news homepage: story thumbnails are natively lazy-loaded.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 595,321 bytes; 196 <img> tags; loading=\"lazy\" x165; data-src/data-srcset x2; visible text = 20,846 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://elpais.com/",
+  "expect": "Spanish national daily: nearly every homepage image is natively lazy-loaded.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 487,176 bytes; 156 <img> tags; loading=\"lazy\" x153; data-src/data-srcset x0; visible text = 30,203 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.eluniversal.com.mx/",
+  "expect": "Mexican national daily: homepage thumbnails are natively lazy-loaded.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 2,255,514 bytes; 212 <img> tags; loading=\"lazy\" x157; data-src/data-srcset x7; <noscript><img> fallbacks x1; visible text = 26,818 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.webtoons.com/en/dailySchedule",
+  "expect": "The daily comic schedule grid lazy-loads its series thumbnails natively.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 154,339 bytes; 144 <img> tags; loading=\"lazy\" x144; data-src/data-srcset x0; visible text = 6,371 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.faz.net/aktuell/",
+  "expect": "German national daily: homepage images are natively lazy-loaded.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 1,638,226 bytes; 140 <img> tags; loading=\"lazy\" x137; data-src/data-srcset x6; visible text = 40,058 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://theconversation.com/global",
+  "expect": "Academic-journalism homepage: article thumbnails are natively lazy-loaded.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 678,604 bytes; 126 <img> tags; loading=\"lazy\" x124; data-src/data-srcset x0; 'skeleton' x3; visible text = 9,425 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.irishtimes.com/",
+  "expect": "Irish national daily: homepage thumbnails are natively lazy-loaded.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 2,987,213 bytes; 125 <img> tags; loading=\"lazy\" x109; data-src/data-srcset x8; <noscript><img> fallbacks x4; visible text = 17,494 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.abc.net.au/news",
+  "expect": "Australian public broadcaster: news-index thumbnails are natively lazy-loaded behind skeleton placeholders.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 891,025 bytes; 136 <img> tags; loading=\"lazy\" x103; data-src/data-srcset x0; 'skeleton' x64; visible text = 18,134 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.straitstimes.com/",
+  "expect": "Singapore national daily: homepage thumbnails are natively lazy-loaded.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 316,601 bytes; 60 <img> tags; loading=\"lazy\" x52; data-src/data-srcset x0; visible text = 6,897 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.cbc.ca/news",
+  "expect": "Canadian public broadcaster: news-index thumbnails are natively lazy-loaded behind skeleton placeholders.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 282,487 bytes; 39 <img> tags; loading=\"lazy\" x34; data-src/data-srcset x0; <noscript><img> fallbacks x1; 'skeleton' x12; visible text = 7,343 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.nasa.gov/",
+  "expect": "US government site (WordPress): homepage imagery below the fold is natively lazy-loaded.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 348,875 bytes; 72 <img> tags; loading=\"lazy\" x34; data-src/data-srcset x0; visible text = 9,654 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://data.gov.sg/",
+  "expect": "Singapore's open-data portal lazy-loads the images on its landing page natively.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 207,753 bytes; 41 <img> tags; loading=\"lazy\" x41; data-src/data-srcset x0; visible text = 3,654 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.cam.ac.uk/",
+  "expect": "University of Cambridge homepage: virtually every image is natively lazy-loaded.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 111,351 bytes; 22 <img> tags; loading=\"lazy\" x21; data-src/data-srcset x2; visible text = 3,297 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.ox.ac.uk/",
+  "expect": "University of Oxford homepage: native lazy loading combined with data-src placeholder swapping.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 355,964 bytes; 44 <img> tags; loading=\"lazy\" x39; data-src/data-srcset x34; visible text = 11,293 chars. both techniques present at once - native loading=\"lazy\" AND data-src placeholders.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.moma.org/",
+  "expect": "Museum of Modern Art homepage: exhibition and artwork thumbnails are natively lazy-loaded.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 222,225 bytes; 35 <img> tags; loading=\"lazy\" x22; data-src/data-srcset x0; visible text = 5,000 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://americanart.si.edu/art",
+  "expect": "Smithsonian American Art Museum browse page: artwork thumbnails are natively lazy-loaded behind skeleton placeholders.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 201,648 bytes; 54 <img> tags; loading=\"lazy\" x47; data-src/data-srcset x0; 'skeleton' x2; visible text = 11,359 chars.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.thehindu.com/",
+  "expect": "Indian national daily using several deferral techniques at once - native loading=\"lazy\", data-src placeholders, IntersectionObserver, and <noscript><img> fallbacks.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 320,159 bytes; 119 <img> tags; loading=\"lazy\" x21; data-src/data-srcset x71; IntersectionObserver x4; <noscript><img> fallbacks x2; visible text = 16,173 chars. the strongest multi-technique example in this batch.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://phys.org/",
+  "expect": "Science-news aggregator with no native lazy attribute at all: thumbnails are pure data-src placeholder swaps, so a crawler that only looks for loading=\"lazy\" sees nothing.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 206,701 bytes; 117 <img> tags; loading=\"lazy\" x0; data-src/data-srcset x90; 'skeleton' x1; visible text = 20,992 chars. deferral here is entirely data-src placeholders, not the native attribute.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.rijksmuseum.nl/en",
+  "expect": "Dutch national museum: image deferral is done with data-src placeholders rather than the native attribute.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 108,744 bytes; 31 <img> tags; loading=\"lazy\" x0; data-src/data-srcset x69; visible text = 1,664 chars. deferral here is entirely data-src placeholders, not the native attribute.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.eurogamer.net/",
+  "expect": "Games site pairing native lazy loading with a <noscript><img> fallback for each deferred image.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 295,725 bytes; 122 <img> tags; loading=\"lazy\" x61; data-src/data-srcset x0; <noscript><img> fallbacks x61; 'skeleton' x71; visible text = 10,906 chars. a large <noscript><img> fallback block accompanies the lazy images.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "lazy_loading",
+  "url": "https://www.businessinsider.com/",
+  "expect": "Business-news homepage: deferral is data-src placeholders plus a <noscript><img> fallback per image, with no native lazy attribute.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 584,778 bytes; 155 <img> tags; loading=\"lazy\" x0; data-src/data-srcset x61; <noscript><img> fallbacks x75; 'skeleton' x1; visible text = 9,573 chars. data-src placeholders each shadowed by a <noscript><img>, and no native loading=\"lazy\" at all.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "deferred-images"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.thisiscolossal.com/",
+  "expect": "Art/design magazine that actually loads the Metafizzy InfiniteScroll library; posts append as you scroll and there is no pager.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 239,727 bytes; visible text = 3,826 chars; 38 <img> tags. Loader proof: the raw HTML loads infinite-scroll.pkgd.min.js - the Metafizzy loader library itself, not merely a label. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://en.blog.wordpress.com/",
+  "expect": "WordPress.com's own blog runs Jetpack Infinite Scroll: posts append on scroll behind a 'Show more' handle, with no numbered pager.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 225,807 bytes; visible text = 5,214 chars; 23 <img> tags. Loader proof: the raw HTML loads jetpack/modules/infinite-scroll/infinity.css, registers the 'the-neverending-homepage' script handle, and carries the config {\"footer\":false,\"click_handle\":\"1\",\"text\":\"Show more\"}. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://spectrum.ieee.org/",
+  "expect": "IEEE Spectrum (RebelMouse): the article river appends on scroll via an infinite-scroll wrapper element, no pager.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 404,491 bytes; visible text = 7,425 chars; 27 <img> tags. Loader proof: the raw HTML defines the .infinite-scroll-wrapper and .rm-loadmore-placeholder CSS rules. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.unesco.org/en/articles",
+  "expect": "UNESCO's article index appends results through a load-more control; there is no numbered pager anywhere in the document.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 315,301 bytes; visible text = 6,066 chars; 57 <img> tags. Loader proof: the raw HTML contains <div id=\"content_search_landing-list-load-more-...\" class=\"btn btn-sm btn-see-more load-more ...\">. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.europarl.europa.eu/news/en",
+  "expect": "European Parliament newsroom: the news list grows through a dedicated load-more JS module, with no pager links.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 187,036 bytes; visible text = 24,927 chars; 1 <img> tags. Loader proof: the raw HTML registers the module 'load-more': { url: \"/news/js/load-more.js\" }. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://eyeondesign.aiga.org/",
+  "expect": "AIGA Eye on Design (WordPress): the post river appends via a wp-admin admin-ajax load-more endpoint, no pager.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 215,404 bytes; visible text = 8,793 chars; 73 <img> tags. Loader proof: the raw HTML carries <script id=\"be-load-more-js-extra\"> with beloadmore = {\"url\":\"/wp-admin/admin-ajax.php\", ...} - a real XHR endpoint. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://blog.cloudflare.com/",
+  "expect": "Cloudflare's engineering blog appends older posts from a cursor-paged HTML-fragment endpoint; no pager links exist.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 197,561 bytes; visible text = 8,937 chars; 48 <img> tags. Loader proof: the raw HTML carries <div ... data-load-more-root data-src=\"/fragments/archive-posts/?kind=blog...\"> and JS that reads e.dataset.nextCursor. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.theroot.com/",
+  "expect": "The Root (WordPress + Ajax Load More): the article river appends via an IntersectionObserver-driven AJAX loader, no pager.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 328,547 bytes; visible text = 5,527 chars; 54 <img> tags. Loader proof: the raw HTML contains the #ajax-load-more container plus 'new IntersectionObserver(' and a window scroll listener. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.upworthy.com/",
+  "expect": "Upworthy's feed block appends more stories on demand; there is no numbered pager.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 292,305 bytes; visible text = 4,334 chars; 22 <img> tags. Loader proof: the raw HTML contains <div class=\"wp-block-rkv-feed-19 has-rkv-load-more wp-block-rkv-feed\">. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.wikiart.org/en/paintings-by-genre/landscape",
+  "expect": "WikiArt genre browse: thousands of paintings load in batches as you scroll, driven by a load-more control; no pager links.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 367,757 bytes; visible text = 10,936 chars; 7 <img> tags. Loader proof: the raw HTML references loadmore-icon-white.svg and the load-more control markup. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://juejin.cn/",
+  "expect": "Chinese developer community (Nuxt): the article feed is cursor-paged and appends on scroll behind skeleton placeholders.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 82,375 bytes; visible text = 336 chars; 3 <img> tags. Loader proof: the raw HTML carries feed state with hasMore flags and pageInfo:{hasNextPage, endCursor}, plus skeleton placeholders. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.behance.net/galleries",
+  "expect": "Adobe Behance galleries: the project grid is a GraphQL cursor feed that appends on scroll, with no pager.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 818,609 bytes; visible text = 4,559 chars; 67 <img> tags. Loader proof: the raw HTML embeds \"hasNextPage\":true,\"endCursor\":... plus placeholderProjects. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.meetup.com/find/",
+  "expect": "Meetup event search: the Apollo cache in the raw HTML exposes a cursor-paged connection that appends on scroll; no pager links.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 315,611 bytes; visible text = 1,878 chars; 71 <img> tags. Loader proof: the raw HTML embeds pageInfo {\"hasNextPage\":true,\"endCursor\":\"MTI=\"} on the recommended-events connection. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://openart.ai/discovery",
+  "expect": "AI-image discovery grid: the dehydrated query state carries a next cursor and the grid appends on scroll behind skeleton placeholders.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 276,084 bytes; visible text = 332 chars; 3 <img> tags. Loader proof: the raw HTML embeds \"nextCursor\":\"...\" in the dehydrated state, alongside skeleton placeholders. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://coverr.co/",
+  "expect": "Free stock-video grid backed by an Algolia paged index; the grid appends via a load-more control with no pager.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 9,567,437 bytes; visible text = 5,514 chars; 42 <img> tags. Loader proof: the raw HTML defines .wa-coverr-grid__load-more and embeds Algolia query params with page=0. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.swissinfo.ch/eng/",
+  "expect": "Swiss public broadcaster's English service: the story river appends from a WordPress REST load-more endpoint, no pager.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 2,208,823 bytes; visible text = 24,460 chars; 99 <img> tags. Loader proof: the raw HTML carries \"loadMore\":\"https://www.swissinfo.ch/eng/wp-json/swissinfo-theme/v1/...\" - a real XHR endpoint. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://apnews.com/",
+  "expect": "Associated Press homepage: the news lists are marked to load more entries on demand and there is no numbered pager.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 2,311,125 bytes; visible text = 54,149 chars; 88 <img> tags. Loader proof: the raw HTML carries data-show-loadmore=\"true\" alongside data-max-number-of-posts. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://newatlas.com/",
+  "expect": "New Atlas (Arc XP): the story list appends through the platform's list-loadmore component, no pager.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 238,886 bytes; visible text = 13,777 chars; 36 <img> tags. Loader proof: the raw HTML styles the ps-list-loadmore component. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.nme.com/",
+  "expect": "NME (tagDiv Newspaper theme): the post river uses the theme's ajax 'load more or infinite loader', with no pager links.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 544,964 bytes; visible text = 7,173 chars; 6 <img> tags. Loader proof: the raw HTML carries the theme's td_user_action loader with the literal comment 'load more or infinite loader (used by the animation)' plus a document scroll listener. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.juxtapoz.com/",
+  "expect": "Juxtapoz art magazine loads jQuery Waypoints - the classic scroll-position library used to trigger appends - and exposes no pager.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 69,535 bytes; visible text = 5,043 chars; 21 <img> tags. Loader proof: the raw HTML loads /templates/frontend/includes/waypoints/jquery.waypoints.min.js. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://www.premierleague.com/",
+  "expect": "Premier League site: content widgets are flagged to load more on demand; no numbered pager links exist in the document.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 122,756 bytes; visible text = 2,132 chars; 29 <img> tags. Loader proof: the raw HTML carries data-load-more=\"true\" on its content widgets. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ },
+ {
+  "category": "infinite_scroll",
+  "url": "https://flipboard.com/",
+  "expect": "Flipboard's web feed is a key-paged stream that appends as you scroll; no pager links.",
+  "evidence": "Measured 2026-07-27: HTTP 200, 1,409,853 bytes; visible text = 2,704 chars; 24 <img> tags. Loader proof: the raw HTML embeds feed state \"nextPageKey\":null,\"prevItems\":null,\"neverLoadMore\":false. Pager check: 0 rel=\"next\" and 0 numbered/paged <a href> links in the whole document.",
+  "source": "verified-live-2026-07-27",
+  "stable": true,
+  "variant": "scroll-append"
+ }
+]

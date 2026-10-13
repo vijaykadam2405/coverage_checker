@@ -1,0 +1,90 @@
+# The dashboard's PUBLIC FRONT DOOR, run on a VPS.
+#
+# WHY A FRONT DOOR AND NOT THE DASHBOARD ITSELF. The orchestrator has to reach twelve crawler APIs,
+# the ingest API and its own sqlite, and the data centre drops every inbound port except SSH
+# (measured — that is why the tunnel exists at all). Running the orchestrator here would put every
+# API call across a tunnel, turn a tunnel blip into "the crawler is down", and risk TWO scheduler
+# loops double-dispatching every due job. So the dashboard stays beside its data and this box is
+# only the door: an SSH tunnel in, TLS out.
+#
+#   cd ~/mallory-dash && docker compose up -d
+#
+# Needs, in this directory: `mallory_deploy` (the data-centre SSH key, chmod 600) and a `.env`
+# carrying DATA_CENTRE_* + DASH_PUBLIC_PORT.
+
+services:
+  # Reaches back to the data centre and republishes the dashboard (:8091 there) on this docker
+  # network. Same autossh + watchdog shape as docker-compose.tunnel.yml, for the same reason:
+  # autossh restarts ssh when the SERVER stops answering, but NOT when the session survives with
+  # dead forwards, and docker does not restart a container for failing a healthcheck — only for
+  # exiting. Without the watchdog that state sits red for ever.
+  dc-tunnel:
+    image: alpine:3.20
+    restart: unless-stopped
+    command:
+      - sh
+      - -c
+      - |
+        apk add --no-cache openssh-client autossh netcat-openbsd >/dev/null
+        cp /key /tmp/k && chmod 600 /tmp/k
+        autossh -M 0 -N \
+          -o ServerAliveInterval=30 -o ServerAliveCountMax=3 \
+          -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=accept-new \
+          -o UserKnownHostsFile=/tmp/known_hosts \
+          -i /tmp/k -p ${DATA_CENTRE_SSH_PORT:?set DATA_CENTRE_SSH_PORT} \
+          -L 0.0.0.0:8091:localhost:8091 \
+          ${DATA_CENTRE_SSH_USER:?set DATA_CENTRE_SSH_USER}@${DATA_CENTRE_HOST:?set DATA_CENTRE_HOST} &
+        SSH=$$!
+        FAILS=0
+        while :; do
+          sleep 15
+          if ! kill -0 $$SSH 2>/dev/null; then
+            echo "[tunnel] autossh exited - restarting container"; exit 1
+          fi
+          if nc -z localhost 8091 >/dev/null 2>&1; then
+            [ $$FAILS -gt 0 ] && echo "[tunnel] forward recovered"
+            FAILS=0
+          else
+            FAILS=$$((FAILS+1))
+            echo "[tunnel] forward not accepting ($$FAILS/4)"
+            if [ $$FAILS -ge 4 ]; then
+              echo "[tunnel] dead for 60s - restarting container"
+              kill $$SSH 2>/dev/null; exit 1
+            fi
+          fi
+        done
+    volumes:
+      - ./mallory_deploy:/key:ro
+    # NO `ports:` — the tunnel is reachable only from caddy on this network. Publishing 8091 here
+    # would put the dashboard on the internet in plain HTTP beside the TLS one, and the weaker door
+    # is the one that gets used.
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8091"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    # Published on the SAME port inside and out, deliberately. Caddy matches the site block against
+    # the Host header the browser sends, which includes the port — a container-side :443 behind a
+    # different host port never matches, and Caddy answers with its fallback certificate instead of
+    # the one naming this address.
+    ports:
+      - "${DASH_PUBLIC_PORT:?set DASH_PUBLIC_PORT}:${DASH_PUBLIC_PORT:?set DASH_PUBLIC_PORT}"
+    environment:
+      DASH_PUBLIC_HOST: ${DASH_PUBLIC_HOST:?set DASH_PUBLIC_HOST}
+      DASH_PUBLIC_PORT: ${DASH_PUBLIC_PORT}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data          # the internal CA + issued cert; losing this re-warns every browser
+      - caddy_config:/config
+    depends_on:
+      dc-tunnel:
+        condition: service_healthy
+
+volumes:
+  caddy_data:
+  caddy_config:

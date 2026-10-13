@@ -26,6 +26,9 @@ def header_links(header: str, base_url: str) -> list[Link]:
         relation = re.search(r'\brel\s*=\s*"?([^";,]+)', parameters, re.I)
         if relation and set(relation.group(1).lower().split()) & {'next', 'last', 'prev', 'previous'}:
             links.append(Link(urljoin(base_url, target), 'HTTP Link ' + relation.group(1), 'http-link'))
+    from crawler_coverage_auditor.integrations.main_crawler import http_links
+    links.extend(Link(url, 'Main crawler HTTP Link', 'http-link') for url in http_links(header, base_url))
+    links = list({link.url: link for link in links}.values())
     return links
 
 

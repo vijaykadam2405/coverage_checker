@@ -1,0 +1,46 @@
+# Secrets — never commit. Copy .env.example to .env and fill it in locally.
+.env
+.env.*
+!.env.example
+secrets/
+*.key
+*.pem
+*.pfx
+
+# Runtime state
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.dump
+*.log
+data/
+output/
+
+# Python
+__pycache__/
+*.egg-info/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node (vendored CamoFox build context)
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Harvested Cloudflare cf_clearance cookies — live session credentials, never commit.
+crawler/scripts/cf_clearance.json
+cf_clearance.json
+ucvenv/
+
+# Partial browser downloads (crawler scratch)
+*.crdownload
+downloaded_files/
+
+# Health-check runtime logs
+healthcheck/logs/

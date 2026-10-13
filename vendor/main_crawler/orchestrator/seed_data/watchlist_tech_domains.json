@@ -1,0 +1,14 @@
+{
+  "version": "2026-06-29",
+  "note": "REAL tech-domain seed = the 8 innovation/matchup domains from the prototype. keywords map an article to a domain during filtering.",
+  "domains": [
+    { "id": "artillery",   "name": "Artillery",                  "keywords": ["howitzer", "155mm", "52 calibre", "towed gun", "mounted gun", "self-propelled howitzer", "SPH", "ATAGS", "ramjet projectile", "ERFB", "barrel life", "ATHOS", "ATMOS", "CAESAR", "K9", "Archer", "M777", "mortar"] },
+    { "id": "armoured",    "name": "Armoured & protected mobility","keywords": ["MRAP", "armoured vehicle", "APC", "active protection system", "APS", "composite armour", "light tank", "ALSV", "8x8", "mine protected", "WhAP", "Stryker"] },
+    { "id": "small_arms",  "name": "Small arms",                 "keywords": ["assault rifle", "carbine", "sniper rifle", "machine gun", "SMG", "7.62", "5.56", "AK-203", "Tavor", "Galil", "Negev"] },
+    { "id": "ammunition",  "name": "Ammunition & propellants",   "keywords": ["155mm ammunition", "propellant", "bi-modular charge", "BMCS", "HE shell", "ERFB-BT", "precision munition", "guided shell", "Excalibur", "Katana", "energetics", "HMX", "RDX", "TNT"] },
+    { "id": "missiles_ad", "name": "Missiles & air defence",     "keywords": ["ATGM", "anti-tank missile", "air defence", "SAM", "MANPADS", "Spike", "Javelin", "Nag", "MPATGM", "QRSAM", "Akash", "loitering vs counter"] },
+    { "id": "naval",       "name": "Naval / marine",             "keywords": ["naval gun", "AUV", "autonomous underwater vehicle", "USV", "mine countermeasure", "sonobuoy", "submarine", "76mm naval"] },
+    { "id": "uav",         "name": "UAV / ISR / loitering",      "keywords": ["UAV", "drone", "loitering munition", "kamikaze drone", "one-way attack", "MALE UAV", "ISR", "swarm", "Switchblade", "Shahed", "Nagastra", "SkyStriker"] },
+    { "id": "materials",   "name": "Materials & forgings",       "keywords": ["forging", "barrel forging", "ballistic protection", "body armour", "armour steel", "titanium", "metallurgy", "indigenous content"] }
+  ]
+}

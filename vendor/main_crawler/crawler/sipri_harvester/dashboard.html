@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SIPRI data — Mallory</title>
+<style>
+:root{--bg:#0f1216;--card:#171b21;--line:#262c35;--fg:#e6e9ef;--dim:#8b96a5;--accent:#4c8dff;
+      --ok:#3fb950;--warn:#d29922;--bad:#f85149}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+h1{font-size:17px;margin:0;font-weight:600}
+.sub{color:var(--dim);font-size:12px}
+.wrap{padding:20px 22px;max-width:1500px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:20px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px}
+.tile .n{font-size:24px;font-weight:600}
+.tile .l{color:var(--dim);font-size:12px;margin-top:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:18px}
+.card h2{font-size:13px;margin:0 0 12px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--dim);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line);font-size:12px}
+td{padding:6px 8px;border-bottom:1px solid #1e242c}
+tr:hover td{background:#1b212a}
+.scroll{overflow-x:auto}
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.cat{background:#12161c;border:1px solid var(--line);border-radius:6px;padding:11px;cursor:pointer}
+.cat:hover{border-color:var(--accent)}
+.cat.sel{border-color:var(--accent);background:#16202e}
+.cat .n{font-size:19px;font-weight:600}
+.cat .l{color:var(--dim);font-size:12px}
+button{background:var(--accent);color:#fff;border:0;border-radius:6px;padding:9px 16px;font-size:13px;
+       font-weight:600;cursor:pointer}
+button:hover{filter:brightness(1.1)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.stop{background:#3a3f47}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+.pill.run{background:#193d24;color:var(--ok)}
+.pill.idle{background:#2a2f37;color:var(--dim)}
+.pill.err{background:#3d1a1a;color:var(--bad)}
+pre.log{background:#0b0e12;border:1px solid var(--line);border-radius:6px;padding:11px;max-height:230px;
+        overflow:auto;font-size:11.5px;color:#a9b4c2;margin:10px 0 0;white-space:pre-wrap}
+.bar{height:5px;background:#1e242c;border-radius:3px;overflow:hidden;margin-top:7px}
+.bar i{display:block;height:100%;background:var(--accent)}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.muted{color:var(--dim)}
+.est{color:var(--warn);font-size:11px}
+</style>
+</head>
+<body>
+<header>
+  <h1>SIPRI data</h1>
+  <span class="sub" id="scope">schema <b>sipri</b> · bucket <b>mallory-sipri</b></span>
+  <span style="flex:1"></span>
+  <span id="runPill" class="pill idle">idle</span>
+  <button id="startBtn">▶ Start crawl</button>
+  <button id="stopBtn" class="stop" disabled>Stop</button>
+</header>
+
+<div class="wrap">
+  <div class="tiles" id="tiles"></div>
+
+  <div class="card">
+    <h2>Crawl / harvest control</h2>
+    <div class="muted" id="runMeta">Not running.</div>
+    <div class="bar"><i id="runBar" style="width:0%"></i></div>
+    <pre class="log" id="runLog">Press “Start crawl” to harvest the SIPRI databases and crawl the site through C3.</pre>
+  </div>
+
+  <div class="card">
+    <h2>Pages by category</h2>
+    <div class="cats" id="cats"></div>
+  </div>
+
+  <div class="card">
+    <h2>Datasets (spreadsheets + reference JSON)</h2>
+    <div class="scroll"><table id="dsTable">
+      <thead><tr><th>Key</th><th>Kind</th><th>Rows</th><th>Size</th><th>Harvested</th><th>Object</th></tr></thead>
+      <tbody></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <h2>Arms transfers <span class="muted" id="atTotal"></span></h2>
+    <div class="scroll"><table id="atTable">
+      <thead><tr><th>Seller</th><th>Buyer</th><th>Ordered</th><th>Delivered</th><th>Units</th>
+                 <th>Category</th><th>Designation</th><th>Description</th></tr></thead>
+      <tbody></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <h2>Crawled pages <span class="muted" id="pgSel"></span></h2>
+    <div class="scroll"><table id="pgTable">
+      <thead><tr><th>Title</th><th>URL</th><th>Size</th><th>Harvested</th></tr></thead>
+      <tbody></tbody></table></div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const fmt = n => (n ?? 0).toLocaleString();
+const kb = b => !b ? '—' : b > 1e6 ? (b/1e6).toFixed(1)+' MB' : (b/1e3).toFixed(0)+' KB';
+let section = '';
+
+async function j(u, o){ const r = await fetch(u, o); if(!r.ok && r.status!==409) throw new Error(r.status); return r.json(); }
+
+async function loadSummary(){
+  const s = await j('/api/summary');
+  const yrs = s.year_from ? `${s.year_from}–${s.year_to}` : '—';
+  $('#tiles').innerHTML = [
+    [fmt(s.arms_transfers), 'arms transfers'],
+    [yrs, 'order years'],
+    [fmt(s.pages), 'pages crawled'],
+    [fmt(s.datasets), 'datasets'],
+    [fmt(s.dataset_rows), 'dataset rows'],
+    [kb(s.dataset_bytes), 'archived'],
+  ].map(([n,l]) => `<div class="tile"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+}
+
+async function loadCats(){
+  const c = await j('/api/categories');
+  $('#cats').innerHTML = c.map(x =>
+    `<div class="cat${x.slug===section?' sel':''}" data-s="${x.slug}">
+       <div class="n">${fmt(x.pages)}</div><div class="l">${x.label}</div></div>`).join('');
+  document.querySelectorAll('.cat').forEach(el => el.onclick = () => {
+    section = (section === el.dataset.s) ? '' : el.dataset.s;
+    loadCats(); loadPages();
+  });
+}
+
+async function loadDatasets(){
+  const d = await j('/api/datasets');
+  $('#dsTable tbody').innerHTML = d.map(x => `<tr>
+      <td><b>${x.key}</b></td><td>${x.kind}</td><td>${fmt(x.rows)}</td><td>${kb(x.bytes)}</td>
+      <td class="muted">${(x.harvested_at||'').slice(0,16).replace('T',' ')}</td>
+      <td class="muted" style="font-size:11px">${x.minio_key||''}</td></tr>`).join('')
+    || '<tr><td colspan="6" class="muted">No datasets yet — press Start crawl.</td></tr>';
+}
+
+async function loadTransfers(){
+  const t = await j('/api/transfers?limit=40');
+  $('#atTotal').textContent = t.total ? `· ${fmt(t.total)} rows` : '';
+  $('#atTable tbody').innerHTML = t.rows.map(r => `<tr>
+      <td>${r.seller??''}</td><td>${r.buyer??''}</td><td>${r.order_yr??''}</td><td>${r.delivery_yr??''}</td>
+      <td>${r.units??''}${r.units_est?' <span class="est" title="SIPRI estimate">est</span>':''}</td>
+      <td>${r.category??''}</td><td>${r.desg??''}</td><td class="muted">${r.descr??''}</td></tr>`).join('')
+    || '<tr><td colspan="8" class="muted">No transfers yet — press Start crawl.</td></tr>';
+}
+
+async function loadPages(){
+  const p = await j('/api/pages?limit=60&section=' + encodeURIComponent(section));
+  $('#pgSel').textContent = section ? `· ${section}` : '';
+  $('#pgTable tbody').innerHTML = p.map(x => `<tr>
+      <td>${x.title||'<span class="muted">(untitled)</span>'}</td>
+      <td><a href="${x.url}" target="_blank" rel="noreferrer">${x.url.replace(/^https?:\/\//,'').slice(0,68)}</a></td>
+      <td>${kb(x.html_len)}</td>
+      <td class="muted">${(x.harvested_at||'').slice(0,16).replace('T',' ')}</td></tr>`).join('')
+    || '<tr><td colspan="4" class="muted">No pages in this section yet.</td></tr>';
+}
+
+let wasRunning = false;
+async function poll(){
+  let s;
+  try { s = await j('/api/run/status'); } catch { return; }
+  const pill = $('#runPill');
+  if (s.running){
+    pill.className = 'pill run'; pill.textContent = s.task ? 'running · ' + s.task : 'running';
+    $('#startBtn').disabled = true; $('#stopBtn').disabled = false;
+  } else {
+    pill.className = s.error ? 'pill err' : 'pill idle';
+    pill.textContent = s.error ? 'failed' : 'idle';
+    $('#startBtn').disabled = false; $('#stopBtn').disabled = true;
+  }
+  const meta = [];
+  if (s.started_at) meta.push('started ' + s.started_at.replace('T',' ').replace('+00:00','Z'));
+  if (s.finished_at) meta.push('finished ' + s.finished_at.replace('T',' ').replace('+00:00','Z'));
+  if (s.stop_requested) meta.push('stop requested');
+  if (s.error) meta.push('error: ' + s.error);
+  $('#runMeta').textContent = meta.join(' · ') || 'Not running.';
+  if (s.log && s.log.length) $('#runLog').textContent = s.log.join('\n');
+  $('#runBar').style.width = s.running ? '100%' : '0%';
+  $('#runBar').style.opacity = s.running ? '.5' : '0';
+
+  // Refresh the data views while a run is live, and once more when it finishes, so the final
+  // numbers land without the operator reloading.
+  if (s.running || wasRunning) refreshData();
+  wasRunning = s.running;
+}
+
+function refreshData(){ loadSummary(); loadCats(); loadDatasets(); loadTransfers(); loadPages(); }
+
+$('#startBtn').onclick = async () => {
+  $('#startBtn').disabled = true;
+  const r = await j('/api/run/start?task=all', {method:'POST'});
+  $('#runLog').textContent = r.message || 'started';
+  setTimeout(poll, 500);
+};
+$('#stopBtn').onclick = async () => { await j('/api/run/stop', {method:'POST'}); setTimeout(poll, 500); };
+
+refreshData(); poll();
+setInterval(poll, 4000);
+setInterval(() => { if (!wasRunning) refreshData(); }, 30000);
+</script>
+</body>
+</html>

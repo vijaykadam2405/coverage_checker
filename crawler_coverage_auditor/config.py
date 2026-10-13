@@ -8,6 +8,27 @@ from crawler_coverage_auditor.corpus.credentials import API_URL
 CAPTURE_TYPES = frozenset({'HTML', 'PDF', 'DOCUMENT', 'IMAGE', 'API', 'FEED', 'MEDIA', 'OTHER'})
 DISCOVERY_SOURCES = frozenset({'SITEMAP', 'STATIC', 'RENDERED', 'API', 'STRUCTURED_DATA',
                               'HTTP_LINK', 'FEED', 'FILTER_GET', 'FILTER_BROWSER', 'PAGINATION', 'TABS', 'LOAD_MORE'})
+LEGACY_DISCOVERY_LIMITS = ('max_urls', 'max_browser_pages', 'max_browser_actions',
+                         'max_filter_values', 'maximum_pagination_probe')
+WEBSITE_DELAY_SECONDS = 1.0
+CORPUS_INTERVAL_SECONDS = 2.0
+PACING_VERSION = 2
+
+
+def paced_scan_settings(values: dict, *, upgrade_legacy: bool = False) -> dict:
+    """Moderate serial pacing; migrate old defaults, not intentional slower settings."""
+    result = dict(values)
+    legacy = upgrade_legacy and result.get('pacing_version', 1) < PACING_VERSION
+    for name, minimum, old_default in (
+        ('website_delay_seconds', WEBSITE_DELAY_SECONDS, 1.5),
+        ('corpus_interval_seconds', CORPUS_INTERVAL_SECONDS, 3.0),
+    ):
+        value = result.get(name, minimum)
+        if legacy and value == old_default:
+            value = minimum
+        result[name] = max(minimum, value)
+    result.update(pacing_version=PACING_VERSION, max_concurrency=1, corpus_batch_size=1)
+    return result
 
 
 def capture_category(page_type: str, url: str, content_type: str = '') -> str:
@@ -75,7 +96,7 @@ class AuditConfig:
     include_subdomains: bool = False
     use_browser: bool = False
     max_concurrency: int = 1
-    max_filter_values: int = 100
+    max_filter_values: int | None = None
     output_dir: Path = Path("reports")
     database_path: Path = Path("data/coverage.sqlite")
     resume: bool = False
@@ -85,14 +106,15 @@ class AuditConfig:
     request_timeout_seconds: float = 25.0
     max_retries: int = 3
     user_agent: str = "CrawlerCoverageAuditor/0.1 (+coverage audit)"
-    # Resource safeguards, never depth cutoffs. Hitting one records an explicit limitation.
-    max_urls: int = 20000
-    max_browser_pages: int = 300
-    max_browser_actions: int = 60
+    # Retained only to read old saved configurations. Discovery has no count ceilings.
+    max_urls: int | None = None
+    max_browser_pages: int | None = None
+    max_browser_actions: int | None = None
     respect_robots: bool = True
     discovery_only: bool = False
     website_delay_seconds: float = 0.0
-    corpus_interval_seconds: float = 2.0
+    corpus_interval_seconds: float = CORPUS_INTERVAL_SECONDS
+    pacing_version: int = PACING_VERSION
     corpus_timeout_seconds: float = 60.0
     browser_challenge_wait_seconds: float = 12.0
     seed_hosts: set[str] = field(default_factory=set)
@@ -100,9 +122,12 @@ class AuditConfig:
     discovery_sources: set[str] = field(default_factory=lambda: set(DISCOVERY_SOURCES))
     external_resources: bool = True
     reuse_public_session: bool = True
-    maximum_pagination_probe: int = 1_048_576
+    maximum_pagination_probe: int | None = None
 
     def __post_init__(self) -> None:
+        # Resuming an old scan must not restore its previous discovery cutoffs.
+        for name in LEGACY_DISCOVERY_LIMITS:
+            setattr(self, name, None)
         self.capture_types = set(self.capture_types)
         self.discovery_sources = set(self.discovery_sources)
         if not self.discovery_sources <= DISCOVERY_SOURCES:

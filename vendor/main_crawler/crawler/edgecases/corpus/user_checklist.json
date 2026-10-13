@@ -1,0 +1,153 @@
+[
+ {
+  "problem": "1. robots.txt blocking — crawler disallowed from path",
+  "urls": []
+ },
+ {
+  "problem": "2. IP blocking / rate limiting — too many requests trigger a ban",
+  "urls": []
+ },
+ {
+  "problem": "3. CAPTCHA challenges — human-verification blocks",
+  "urls": [
+   "https://www.zoopla.co.uk/to-rent/",
+   "http://joinindianarmy.nic.in/"
+  ]
+ },
+ {
+  "problem": "4. Login/authentication walls — content hidden behind session",
+  "urls": [
+   "https://the-internet.herokuapp.com/login",
+   "https://httpbin.org/basic-auth/user/passwd",
+   "https://www.pinterest.com/search/pins/?q=architecture"
+  ]
+ },
+ {
+  "problem": "5. Geo-blocking — content restricted by region",
+  "urls": [
+   "https://unsplash.com/s/photos/nature",
+   "https://www.pinterest.com/search/pins/?q=architecture"
+  ]
+ },
+ {
+  "problem": "6. WAF/bot detection (Cloudflare, Akamai, etc.) blocking automated traffic",
+  "urls": [
+   "https://www.zoopla.co.uk/to-rent/",
+   "https://dzone.com/"
+  ]
+ },
+ {
+  "problem": "7. JavaScript-rendered content — empty HTML without executing JS",
+  "urls": [
+   "https://news.ycombinator.com/newest"
+  ]
+ },
+ {
+  "problem": "8. Dynamic/lazy-loaded content — infinite scroll, AJAX-loaded sections",
+  "urls": [
+   "https://unsplash.com/",
+   "https://quotes.toscrape.com/scroll",
+   "https://www.flickr.com/explore/",
+   "https://www.behance.net/search/projects?search=design"
+  ]
+ },
+ {
+  "problem": "9. Broken or malformed HTML — parsing errors",
+  "urls": [
+   "https://news.ycombinator.com/news",
+   "https://html5sec.org/",
+   "https://www.art.yale.edu/",
+   "https://www.arngren.net/",
+   "https://www.gatesnfences.com/",
+   "https://dpgraph.com/"
+  ]
+ },
+ {
+  "problem": "10. Redirect loops/chains — URL bounces endlessly",
+  "urls": []
+ },
+ {
+  "problem": "11. 404 / dead links",
+  "urls": [
+   "https://www.spotify.com/uk/icantypeanythinghere/",
+   "https://www.facebook.com/rwhrtzdehfnbs_this_user_does_not_exist",
+   "https://www.mozilla.org/en-US/404.html",
+   "https://www.bbc.com/nonexistent-page-12345",
+   "https://www.nytimes.com/2026/01/01/nonexistent-article.html",
+   "https://www.apache.org/notfound"
+  ]
+ },
+ {
+  "problem": "12. 500 / server errors",
+  "urls": [
+   "https://httpbin.org/status/500",
+   "https://httpbin.org/status/501",
+   "https://httpbin.org/status/502",
+   "https://httpbin.org/status/503",
+   "https://httpbin.org/status/504",
+   "https://httpstat.us/500",
+   "https://httpstat.us/502",
+   "https://httpstat.us/504."
+  ]
+ },
+ {
+  "problem": "13. Timeouts — slow server response",
+  "urls": []
+ },
+ {
+  "problem": "14. SSL/TLS certificate errors",
+  "urls": []
+ },
+ {
+  "problem": "15. DNS resolution failures",
+  "urls": []
+ },
+ {
+  "problem": "16. Duplicate content — same content, multiple URLs",
+  "urls": []
+ },
+ {
+  "problem": "17. Encoding issues — garbled/non-UTF-8 text",
+  "urls": []
+ },
+ {
+  "problem": "18. Non-HTML files — PDFs, images, videos needing special handling",
+  "urls": []
+ },
+ {
+  "problem": "19. Pagination confusion — crawler can't find/follow \"next page\"",
+  "urls": []
+ },
+ {
+  "problem": "20. Session ID / tracking parameter URLs — infinite URL variations of same page",
+  "urls": []
+ },
+ {
+  "problem": "21. Crawler traps — infinite URL generation (calendars, filters)",
+  "urls": []
+ },
+ {
+  "problem": "23. Canonical tag mismatches — confusion about preferred URL version",
+  "urls": []
+ },
+ {
+  "problem": "24. URL normalization issues — www vs non-www, http vs https, trailing slash, case sensitivity",
+  "urls": []
+ },
+ {
+  "problem": "27. Server overload from aggressive crawling (unintentional DoS)",
+  "urls": []
+ },
+ {
+  "problem": "28. Content changes between crawl and use (staleness)",
+  "urls": []
+ },
+ {
+  "problem": "29. A/B tested content — different users see different content",
+  "urls": []
+ },
+ {
+  "problem": "30. Inconsistent structure across pages — hard to generalize parsing logic",
+  "urls": []
+ }
+]

@@ -1,0 +1,722 @@
+[
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login",
+  "url": "https://app.asana.com/0/home",
+  "expect": "302 chain ends on app.asana.com/-/login?u=%2F0%2Fhome -- never the Asana workspace",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://app.asana.com/-/login?u=%2F0%2Fhome after redirect from /0/home, 38947 bytes, 303 chars visible text; <title>Log in - Asana</title>; visible text is \"Welcome to Asana / To get started, please sign in\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login",
+  "url": "https://dashboard.stripe.com/dashboard",
+  "expect": "302 to dashboard.stripe.com/login?redirect=%2Fdashboard -- never the merchant dashboard",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://dashboard.stripe.com/login?redirect=%2Fdashboard, 140156 bytes, 170 chars visible text; <title>Stripe Login | Sign in to the Stripe Dashboard</title>",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login",
+  "url": "https://vercel.com/dashboard",
+  "expect": "redirect chain /dashboard -> /auth-redirect/dashboard -> /login?next=%2Fdashboard",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://vercel.com/login?next=%2Fdashboard, 483125 bytes, 270 chars visible text; <title>Login – Vercel</title>; visible text is \"Log in to Vercel ... Continue with Email / Google / GitHub / SAML SSO\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "sso",
+  "url": "https://bitbucket.org/account/settings/",
+  "expect": "cross-domain bounce bitbucket.org -> id.atlassian.com/login: the crawler leaves the seed host entirely and lands on a third-party IdP",
+  "evidence": "measured 2026-07-27: HTTP 200, chain /account/settings/ -> bitbucket.org/account/signin/?next=... -> final=https://id.atlassian.com/login?application=bitbucket&continue=https%3A%2F%2Fbitbucket.org%2Faccount%2Fsignin%2F%3Fnext%3D%252Faccount%252Fsettings%252F%26redirectCount%3D1, 4303 bytes, 242 chars visible text; <title>Log in with Atlassian account</title>",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "sso",
+  "url": "https://console.cloud.google.com/home/dashboard",
+  "expect": "302 chain ends on accounts.google.com/v3/signin/identifier with a password field -- never the GCP console",
+  "evidence": "measured 2026-07-27: HTTP 200, chain -> accounts.google.com/ServiceLogin?service=cloudconsole -> /InteractiveLogin -> final=https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fconsole.cloud.google.com%2Fhome%2Fdashboard&dsh=S2049924590%3A1785103929518689&followup=https%3A%2F%2Fconsole.cloud.google.com%2Fhome%2Fdashboard&osid=1&passive=1209600&service=cloudconsole&flowName=GlifWebSignIn&flowEntry=ServiceLogin&ifkv=Ac50bxsZnfHBInsWFABlq6b9D-4nJzYNC5v2lrveIVaF6ECLlxZo4YXxPmrPDgX3MVdti9w19bcCgA, 1232142 bytes, 1035 chars visible text; raw HTML contains type=\"password\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login",
+  "url": "https://www.dropbox.com/home",
+  "expect": "302 to dropbox.com/login?cont=%2Fhome -- never the file list",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.dropbox.com/login?cont=%2Fhome, 76004 bytes, 0 chars visible text; <title>Login or Sign Up for a Dropbox Account</title>",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login",
+  "url": "https://www.figma.com/files/recent",
+  "expect": "302 to figma.com/login -- never the recent-files list",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.figma.com/login?is_not_gen_0=true, 233162 bytes, 0 chars visible text; <title>Login | Figma</title>",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login_next",
+  "url": "https://app.datadoghq.com/dashboard/lists",
+  "expect": "302 to app.datadoghq.com/account/login?next=%2Fdashboard%2Flists -- the login?next= pattern on a SaaS monitoring app",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://app.datadoghq.com/account/login?next=%2Fdashboard%2Flists, 74194 bytes, 113 chars visible text; <title>Datadog: Log In</title>",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login_next",
+  "url": "https://www.tumblr.com/dashboard",
+  "expect": "302 to tumblr.com/login?redirect_to=%2Fdashboard&source=login_register_required",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.tumblr.com/login?redirect_to=%2Fdashboard&source=login_register_required, 57319 bytes, 267 chars visible text; <title>Register - Login</title>; raw HTML contains type=\"password\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login",
+  "url": "https://sentry.io/organizations/new/",
+  "expect": "302 to sentry.io/auth/login/ -- an /auth/ style login path rather than /login",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://sentry.io/auth/login/, 20354 bytes, 401 chars visible text; <title>Sign In | Sentry</title>; raw HTML contains type=\"password\" and name=\"csrf",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "sso",
+  "url": "https://app.box.com/folder/0",
+  "expect": "302 from app.box.com to a different host account.box.com/login?redirect_url=%2Ffolder%2F0",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://account.box.com/login?redirect_url=%2Ffolder%2F0, 20270 bytes, 525 chars visible text; <title>Box | Login</title>; raw HTML contains type=\"password\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login_next",
+  "url": "https://huggingface.co/settings/profile",
+  "expect": "302 to huggingface.co/login?next=%2Fsettings%2Fprofile on a site whose public pages are crawlable -- the crawler must not treat this as ordinary content",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://huggingface.co/login?next=%2Fsettings%2Fprofile, 50515 bytes, 504 chars visible text; type=\"password\" present in raw HTML",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "sso_oauth",
+  "url": "https://manage.auth0.com/dashboard",
+  "expect": "three-hop bounce manage.auth0.com -> /login -> auth0.auth0.com/authorize?... -> /u/login/identifier: an OAuth authorize round-trip ending on the IdP",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://auth0.auth0.com/u/login/identifier?state=hKFo2SBmaEpvenFaWUNZUnBCTzU2dXlPZThLZDNmVGRJWlZLTqFur3VuaXZlcnNhbC1sb2dpbqN0aWTZIDlOdng5eV9PRUwwZ1Y1UV9LWnlCeDMxNzFNTUx3VFlHo2NpZNkgekVZZnBvRnpVTUV6aWxoa0hpbGNXb05rckZmSjNoQUk, 59310 bytes, 270 chars visible text; <title>Log in | Auth0 Dashboard</title>; type=\"password\" present",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "redirect_login_gov",
+  "url": "https://www.tax.service.gov.uk/personal-account",
+  "expect": "a government portal: 302 chain -> /bas-gateway/sign-in?continue_url=... -> /sign-in-to-hmrc-online-services/identity/sign-in/<token>; the final URL carries a one-shot session token, so the wall URL is never stable",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.tax.service.gov.uk/sign-in-to-hmrc-online-services/identity/sign-in/KzrYmWxF_lfrDPmgWsww_H0UT1Ft, 19755 bytes, 737 chars visible text; <title>Sign in to HMRC - Sign in to HMRC online services - GOV.UK</title>; name=\"csrf present",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "sso",
+  "url": "https://www.wix.com/my-account/sites",
+  "expect": "302 to users.wix.com/signin?originUrl=... -- a /signin (not /login) wall on a separate subdomain",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://users.wix.com/signin?originUrl=https%3A%2F%2Fwww.wix.com%2Fmy-account%2Fsites&postLogin=https%3A%2F%2Fwww.wix.com%2Fmy-account%2Fsites&overrideLocale=en, 15255 bytes, 0 chars visible text; <title>Log In to Your Wix Account - Wix.com</title>",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "sso_oauth",
+  "url": "https://www.squarespace.com/config",
+  "expect": "chain /config -> /auth/protected-redirect/external -> login.squarespace.com/api/1/login/oauth/provider/authorize?client_id=... -- an OAuth authorize endpoint is the wall",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://login.squarespace.com/api/1/login/oauth/provider/authorize?client_id=wAHMs0yNCd2CyyoI0Eclva4GmZ1qqRPx&redirect_uri=https%3A%2F%2Fwww.squarespace.com%2Foauth-connect&state=v1.local.s3spewKb7HDWPI9s107aQRSFuZr4B55XHQpAWWriUdTarQ62rjN7u2C0Dvd0tVTIxjvpP-ADr6a1t50TPfTmZ4mDR9SA_H49-0I0fgpOcdDMufib0lupH1kIba8eAUzazN4jS4Oy56ZtEPv0I7x__4hPN0cI1fl3B7ZD35vMuW0RhxYIcBjp5WmmGwmrCzF-C_AIz_jwDGoIK1J5pWfbiY0ZvW4ukeWy_XubmWSEm3aDBasMg1SnuF2f5CeMl43kcOmIYKRKA8z3vMsx6TqVc0WmmwBxZofA5Z542VcgC4yqadvyCWUbQzRd3LBkzVc2R_lZ-04l1501yfzJksZ-owDK5d7IKcBHF4TY7W9Trs8LMslhZFe0DlNLd_DnR0-XhOY&overrideLocale=en-US&options=%7B%22isCloseVisible%22%3Atrue%2C%22isCreateAccountViewActive%22%3Afalse%7D, 2516 bytes, 0 chars visible text; <title>Squarespace – Login</title>",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_401",
+  "url": "https://api.openai.com/v1/models",
+  "expect": "bare 401 JSON with a WWW-Authenticate challenge and no HTML at all",
+  "evidence": "measured 2026-07-27: HTTP 401, 151 bytes, header WWW-Authenticate: Bearer realm=\"OpenAI API\"; body: {\"error\": {\"message\": \"Missing bearer authentication in header\", ...}}",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_401",
+  "url": "https://api.stripe.com/v1/charges",
+  "expect": "401 with Basic-auth challenge; body is a prose error, not content",
+  "evidence": "measured 2026-07-27: HTTP 401, 342 bytes, header WWW-Authenticate: Basic realm=\"Stripe\"; body starts \"You did not provide an API key. You need to provide your API key in the Authorization header\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_401",
+  "url": "https://gitlab.com/api/v4/user",
+  "expect": "30-byte 401 JSON -- the smallest possible auth wall, easy for a crawler to mistake for an empty page",
+  "evidence": "measured 2026-07-27: HTTP 401, 30 bytes, body exactly {\"message\":\"401 Unauthorized\"}",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_401_empty_body",
+  "url": "https://api.bitbucket.org/2.0/user",
+  "expect": "401 with a COMPLETELY EMPTY body -- zero bytes; only the status line and WWW-Authenticate header say anything",
+  "evidence": "measured 2026-07-27: HTTP 401, 0 bytes (empty body), header WWW-Authenticate: BitbucketCustom realm=Bitbucket.org HTTP",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_401_empty_body",
+  "url": "https://api.pagerduty.com/users",
+  "expect": "second zero-byte 401: no body, no WWW-Authenticate header either",
+  "evidence": "measured 2026-07-27: HTTP 401, 0 bytes (empty body), no WWW-Authenticate header",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_401",
+  "url": "https://api.twilio.com/2010-04-01/Accounts.json",
+  "expect": "401 JSON with a vendor error code and a Basic-auth challenge",
+  "evidence": "measured 2026-07-27: HTTP 401, 141 bytes, WWW-Authenticate: Basic realm=\"Twilio API\"; body {\"code\":20003,\"message\":\"Authentication Error - No credentials provided\",...}",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_401_basic",
+  "url": "https://httpbin.org/basic-auth/user/passwd",
+  "expect": "textbook HTTP Basic auth: 401 + WWW-Authenticate: Basic, empty body -- a browser would pop a credential dialog, a crawler must just record the wall",
+  "evidence": "measured 2026-07-27: HTTP 401, 0 bytes (empty body), header WWW-Authenticate: Basic realm=\"Fake Realm\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_401",
+  "url": "https://api.anthropic.com/v1/models",
+  "expect": "401 JSON naming the missing header",
+  "evidence": "measured 2026-07-27: HTTP 401, 141 bytes, body {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"x-api-key header is required\"},...}",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_401_xml",
+  "url": "https://api.zoom.us/v2/users/me",
+  "expect": "a 401 whose body is XML, not JSON and not HTML -- content-type sniffing must not turn this into a stored document",
+  "evidence": "measured 2026-07-27: HTTP 401, 126 bytes, body <?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><error><code>124</code><message>Invalid access token.</message></error>",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_400",
+  "url": "https://api.dropboxapi.com/2/users/get_current_account",
+  "expect": "an auth wall served as 400, not 401, with a plain-text body -- a crawler bucketing only 401/403 as auth will misfile this",
+  "evidence": "measured 2026-07-27: HTTP 400, 115 bytes, content-type text/plain, body: Error in call to API function \"users/get_current_account\": Invalid authorization value in HTTP header/URL parameter",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_400_html",
+  "url": "https://api.trello.com/1/members/me",
+  "expect": "an auth failure returned as 400 with a full HTML error page -- looks parseable, contains no content",
+  "evidence": "measured 2026-07-27: HTTP 400, 1357 bytes, content-type text/html, <title>Trello Server Error</title>, visible text \"Oh no! 400! Taco says ‘invalid token’, but what does he know? He's just a dog.\" (78 chars visible text)",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "hard_403",
+  "url": "https://api.cloudflare.com/client/v4/user",
+  "expect": "auth wall served as 403 listing the missing headers by name",
+  "evidence": "measured 2026-07-27: HTTP 403, 162 bytes, body {\"success\":false,\"errors\":[{\"code\":9106,\"message\":\"Missing X-Auth-Email header\"},{\"code\":9107,\"message\":\"Missing X-Auth-Key header\"}],...}",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "auth_wall",
+  "variant": "soft_200_unauth_json",
+  "url": "https://slack.com/api/users.list",
+  "expect": "HTTP 200 with ok:false/not_authed -- a status-code-only crawler stores this as a successful fetch",
+  "evidence": "measured 2026-07-27: HTTP 200, 33 bytes, body exactly {\"ok\":false,\"error\":\"not_authed\"}",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.aftenposten.no/i/lnJaoL",
+  "expect": "Schibsted hard wall: JSON-LD marks the article not free and only the lede survives; the commentary itself never reaches the HTML",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.aftenposten.no/meninger/kommentar/i/lnJaoL/i-usa-mistet-jeg-friheten-til-aa-gaa, 254766 bytes but only 2518 chars visible text and 1 <p> over 150 chars (189 chars total); JSON-LD \"isAccessibleForFree\":false with hasPart cssSelector \".paywall\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.aftenposten.no/meninger/debatt/i/zO9Av1/hva-er-det-som-gjoer-at-omsorg-omtanke-og-foelelser-skal-vaere-spesifikt-feminine-verdier-de-siste-tiaarene-har-mannsrollen-sprengt-de-stramme-rammene-som-i-en-periode-preget-ideen-om-den-ideelle-mann",
+  "expect": "same Aftenposten hard-wall pattern on a second article, this time with a very long slug",
+  "evidence": "measured 2026-07-27: HTTP 200, 285155 bytes, 3002 chars visible text, 5 long <p> (1327 chars) -- teaser only; JSON-LD \"isAccessibleForFree\":false, hasPart cssSelector \".paywall\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://asia.nikkei.com/opinion/india-energy-resilience-faces-tougher-test-as-tensions-with-iran-rise",
+  "expect": "Nikkei Asia serves the nav shell and an ArticlePaywallAdvert placeholder; ZERO article paragraphs are in the HTML",
+  "evidence": "measured 2026-07-27: HTTP 200, 289739 bytes, 4157 chars visible text (site navigation only), 0 <p> over 150 chars; raw HTML contains class \"ArticlePaywallAdvert_articlePaywallAdvert\" and a window.paywallState object",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://asia.nikkei.com/business/technology/artificial-intelligence/mitsui-fudosan-to-build-physical-ai-hub-near-tsmc-s-kumamoto-base",
+  "expect": "same Nikkei Asia pattern on a second article",
+  "evidence": "measured 2026-07-27: HTTP 200, 286162 bytes, 4579 chars visible text, 2 long <p> (505 chars); ArticlePaywallAdvert + window.paywallState present",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.svd.se/a/wr9RpP/iran-hotar-ukraina-efter-fartygsattack",
+  "expect": "Svenska Dagbladet cuts after the lede: the JSON-LD names \".salesPoster\" as the non-free element and paywallType is \"subscription\"",
+  "evidence": "measured 2026-07-27: HTTP 200, 194567 bytes, 2772 chars visible text, 4 long <p> (903 chars, of which the last is the postal-address footer); JSON-LD \"isAccessibleForFree\":false, cssSelector \".salesPoster\", \"paywallType\":\"subscription\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.svd.se/a/0pL8QG/japan-lockar-rekordmanga-turister-kan-det-radda-landets-ekonomi",
+  "expect": "same SvD hard pattern on a second article",
+  "evidence": "measured 2026-07-27: HTTP 200, 244282 bytes, 2776 chars visible text, 2 long <p> (409 chars); JSON-LD \"isAccessibleForFree\":false with cssSelector \".salesPoster\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.svd.se/a/d4MlBq/algoritmiREDACTED_SOURCE_CREDENTIAL",
+  "expect": "THE SAME PUBLISHER, SOFT: identical \"isAccessibleForFree\":false markup, but here the whole feature is in the HTML -- proof that the paywall flag alone cannot decide hard vs soft",
+  "evidence": "measured 2026-07-27: HTTP 200, 170920 bytes, 12434 chars visible text and 26 <p> over 150 chars totalling 9925 chars of real prose (e.g. \"Under ett panelsamtal i Almedalen fick Danske Banks chefsekonom fragan...\"); JSON-LD \"isAccessibleForFree\":false, cssSelector \".salesPoster\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.marketwatch.com/story/theres-a-technical-triple-threat-for-stocks-but-also-places-investors-can-hide-59108c6b",
+  "expect": "MarketWatch serves one lede paragraph then truncates mid-sentence into a CSS class name; the rest of the column is absent",
+  "evidence": "measured 2026-07-27: HTTP 200, 642168 bytes but only 2715 chars visible text; 3 long <p> (6517 chars) of which one is the FACTSET boilerplate; JSON-LD hasPart cssSelector \".paywall\" with \"isAccessibleForFree\":false",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.marketwatch.com/story/it-would-feel-like-a-burden-my-stepmother-96-owns-the-house-i-grew-up-in-is-it-wrong-to-tell-her-i-dont-want-to-inherit-it-9d5810c2",
+  "expect": "same MarketWatch pattern on a second story: the reader's letter is served, the columnist's answer is not",
+  "evidence": "measured 2026-07-27: HTTP 200, 589179 bytes, 2466 chars visible text, 2 long <p> (575 chars); JSON-LD cssSelector \".paywall\", \"isAccessibleForFree\":false",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.mediapart.fr/journal/politique/260726/les-maires-lfi-tentent-d-inventer-une-pratique-insoumise-du-pouvoir",
+  "expect": "Mediapart: the article stops after the first paragraph inside div class=\"paywall-restricted-content qiota_reserve\"; the other long paragraphs on the page are teasers for OTHER articles, which is exactly the trap for a naive text extractor",
+  "evidence": "measured 2026-07-27: HTTP 200, 253950 bytes, 11824 chars visible text, 13 long <p> (4628 chars) but only the first belongs to this article; JSON-LD \"isAccessibleForFree\":false with cssSelector \".paywall-restricted-content\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.mediapart.fr/journal/ecologie/260726/dans-les-pyrenees-les-attaques-d-ours-baissent-mais-les-anti-ursides-ne-decolerent-pas",
+  "expect": "same Mediapart pattern on a second article",
+  "evidence": "measured 2026-07-27: HTTP 200, 254607 bytes, 11849 chars visible text, 13 long <p> (4581 chars, mostly other-article teasers); \"isAccessibleForFree\":false, cssSelector \".paywall-restricted-content\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.information.dk/udland/leder/2026/07/kakerlakoproeret-tvunget-indiens-magtfulde-leder-sjaeldent-tilbagetog",
+  "expect": "Dagbladet Information: two paragraphs then an \"Allerede abonnent?\" login form; the leader itself is not in the response",
+  "evidence": "measured 2026-07-27: HTTP 200, 297256 bytes, 16603 chars visible text but only 2 long <p> (492 chars); JSON-LD \"isAccessibleForFree\": \"False\" with cssSelector \".premium\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.information.dk/2026/07/verdens-aeldste-fodboldspiller-kan-stadig-score",
+  "expect": "harder still: the same site serves a large navigation-only page with ZERO article paragraphs -- {V} chars of visible text and none of it is the story",
+  "evidence": "measured 2026-07-27: HTTP 200, 282985 bytes, 15398 chars visible text, 0 <p> over 150 chars; JSON-LD \"isAccessibleForFree\": \"False\", cssSelector \".premium\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.theage.com.au/sport/afl/lyon-fumes-at-king-injury-grilling-20260727-p60iqq.html",
+  "expect": "Nine Publishing: headline plus a one-line summary, no article body at all",
+  "evidence": "measured 2026-07-27: HTTP 200, 257899 bytes, 1413 chars visible text, 0 <p> over 150 chars; JSON-LD \"isAccessibleForFree\":false; visible text is nav + headline + \"Updated July 27, 2026\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.smh.com.au/world/europe/wildfires-threaten-bordeaux-as-france-spain-battle-blazes-20260727-p60ipo.html",
+  "expect": "SAME PUBLISHER GROUP AS THE ROW ABOVE, SOFT: identical isAccessibleForFree:false + cssSelector \".paywall\" markup, yet the full wire story is present and salvageable",
+  "evidence": "measured 2026-07-27: HTTP 200, 230343 bytes, 6952 chars visible text, 17 <p> over 150 chars totalling 3688 chars of real reporting (\"Bordeaux/Madrid: Wildfires advanced towards the outskirts...\"); JSON-LD \"isAccessibleForFree\":false, hasPart cssSelector \".paywall\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.hs.fi/popkulttuuri/art-2000012126696.html",
+  "expect": "Helsingin Sanomat: one opening paragraph, then nothing; the rest is behind the .paywall selector named in the JSON-LD",
+  "evidence": "measured 2026-07-27: HTTP 200, 583872 bytes, 3595 chars visible text, 1 long <p> (246 chars); JSON-LD \"isAccessibleForFree\":false and hasPart {\"isAccessibleForFree\":false,\"cssSelector\":\".paywall\"}",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.lemonde.fr/pixels/article/2026/07/26/doctolib-et-l-ia-ce-qu-il-faut-savoir-sur-son-programme-de-recherche-utilisant-vos-donnees-personnelles-a-partir-du-mois-d-aout_6732692_4408996.html",
+  "expect": "Le Monde premium: a four-paragraph teaser then the cut; isPartOf productID is lemonde.fr:premium",
+  "evidence": "measured 2026-07-27: HTTP 200, 328242 bytes, 12526 chars visible text, 6 long <p> (2310 chars, teaser only); JSON-LD \"isAccessibleForFree\": \"False\", hasPart cssSelector \".paywall\", productID \"lemonde.fr:premium\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.tagesanzeiger.ch/islamistischer-terroranschlag-in-berlin-974672920770",
+  "expect": "Tamedia: only the standfirst is served; the JSON-LD names ._paywalled-content and productID tagesanzeiger.ch:premium. A second article on the same host the same day carried isAccessibleForFree:true and the full text, so this is per-article, not site-wide",
+  "evidence": "measured 2026-07-27: HTTP 200, 371263 bytes, 5299 chars visible text, 1 long <p> (200 chars); JSON-LD \"isAccessibleForFree\":false with cssSelector \"._paywalled-content\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "hard",
+  "url": "https://www.wsj.com/articles/deepseek-us-ai-stocks-nvidia-broadcom-6cdfae81",
+  "expect": "WSJ answers a bare 401 for an article URL -- no teaser, no HTML shell, nothing to mistake for content",
+  "evidence": "measured 2026-07-27: HTTP 401 Unauthorized, 770 bytes, 43 chars visible text, 0 article paragraphs",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.nzz.ch/international/anschlag-in-berlin-offene-fragen-zu-mittaeter-und-stichwaffe-polizei-fahndet-nach-dem-taeter-ld.10017025",
+  "expect": "NZZ declares the article not free, but the entire live-ticker text is in the raw HTML behind a #paywall_container barrier div -- a crawler can and should salvage it",
+  "evidence": "measured 2026-07-27: HTTP 200, 628767 bytes, 14946 chars visible text, 22 <p> over 150 chars totalling 6693 chars of real reporting; JSON-LD \"isAccessibleForFree\":false; raw HTML contains <div id=\"paywall_container\"> inside class=\"barrier\" plus a \"disabled-overlay\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.nzz.ch/sport/rad/tadej-pogacar-wird-rekordsieger-der-tour-de-france-er-hat-sich-vom-sonnyboy-zum-leader-entwickelt-ld.10017027",
+  "expect": "same NZZ soft pattern on a second article",
+  "evidence": "measured 2026-07-27: HTTP 200, 507932 bytes, 12230 chars visible text, 19 long <p> (6845 chars of real prose); \"isAccessibleForFree\":false plus the paywall_container barrier",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.nzz.ch/international/der-groesste-waldbrand-frankreichs-seit-dem-zweiten-weltkrieg-zwingt-mehr-als-220-000-menschen-zur-flucht-ld.10017064",
+  "expect": "third NZZ article, same soft pattern",
+  "evidence": "measured 2026-07-27: HTTP 200, 535693 bytes, 10005 chars visible text, 11 long <p> (4666 chars, e.g. \"Thomas Cazenave sah blass und angespannt aus...\"); \"isAccessibleForFree\":false",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.nrc.nl/nieuws/2026/07/26/de-tour-van-picnic-postnl-a4933103",
+  "expect": "NRC ships the whole reconstruction to the crawler under cssSelector \".googlebot-article-content\" and then hides it with a <div class=\"paywall hidden\" aria-label=\"Betaalmuur\"> dialog",
+  "evidence": "measured 2026-07-27: HTTP 200, 164461 bytes, 26352 chars visible text, 61 <p> over 150 chars totalling 19530 chars; JSON-LD \"isAccessibleForFree\": false, hasPart cssSelector \".googlebot-article-content\"; raw HTML contains aria-label=\"Betaalmuur\" data-paywall",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.lrb.co.uk/the-paper/v48/n13/david-runciman/the-cult-of-longevity",
+  "expect": "London Review of Books: JSON-LD says the .article-content element is not free, yet the full 6,243-word essay (window.articleWordcount = \"6243\") is in the HTML",
+  "evidence": "measured 2026-07-27: HTTP 200, 311896 bytes, 41402 chars visible text, 38 <p> over 150 chars totalling 36799 chars of essay prose; JSON-LD \"isAccessibleForFree\": false / hasPart \"isAccessibleForFree\": \"False\", cssSelector \".article-content\"; script sets window.articleWordcount = \"6243\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.lrb.co.uk/the-paper/v48/n13/laleh-khalili/canton-kitty",
+  "expect": "same LRB soft pattern on a second essay from the same issue",
+  "evidence": "measured 2026-07-27: HTTP 200, 291865 bytes, 22608 chars visible text, 25 long <p> (18280 chars); \"isAccessibleForFree\": false with cssSelector \".article-content\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://seekingalpha.com/article/4925588-welltower-needs-a-miracle-to-justify-this-price",
+  "expect": "Seeking Alpha names \".paywall-full-content\" as the non-free element and then serves all of it",
+  "evidence": "measured 2026-07-27: HTTP 200, 648203 bytes, 26900 chars visible text, 36 <p> over 150 chars totalling 9537 chars of the actual analysis; JSON-LD \"isAccessibleForFree\":\"False\", hasPart cssSelector \".paywall-full-content\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.expansion.com/mercados/fondos/2026/07/25/6a639cf6468aeb03248b457d.html",
+  "expect": "Expansion (Unidad Editorial) marks the piece not free but ships the full text; note that a sibling elmundo.es article the same day carried the same false flag while its own data layer said \"abierto\", so this flag needs corroboration",
+  "evidence": "measured 2026-07-27: HTTP 200, 172756 bytes, 9359 chars visible text, 15 <p> over 150 chars totalling 5291 chars of real copy; JSON-LD \"isAccessibleForFree\": false",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.newscientist.com/article/2581280-earth-is-heating-up-faster-than-at-any-time-in-its-history/",
+  "expect": "New Scientist: not-free flag plus a class=\"paywall\" wrapper, but the complete comment piece including the author bio is in the HTML",
+  "evidence": "measured 2026-07-27: HTTP 200, 159568 bytes, 7222 chars visible text, 10 <p> over 150 chars totalling 4336 chars, ending on the author-bio paragraph; JSON-LD \"isAccessibleForFree\":false",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.corriere.it/politica/24_maggio_13/toti-spinelli-elezioni-9eac3140-71d7-4523-b980-142b573d5xlk.shtml",
+  "expect": "Corriere della Sera: isAccessibleForFree \"False\" on both the page and its hasPart, yet the whole investigative piece is present and the only wall is the subscriber CTA appended at the end",
+  "evidence": "measured 2026-07-27: HTTP 200, 196545 bytes, 12583 chars visible text, 15 <p> over 150 chars totalling 6312 chars; JSON-LD \"isAccessibleForFree\":\"False\", productID \"corriere.it:naviga\"; last paragraph is \"Se sei abbonato con un altro account accedi con le tue credenziali...\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "paywall",
+  "variant": "soft",
+  "url": "https://www.corriere.it/politica/24_maggio_12/inchiesta-liguria-marco-bucci-gioco-al-massacro-non-ci-sto-chiedo-chiarezza-su-di-me-sono-pronto-a-parlare-con-i-pm-57e1da92-5b6c-4d81-94f6-321a522abxlk.shtml",
+  "expect": "same Corriere soft pattern on a second article -- a full Q&A interview served under a not-free declaration",
+  "evidence": "measured 2026-07-27: HTTP 200, 199135 bytes, 13646 chars visible text, 21 long <p> (7605 chars) including the full interview; \"isAccessibleForFree\":\"False\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "server_side_consent_page",
+  "url": "https://www.golem.de/news/",
+  "expect": "golem.de 302s EVERY section URL to /sonstiges/zustimmung/auswahl.html?from=<original>; the response is the consent form and contains no news at all -- a crawler that follows redirects will store the same 2.4 KB consent text for every page of the site",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.golem.de/sonstiges/zustimmung/auswahl.html?from=https%3A%2F%2Fwww.golem.de%2Fticker%2F, 18198 bytes, only 2475 chars visible text; visible text begins \"Willkommen auf Golem.de! Cookies zustimmen ... indem Sie der Nutzung aller Cookies zustimmen\"; __tcfapi present; zero article content",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "server_side_consent_page",
+  "url": "https://www.golem.de/specials/kuenstliche-intelligenz/",
+  "expect": "same golem.de consent redirect from a topic page -- proof the wall is not path-specific",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.golem.de/sonstiges/zustimmung/auswahl.html?from=https%3A%2F%2Fwww.golem.de%2Fspecials%2Fkuenstliche-intelligenz%2F, 18279 bytes, 2475 chars visible text, all of it consent copy",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "server_side_consent_page",
+  "url": "https://www.golem.de/wirtschaft/",
+  "expect": "third golem.de section, same redirect: the ?from= parameter is the only thing that differs, so a crawler dedupes badly here",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.golem.de/sonstiges/zustimmung/auswahl.html?from=https%3A%2F%2Fwww.golem.de%2Fspecials%2Fwirtschaft%2F, 18240 bytes, 2475 chars visible text",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "server_side_consent_page",
+  "url": "https://www.golem.de/politik-recht/",
+  "expect": "fourth golem.de section, same redirect",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.golem.de/sonstiges/zustimmung/auswahl.html?from=https%3A%2F%2Fwww.golem.de%2Fspecials%2Fpolitik-recht%2F, 18249 bytes, 2475 chars visible text",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "consent_path_redirect",
+  "url": "https://www.derstandard.at/wirtschaft",
+  "expect": "derStandard rewrites the path to /consent/tcf/<original-path>: the URL keeps the section slug so it still LOOKS like content, but the body is the TCF consent notice",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.derstandard.at/consent/tcf/wirtschaft, 50984 bytes, only 736 chars visible text; visible text is \"Willkommen bei DER STANDARD / Sie entscheiden darueber, wie Sie unsere Inhalte nutzen wollen...\"; Sourcepoint + __tcfapi present; zero articles",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "consent_path_redirect",
+  "url": "https://www.derstandard.at/international",
+  "expect": "same /consent/tcf/ rewrite on a second section",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.derstandard.at/consent/tcf/international, 50987 bytes, 736 chars visible text, all consent copy",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "consent_path_redirect",
+  "url": "https://www.derstandard.at/sport",
+  "expect": "same /consent/tcf/ rewrite on a third section",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.derstandard.at/consent/tcf/sport, 50979 bytes, 736 chars visible text",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "consent_path_redirect",
+  "url": "https://www.derstandard.de/",
+  "expect": "the German sister domain does the same at the site root: derstandard.de/ -> derstandard.de/consent/tcf/",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.derstandard.de/consent/tcf/, 50974 bytes, 736 chars visible text; Sourcepoint config present",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "consent_path_redirect",
+  "url": "https://www.derstandard.at/story/3000000332976/laesst-sich-wiens-polizei-von-rechtsextremen-auf-der-nase-herumtanzen",
+  "expect": "the article case: /story/<id>/<slug> becomes /consent/tcf/story/<id>/<slug>. Headline and one paragraph are shown as bait, the rest of the commentary is withheld until consent",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.derstandard.at/consent/tcf/story/3000000332976/laesst-sich-wiens-polizei-von-rechtsextremen-auf-der-nase-herumtanzen, 58036 bytes, only 1424 chars visible text and 4 <p> over 150 chars (829 chars, two of which are the adblock notice and the copyright line)",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "consent_domain_redirect",
+  "url": "https://fr.yahoo.com/",
+  "expect": "same bounce, French wording",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://consent.yahoo.com/v2/collectConsent?sessionId=4_cc-session_e4ec5d47-6955-4e12-ab29-d6dd47522e29, 112532 bytes, 2741 chars visible text; <title>Vos parametres de confidentialite</title>",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "consent_domain_redirect",
+  "url": "https://de.sports.yahoo.com/",
+  "expect": "a deep vertical subdomain, not just the country root, also bounces to consent.yahoo.com",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://consent.yahoo.com/v2/collectConsent?sessionId=4_cc-session_a33a8095-9a36-4bb4-8a88-e79a6d720d9d, 112359 bytes, 2583 chars visible text",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.heineken.com/",
+  "expect": "redirect to an /agegateway/ path whose whole document is the gate: <title>AgeGateway</title>, a country <select> and a date-of-birth form. No brand content is served",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.heineken.com/in/en/agegateway/?returnUrl=%2fin%2fen%2f, 536994 bytes, only 3043 chars visible text and 0 <p> over 150 chars; visible text is the country list of the gate; OneTrust script also present",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.curaleaf.com/",
+  "expect": "cannabis retailer: redirect to /age-gate?returnurl=%2F, <title>Age Gate</title>, a state selector and nothing else",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://curaleaf.com/age-gate?returnurl=%2F, 84259 bytes, only 488 chars visible text; text \"Hey, Welcome to Curaleaf / Select your state ... For use only by adults 21 years of age and older\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.sailorjerry.com/",
+  "expect": "the extreme case: <title>Age Gate | Sailor Jerry</title> and the ENTIRE served document renders as the single word \"Loading...\" -- the gate is client-side but the crawler still gets no content",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.sailorjerry.com/, 6465 bytes, 10 chars visible text (the string \"Loading...\"), 0 paragraphs",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.stellaartois.com/",
+  "expect": "the served page IS the ID form: \"We need to check your I.D. / Month Day Year Submit\" with no brand content behind it",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.stellaartois.com/, 61496 bytes, only 1516 chars visible text; visible text begins \"We need to check your I.D. Month Day Year Submit Always Enjoy Responsibly\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.hendricksgin.com/",
+  "expect": "\"ID please\" plus a country list is the whole document",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://hendricksgin.com/, 31499 bytes, 2910 chars visible text, 0 <p> over 150 chars; visible text starts \"ID please\" followed by the country <select> options",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.hpnotiq.com/",
+  "expect": "\"Let's see some ID. Country of Residence\" -- a date-of-birth + country gate served instead of the site",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.hpnotiq.com/, 22638 bytes, 1990 chars visible text; visible text \"The Home of Hpnotiq Let's see some ID. Country of Residence...\"; OneTrust present",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.gooseisland.com/",
+  "expect": "\"we need to check your id SUBMIT / You must be of legal drinking age to enter this site\" precedes everything; the 232 KB document carries no article or product copy",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.gooseisland.com/, 232252 bytes yet only 1367 chars visible text and 0 <p> over 150 chars",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.domperignon.com/",
+  "expect": "\"To visit the Dom Perignon site, you must be of legal drinking age in your location of residence\" is the entire body",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.domperignon.com/, 60441 bytes, only 760 chars visible text; <title>Dom Perignon - Vintage only</title>; OneTrust present",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.taittinger.com/",
+  "expect": "French statutory age wall: \"L'ACCES A CE SITE EST RESERVE AUX PERSONNES MAJEURES\" with a country selector and an \"Acceder au site\" button; Cookiebot CMP also loaded",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.taittinger.com/, 213034 bytes, 2593 chars visible text, all of it the gate plus the legal warning",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ },
+ {
+  "category": "consent_wall",
+  "variant": "age_gate",
+  "url": "https://www.cinzano.com/",
+  "expect": "redirect to /auth -- an age gate on a path that looks like a login: \"Hai l'eta legale per bere?\"",
+  "evidence": "measured 2026-07-27: HTTP 200, final=https://www.cinzano.com/auth, 16242 bytes, only 374 chars visible text; visible text \"Scegli la tua posizione ... Hai l'eta legale per bere? Per poter visitare questo sito devi avere l'eta minima prevista dalle norme...\"",
+  "source": "verified-live-2026-07-27",
+  "stable": true
+ }
+]

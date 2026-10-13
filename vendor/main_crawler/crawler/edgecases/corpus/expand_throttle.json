@@ -1,0 +1,719 @@
+[
+ {
+  "category": "rate_limit",
+  "url": "https://api.crossref.org/works?rows=1",
+  "expect": "Scholarly-metadata API publishes a 1-request-per-second polite-pool ceiling in headers on every 200; a crawler must read the interval, not just wait for a 429.",
+  "evidence": "200 OK, 28,429 bytes. Headers: 'X-Rate-Limit-Limit: 1', 'X-Rate-Limit-Interval: 1s', Server: Jetty(9.4.40.v20210413). measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress. Single request, no burst.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.openalex.org/works?per-page=1",
+  "expect": "Open scholarly index returns a live daily credit counter; the crawler must decrement against X-RateLimit-Remaining and stop before it reaches 0.",
+  "evidence": "200 OK, 17,425 bytes. Headers: 'X-RateLimit-Limit: 1000', 'X-RateLimit-Remaining: 994', 'X-RateLimit-Reset: 7804', Server: cloudflare (CF-RAY a2169df68b5f0c0c-BOM), 'Access-Control-Expose-Headers: Cache-Control, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Onetime-Remaining, X-RateLimit-Credits-Used, ...'. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress. Single request.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.genderize.io/?name=alex",
+  "expect": "Free tier is a small shared daily allowance surfaced in headers; the counter is shared with agify.io/nationalize.io, so a crawler that treats each host separately will overrun it.",
+  "evidence": "200 OK, 66 bytes. Headers: 'X-Rate-Limit-Limit: 25', 'X-Rate-Limit-Remaining: 24'. Measured together with agify.io (remaining 23) and nationalize.io (remaining 22) moments later - one shared counter across the three hosts. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.agify.io/?name=alex",
+  "expect": "Same shared free-tier counter as genderize.io; the remaining value visibly decrements across sibling hosts, proving the quota is per-IP not per-host.",
+  "evidence": "200 OK, 39 bytes. Headers: 'X-Rate-Limit-Limit: 25', 'X-Rate-Limit-Remaining: 23' - one lower than the genderize.io call made immediately before it. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.nationalize.io/?name=alex",
+  "expect": "Third host on the same shared 25/day counter; remaining drops again, confirming cross-host accounting.",
+  "evidence": "200 OK, 258 bytes. Headers: 'X-Rate-Limit-Limit: 25', 'X-Rate-Limit-Remaining: 22' - one lower again than agify.io. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.microlink.io/?url=https%3A%2F%2Fexample.com",
+  "expect": "Metadata-extraction API exposes a very small anonymous daily quota in headers; a crawler using it as a fetch helper burns the whole allowance in seconds if it ignores them.",
+  "evidence": "200 OK, 606 bytes. Headers: 'X-Rate-Limit-Limit: 25', 'X-Rate-Limit-Remaining: 24'. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress. Single request.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.wheretheiss.at/v1/satellites",
+  "expect": "Documented ~1 request/second endpoint whose header counter decrements visibly under a serial burst; crawler must track the window, which is expressed in words ('5 minutes') not seconds.",
+  "evidence": "Single call: 200 OK, 27 bytes, 'X-Rate-Limit-Limit: 350', 'X-Rate-Limit-Interval: 5 minutes', 'X-Rate-Limit-Remaining: 349'. 10-request SERIAL burst then measured remaining 348,347,346,345,344,343,342,341,340,339 - clean monotonic decrement, no 429 inside 10 requests. Server: Apache/2.2.22 (Ubuntu). measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.dictionaryapi.dev/api/v2/entries/en/test",
+  "expect": "Free dictionary API exposes limit/remaining/reset with the reset as a unix epoch, a format a crawler's backoff parser must handle alongside delta-seconds.",
+  "evidence": "200 OK, 4,704 bytes. Headers: 'X-RateLimit-Limit: 450', 'X-RateLimit-Remaining: 449', 'X-RateLimit-Reset: 1782754628' (unix epoch, not delta-seconds). measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://catfact.ninja/fact",
+  "expect": "Laravel-style throttle headers on a tiny public endpoint; useful as a low-risk control for header parsing.",
+  "evidence": "200 OK, 116 bytes. Headers: 'X-RateLimit-Limit: 100', 'X-RateLimit-Remaining: 99'. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress. Single request.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://rest.ensembl.org/info/ping?content-type=application/json",
+  "expect": "Genomics REST service publishes a large per-window allowance plus a seconds-to-reset value; crawler should self-throttle from the header rather than probing for the wall.",
+  "evidence": "200 OK, 10 bytes. Headers: 'X-RateLimit-Limit: 55000', 'X-RateLimit-Remaining: 54994', 'X-RateLimit-Reset: 579'. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress. Single request; no burst (research institution).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://huggingface.co/api/models?limit=1",
+  "expect": "Model-hub API advertises its policy via the IETF RateLimit-Policy header only - there is no remaining counter, so a crawler must derive its own pacing from q and w.",
+  "evidence": "200 OK, 486 bytes. Header: 'RateLimit-Policy: \"fixed window\";\"api\";q=500;w=300' (500 requests per 300s). No RateLimit-Remaining sent. Served via CloudFront (X-Amz-Cf-Pop: BOM78-P10). measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.football-data.org/v4/competitions",
+  "expect": "Free tier exposes only a reset-window header (seconds until the counter rolls) with no limit or remaining value; crawler cannot self-throttle from headers alone here.",
+  "evidence": "200 OK, 73,069 bytes. Header: 'X-RequestCounter-Reset: 86400' (24h window). No X-RateLimit-* headers at all. Server: nginx. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://www.crunchbase.com/",
+  "expect": "An HTML page (not an API) that ships IETF RateLimit headers - the crawler's throttle logic must read these on ordinary page fetches, not only on /api/ paths.",
+  "evidence": "200 OK, 817,483 bytes of real HTML. Headers on the HTML response: 'RateLimit-Limit: 150', 'RateLimit-Remaining: 149', 'RateLimit-Reset: 900', 'RateLimit-Policy: 150;w=900'. Server: cloudflare, CF-RAY a216955d3c463a87-BOM. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.blockcypher.com/v1/btc/main",
+  "expect": "Blockchain API returns a remaining counter already down to 1 on a first, single request from this IP - the very next call would be rejected. Crawler must honour a near-zero remaining immediately.",
+  "evidence": "200 OK, 767 bytes. Header: 'X-RateLimit-Remaining: 1' on the FIRST request from this egress (no prior burst by us - the free tier is pooled by IP). Server: cloudflare, CF-RAY a216cd17582b3aef-BOM. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.iplocate.io/api/lookup/8.8.8.8",
+  "expect": "IP-geolocation free tier: 50 lookups/day with an epoch reset; the expose-headers list names exactly which counters CORS clients may read.",
+  "evidence": "200 OK, 1,037 bytes. Headers: 'X-RateLimit-Limit: 50', 'X-RateLimit-Remaining: 49', 'X-RateLimit-Reset: 1785110400' (epoch), 'Access-Control-Expose-Headers: content-type, x-ratelimit-remaining, x-ratelimit-limit, x-ratelimit-reset'. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.pexels.com/v1/curated",
+  "expect": "Stock-photo API serves unauthenticated requests with a very large monthly allowance and a far-future epoch reset - a case where the counter is real but effectively never the binding constraint.",
+  "evidence": "200 OK, 22,019 bytes. Headers: 'X-RateLimit-Limit: 25000', 'X-RateLimit-Remaining: 24999', 'X-RateLimit-Reset: 1786426639' (epoch ~1 month out). Server: cloudflare, CF-RAY a216ce2e9e093a63-BOM. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://musicbrainz.org/ws/2/artist/?query=test&fmt=json",
+  "expect": "Shared/pooled quota: the remaining counter is already less than half of the limit on our first request because the window is shared across all anonymous clients. Crawler cannot assume a fresh budget.",
+  "evidence": "200 OK, 93,128 bytes. Headers: 'X-RateLimit-Limit: 1200', 'X-RateLimit-Remaining: 489', 'X-RateLimit-Reset: 1785104572' (epoch) - remaining was already 489/1200 on our single first call. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress. Single request only; no burst (volunteer-run service).",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://hub.docker.com/v2/repositories/library/nginx/tags?page_size=1",
+  "expect": "Registry metadata API exposes a per-window counter that is separate from Docker's better-known image-pull limit; crawlers walking tag listings hit this one.",
+  "evidence": "200 OK, 5,673 bytes. Headers: 'X-RateLimit-Limit: 180', 'X-RateLimit-Remaining: 180', 'X-RateLimit-Reset: 1785104635'. Server: cloudflare, CF-RAY a216ce49eff4cb6e-BOM. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.magicthegathering.io/v1/cards?pageSize=1",
+  "expect": "Uses the unprefixed IETF RateLimit-Limit/Remaining spelling (no X-); a crawler matching only on 'x-ratelimit-*' misses the quota entirely.",
+  "evidence": "200 OK, 5,548 bytes. Headers: 'RateLimit-Limit: 1000', 'RateLimit-Remaining: 999' (no X- prefix). Server: cloudflare via heroku-router. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://esi.evetech.net/latest/status/",
+  "expect": "Game API states the window inside the limit value ('600/15m') and additionally exposes a separate ERROR-rate budget - two independent limits the crawler must respect.",
+  "evidence": "200 OK, 80 bytes. Headers: 'X-RateLimit-Limit: 600/15m' (limit and window in one field), 'X-RateLimit-Remaining: 598', 'X-RateLimit-Used: 2'; 'Access-Control-Expose-Headers: Etag, Retry-After, X-Compatibility-Date, X-Esi-Error-Limit-Remain, X-Esi-Error-Limit-Reset, X-Pages, X-Ratelimit-Group, X-Ratelimit-Limit, X-Ratelimit-Remaining, ...'. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://content.guardianapis.com/search?api-key=test",
+  "expect": "The publicly documented 'test' developer key carries a live per-minute quota with a short reset; the counter had already moved before our own second call.",
+  "evidence": "200 OK, 6,275 bytes. Headers: 'RateLimit-Limit: 720', 'RateLimit-Remaining: 718', 'RateLimit-Reset: 58' (seconds). Body reports \"userTier\":\"developer\". Server: Concierge. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.openbrewerydb.org/v1/breweries?per_page=1",
+  "expect": "Small public dataset API whose remaining counter is already well below the limit on a first request (pooled per-IP window), so the crawler's first fetch is not a clean slate.",
+  "evidence": "200 OK, 400 bytes. Headers: 'X-RateLimit-Limit: 120', 'X-RateLimit-Remaining: 107' on our single first call. Server: cloudflare, CF-RAY a216d2040997613f-BOM. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.ip2location.io/?ip=8.8.8.8",
+  "expect": "The quota is stated only in the JSON body, never in a header or status code - like opentdb, the crawler must parse the payload to notice it is being metered.",
+  "evidence": "200 OK, 393 bytes, status 200 with full data. Body field: \"message\":\"Limit to 1,000 queries per day. Sign up for a Free plan at https://www.ip2location.io/...\". No X-RateLimit-* headers at all. Server: cloudflare, CF-RAY a216cd4fbcb3408d-BOM. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://www.googleapis.com/books/v1/volumes?q=test",
+  "expect": "Shared anonymous Google API project quota is already exhausted, so a single first request returns 429 with a structured JSON error naming the quota metric. No burst by us was needed.",
+  "evidence": "HTTP 429 on request 1 (single request, no burst), 1,306 bytes. Server: ESF. Body: {\"error\":{\"code\":429,\"message\":\"Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service 'books.googleapis.com' for consumer 'project_number:624717413613'.\"...}}. No Retry-After header. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.jikan.moe/v4/anime/1",
+  "expect": "Documented 3 req/s and 60 req/min anonymous limit; a serial burst trips 429 on the 4th request with a typed JSON error and a docs link, but NO Retry-After header.",
+  "evidence": "SERIAL burst, 10 max: req1=200 (5,152 bytes), req2=200, req3=200, req4=HTTP 429 -> stopped. 429 body: {\"status\":\"429\",\"type\":\"RateLimitException\",\"message\":\"You are being rate-limited. Please follow Rate Limiting guidelines: https://docs.api.jikan.moe/#section/Information/Rate-Limiting\",\"error\":null}. No Retry-After header sent. Server: nginx/1.24.0. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://api.semanticscholar.org/graph/v1/paper/search?query=test&limit=1",
+  "expect": "Unauthenticated pool is shared and saturated: request 1 already returns 429 with a plain-text message pointing at the API-key form. Crawler must not treat this as a transient 5xx-style retry.",
+  "evidence": "HTTP 429 on request 1 of a serial burst (burst stopped immediately), 144 bytes, plain text body: 'Too Many Requests. Please wait and try again or apply for a key for higher rate limits. https://www.semanticscholar.org/product/api#api-key-form'. No Retry-After header. Served via CloudFront (X-Amz-Cf-Pop BOM78-P8). Note an earlier single GET to the same URL minutes before returned 200 - the wall is intermittent/pooled. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "rate_limit",
+  "url": "https://trends.google.com/trends/explore?q=test",
+  "expect": "Google Trends answers a single non-browser GET with a bare HTML 429 and no Retry-After; a crawler must recognise the HTML error page as a rate limit, not as content.",
+  "evidence": "HTTP 429 on request 1 (single request, no burst), 1,697 bytes, Server: GSE. Body text: 'Error 429 (Too Many Requests)!!1 429. That's an error. We're sorry, but you have sent too many requests to us recently. Please try again later. That's all we know.' Content-Type text/html - no JSON, no Retry-After. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://radiko.jp/",
+  "expect": "Japanese radio aggregator serves HTTP 200 but the rendered page is a bilingual geo notice instead of the player; crawler stores a 200 'success' that contains no content.",
+  "evidence": "200 OK, 14,761 bytes, Server: nginx. Rendered body text: 'Radiko service is available only in Japan. It cannot be accessed from your current location.' plus the Japanese original. No redirect - the block is served in-place at 200. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.coupangplay.com/",
+  "expect": "Korean streaming service redirects non-KR visitors to a dedicated /not-available route carrying an explicit English sentence.",
+  "evidence": "302 https://www.coupangplay.com/ -> 200 https://www.coupangplay.com/not-available, 121,794 bytes. Body: 'Sorry, Coupang Play is not available in your region'. Set-Cookie: NEXT_LOCALE, PCID, device_id, session_web_id, bm_s. X-Akamai-Transformed present. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.tenplay.com.au/",
+  "expect": "Australian broadcaster: a three-hop redirect chain ends on a 200 whose whole body is a region refusal, and it ships a Retry-After: 0 header that a naive crawler may read as 'retry now'.",
+  "evidence": "301 www.tenplay.com.au -> 301 tenplay.com.au -> 301 10play.com.au -> 200 https://10.com.au/, only 1,402 bytes. Header 'Retry-After: 0', Server: Varnish, X-Served-By: cache-nmi4650020-NMI. Body: '500 (aka Huh?) there's no easy way to say this... Sorry, 10 play is not available in your region.' measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://vix.com/",
+  "expect": "Spanish-language streamer redirects to a static asset literally named geo.html carrying a Spanish country refusal.",
+  "evidence": "302 https://vix.com/ -> 200 https://assets.vix.com/geo.html, 3,750 bytes, Server: UploadServer. Title 'ViX: Cine y TV Gratis en Espanol'; body: 'Lo sentimos, pero ViX no esta disponible en tu pais.' (Sorry, but ViX is not available in your country.) measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.skybet.com/",
+  "expect": "UK bookmaker returns 403 with a page that names the cause as legal/geographic restriction in plain English.",
+  "evidence": "HTTP 403, 2,582 bytes, Server: cloudflare, CF-RAY a216c33a590db333-BOM. Title 'Unavailable Page'. Body: \"We're unavailable where you are. You can't access Sky Bet from your current location. This is usually due to legal restrictions - ours not yours!\" measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.vudu.com/",
+  "expect": "US-only storefront redirects twice into a /region-error route whose <title> is itself the refusal; total payload is 2.6KB with no product content.",
+  "evidence": "302 https://www.vudu.com/ -> 301 https://www.vudu.com/region-error -> 200 https://athome.fandango.com/region-error, 2,600 bytes. Server: AkamaiNetStorage, 'Akamai-GRN: 0.b5f43717.1785103960.526f19c7'. <title>Fandango is not available in your region</title>, and that sentence is the entire visible body. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://athome.fandango.com/",
+  "expect": "Same service reached by its own hostname takes a different redirect path (via a content route) but lands on the same region-error page - the crawler sees two distinct chains to one geo wall.",
+  "evidence": "302 https://athome.fandango.com/ -> 302 /content/browse/free -> 200 https://athome.fandango.com/region-error, 2,600 bytes. Server: AkamaiNetStorage, 'Akamai-GRN: 0.b5f43717.1785103960.526f19fe'. <title>Fandango is not available in your region</title>. Shares its destination page with the www.vudu.com row. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.hallmarkplus.com/",
+  "expect": "Streaming brand redirects off its product domain onto a corporate landing page that states the US-only restriction in a full sentence.",
+  "evidence": "301 https://www.hallmarkplus.com/ -> 200 https://corporate.hallmarkmedia.com/landing/index.html, 9,522 bytes, Server: Microsoft-IIS/10.0, X-Akamai-Transformed present. Title 'Hallmark+ Availability'. Body: 'Thanks for your interest in Hallmark+. At this time, Hallmark+ is only available to stream within the United States.' measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.paddypower.com/",
+  "expect": "Bookmaker 403s with a page that explicitly attributes the refusal to the visitor's country (while hedging that it could also be traffic-based) and echoes the client IP.",
+  "evidence": "HTTP 403, 3,657 bytes, Server: cloudflare, CF-RAY a216c4edabdfff68-BOM. Body: 'Restricted - Our Software detects that you may be accessing the Paddy Power website from a country that Paddy Power does not accept bets from or the traffic from your network was detected as being unusual.' Page echoes 'Your IP: <our egress IP>'. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.betfair.com/",
+  "expect": "Redirects to a country-coded path (/in) and then 403s with the same country-refusal wording - the redirect itself reveals the geo decision before the body does.",
+  "evidence": "302 https://www.betfair.com/ -> HTTP 403 https://www.betfair.com/in, 3,638 bytes, Server: cloudflare, CF-RAY a216c4ee8b28e83d-BOM. Body: 'Restricted - Our Software detects that you may be accessing the Betfair website from a country that Betfair does not accept bets from...'. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.betfred.com/",
+  "expect": "403 whose body says 'geographical restrictions' in as many words, but which still ships a 167KB payload - byte count alone will not tell a crawler this is a block.",
+  "evidence": "HTTP 403, 167,432 bytes (large payload despite being a block page), Server: cloudflare, CF-RAY a216c4f7b89acec4-BOM. Body: 'Betfred is unavailable in your location! We are sorry, but this website is not available in your region due to geographical restrictions.' measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://sports.bwin.com/",
+  "expect": "Redirects onto a help-site /closed page whose <title> is the block message; the status stays 200 throughout, so status-code-only detection fails.",
+  "evidence": "302 https://sports.bwin.com/ -> 200 https://help.bwin.com/closed, 12,236 bytes, Server: cloudflare, CF-RAY a216c51bfa5cff72-BOM. Title: 'Help - We regret to inform you that your IP address has been blocked'. Body: 'The services of this website are unfortunately not available for customers residing in your country.' measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.888sport.com/",
+  "expect": "Brand domain redirects onto the group's /regulation/restricted/ page; final status is 200 with an explicit 'not offered to players residing in your location' notice.",
+  "evidence": "301 https://www.888sport.com/ -> 200 https://www.888.com/regulation/restricted/, 13,861 bytes, Server: CloudFront, X-Amz-Cf-Pop BOM54-P1. Title 'Important Notice | 888.com'. Body: \"Please note that 888's services are not being offered to players residing in your location.\" measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.tab.com.au/",
+  "expect": "Australian wagering site returns the geo refusal as an HTTP 500 - a crawler that buckets 5xx as 'retry later' will retry a permanent country block forever.",
+  "evidence": "HTTP 500, 87,291 bytes, Server: AkamaiNetStorage, 'Akamai-GRN: 0.a5f43717.1785104231.6dfc3de8'. Body: \"tab.com.au is unavailable from your location. It appears you're visiting our website from a country we're unable to give access to. If you are in a country we're licensed to operate in, get in touch...\" measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.tipico.de/",
+  "expect": "German bookmaker serves the country refusal at HTTP 200 in both English and German; nothing in the status or headers flags it.",
+  "evidence": "200 OK, 364,404 bytes, Server: AkamaiNetStorage. Title 'Tipico No Service'. Body: 'We believe that you are browsing our offer from a country where gambling is restricted. Thus, you cannot access the Tipico offer.' followed by the German equivalent ('...aus einem Land aufrufen, in dem die Nutzung von Sportwetten und Gluecksspiel eingeschraenkt ist'). measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.bet-at-home.com/",
+  "expect": "200-status jurisdiction refusal citing legal reasons; short body, no redirect, no distinguishing header.",
+  "evidence": "200 OK, 35,071 bytes, Server: cloudflare, CF-RAY a216c605089d47e5-BOM. Body: \"Dear visitor, due to legal reasons, bet-at-home.com's website is not available for players residing in this jurisdiction.\" measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.betvictor.com/",
+  "expect": "CloudFront-fronted 403 whose body names a 'prohibited location' and 'this Jurisdiction' explicitly.",
+  "evidence": "HTTP 403, 3,668 bytes, Server: CloudFront, double-hop Via (X-Amz-Cf-Pop: BOM78-P3, BOM78-P7). Body: 'It appears you are accessing our website from a prohibited location. Local regulations prohibit us from allowing you to log in or place bets on our website. We cannot accept any transactions from this Jurisdiction.' measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.leovegas.com/",
+  "expect": "The textbook case: a genuine HTTP 451 Unavailable For Legal Reasons, served through Imperva, on a 543KB page that says the location is the cause.",
+  "evidence": "307 https://www.leovegas.com/ -> HTTP 451 https://www.leovegas.com/en-row, 543,455 bytes. Headers: 'X-CDN: Imperva', 'X-Iinfo: 53-36279147-36243850 sNYy RT(1785104283403 319) q(0 0 0 -1) r(6 6) U11'. Body: 'This page is not available at your location. It seems that we cannot load the page due to regulations in your current location or there's something wrong with your internet proxy.' measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.casumo.com/",
+  "expect": "Redirects to a dedicated restricted.* subdomain; both the hostname and the <title> encode the geo decision.",
+  "evidence": "301 https://www.casumo.com/ -> 200 https://restricted.casumo.com/, 2,098 bytes, Server: cloudflare, CF-RAY a216c7367a0d3ae9-BOM. Title 'Restricted Country | Casumo'. Body: 'Sorry about this but Casumo is not available in your region... If you are using a proxy service or VPN to access Casumo, try turning it off and reload the page.' measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.mrgreen.com/",
+  "expect": "Same /regulation/restricted/ pattern as 888 but on its own host, and the <title> itself states the location refusal.",
+  "evidence": "301 https://www.mrgreen.com/ -> 200 https://www.mrgreen.com/regulation/restricted/, 16,091 bytes, Server: CloudFront, X-Amz-Cf-Pop BOM78-P11. Title 'Mr Green Services Unavailable in Your Location'. Body: 'please be advised that as of this moment, Mr Green services are currently unavailable to players residing in your location.' measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.betsson.com/",
+  "expect": "Two redirects land on a static /maintenance-pages/.../country-blocked.html served from S3 - the filename is the diagnosis, and the title says 403 while the status is 200.",
+  "evidence": "302 https://www.betsson.com/ -> 302 /en -> 200 https://www.betsson.com/maintenance-pages/default/country-blocked.html, 3,193 bytes, Server: AmazonS3 via CloudFront (BOM78-P8). Title '403 - Not Available' (title claims 403, actual status is 200). Body: 'Important Notice - Please note that due to the new laws governing online games, this website is not available in this country.' measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.nordicbet.com/",
+  "expect": "Sibling brand on a different host reaching the byte-identical country-blocked page - proves the gate is applied per-brand-host by one operator.",
+  "evidence": "302 https://www.nordicbet.com/ -> 302 /en -> 200 https://www.nordicbet.com/maintenance-pages/default/country-blocked.html, 3,193 bytes (byte-identical to the betsson.com row), Server: AmazonS3 via CloudFront (BOM78-P4). Title '403 - Not Available'; same 'not available in this country' notice. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.10bet.com/",
+  "expect": "Redirects off to a completely different domain hosting a static restricted-country notice, so scope/host checks see a cross-domain hop as well as a geo block.",
+  "evidence": "301 https://www.10bet.com/ -> 200 https://welcome10bet.com/restricted_note_br/index.html (different registrable domain), 11,800 bytes, Server: cloudflare, CF-RAY a216c9552f5cb330-BOM. Title 'Restricted country'. Body: \"Oops. Unfortunately, we can't serve bettors from your country.\" measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.rizk.com/",
+  "expect": "403 that explains the geo mechanism in detail - naming the client IP as the location signal and pre-empting VPN use.",
+  "evidence": "HTTP 403, 18,295 bytes, Server: cloudflare, CF-RAY a216c9566dd72a99-BOM. Title '403 - rizk.com'. Body: 'Sorry about this but this site is not available in the country you are currently located. This exclusion depends on the current IP address (which indicates your location) of the device from which you access our website. Please don't use a VPN to hide or change your real location.' measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.stoiximan.gr/",
+  "expect": "Greek operator 403s with a regulatory refusal, but ships a 1.28MB body - the block page is heavier than most real pages, defeating size heuristics.",
+  "evidence": "HTTP 403, 1,288,370 bytes (1.28 MB block page), Server: cloudflare, CF-RAY a216c9ecaa3bffa3-BOM. Body: 'According to the local regulatory provisions, our services cannot be accessed from your location. We apologise for the inconvenience.' plus 'Cloudflare Ray ID: a216c9ecaa3bffa3 | Your IP: <our egress IP>'. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.adultswim.com/",
+  "expect": "US cable brand routes non-US traffic to an international 'where to watch' country picker instead of the streaming site, and sets explicit geo cookies while doing it.",
+  "evidence": "302 https://www.adultswim.com/ -> 200 https://www.adultswim.com/where-to-watch, 383,828 bytes. Set-Cookie: countryCode, stateCode, geoData (server-side geo decision made explicit in cookies). Rendered body is an A-Z country list mapping each country to a local broadcaster ('ALGERIA - Warner TV'), not the US catalogue. NOTE: no explicit 'not available' sentence; the geo attribution rests on the measured redirect + the geo cookies. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.nfl.com/plus/",
+  "expect": "US-only NFL+ hands non-US visitors off across two domains to DAZN's international Game Pass - a geo decision expressed purely as a cross-domain redirect chain.",
+  "evidence": "302 https://www.nfl.com/plus/ -> 301 https://www.nflgamepass.com/ -> 200 https://www.dazn.com/en-GB/l/nfl-game-pass/, 95,145 bytes, Server: AmazonS3 via CloudFront (BOM78-P10). NOTE: no explanatory sentence in the HTML (client-rendered app); the evidence is the measured off-platform redirect chain. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.ggpoker.com/",
+  "expect": "Redirects to an India-specific successor domain that serves a country-specific legal shutdown notice rather than the global product.",
+  "evidence": "301 https://www.ggpoker.com/ -> 302 https://ggpoker.com/ -> 200 https://www.natural8in.com/, 50,278 bytes, served via CloudFront (BOM78-P6). Title 'Play Online Poker in India | Real Money Games | Natural8 India'. Body: 'Cessation of Operations - As per the Promotion and Regulation of Online Gaming Bill, 2025, Natural8 India has decided to permanently close down all operations and completely stop gamepl...'. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.cwtv.com/",
+  "expect": "Non-standard HTTP 452 with a one-byte body: no headers, no text, no redirect - a status the crawler's bucketing almost certainly has no rule for.",
+  "evidence": "HTTP 452 (non-standard status), Content-Length: 1, body is the single character '.'. Server: cloudflare, CF-RAY a216a9c0bb42c739-BOM, Referrer-Policy: same-origin, X-Frame-Options: SAMEORIGIN, Cache-Control: private, no-store. Reproduced identically on two probes 3 minutes apart. HONEST CAVEAT: the response carries NO explanatory text, so the geo attribution is inferred from The CW being a US-only service - it is not stated by the origin. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "geo_block",
+  "url": "https://www.rtve.es/play/",
+  "expect": "Spanish public broadcaster silently swaps a non-ES visitor onto its 'internacional' catalogue path - the crawler gets a 200 with real content, but not the content the URL names.",
+  "evidence": "302 https://www.rtve.es/play/ -> 200 https://www.rtve.es/play/internacional/portada/, 1,193,186 bytes, Server: 'RTVE Server', X-Served-By cache-mad2200107-MAD then cache-ams-eham8680045-AMS. The path segment 'internacional' is the geo decision. NOTE: content IS served, so this is catalogue-level geo filtering (same class as the svtplay.se row), not a hard refusal. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "cloudflare_managed",
+  "url": "https://www.bhphotovideo.com/",
+  "expect": "Plain GET returns the canonical Cloudflare managed interstitial that self-clears once background JS runs - no human interaction needed, so the crawler's JS tier can pass it.",
+  "evidence": "HTTP 403, 5,730 bytes. Headers: 'Cf-Mitigated: challenge', 'Server: cloudflare', 'CF-RAY: a216954d5db3f57c-BOM'. Set-Cookie: __cf_bm. Body: <title>Just a moment...</title>, window._cf_chl_opt block (7x 'cf_chl_opt') with cType: 'managed', /cdn-cgi/challenge-platform/ script. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "cloudflare_managed",
+  "url": "https://www.veepee.fr/",
+  "expect": "Cross-domain redirect then a branded French Cloudflare managed challenge; the page echoes our IP and ray id, so the wall is per-client not per-URL.",
+  "evidence": "301 https://www.veepee.fr/ -> HTTP 403 https://www.veepee.fr/gr/home, 22,193 bytes. Headers: 'Cf-Mitigated: challenge', 'Server: cloudflare', 'CF-RAY: a21695863a53492c-BOM'. Set-Cookie: __cf_bm. Body: title 'Veepee - Secu', cType: 'managed', cf_chl_opt x7, French text 'Une activite anormale a ete detectee sur cette adresse IP <our egress IP> (a21695863a53492c). L'acces a notre site a ete bloque automatiquement par notre pare-feu.' measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "cloudflare_managed",
+  "url": "https://www.optimum.com/",
+  "expect": "Cloudflare managed challenge dressed as a friendly 'Please Hold' maintenance page - the crawler must not classify it as a transient outage; it also prints the detected country.",
+  "evidence": "HTTP 403, 11,135 bytes. Headers: 'Cf-Mitigated: challenge', 'Server: cloudflare', 'CF-RAY: a216c19a5f05ff71-BOM'. Set-Cookie: __cf_bm. Body: title 'Please Hold', text 'Securing your connection - We're running a brief JavaScript check.', cType: 'managed', cf_chl_opt x7, and the footer line '<our egress IP> | a216c19a5f05ff71 | IN' (Cloudflare's detected country code). measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "cloudflare_interactive",
+  "url": "https://www.chemistwarehouse.com.au/",
+  "expect": "Cloudflare INTERACTIVE tier: cType is 'interactive', which never self-clears via background JS - the crawler must escalate to the host CDP solver, exactly like the zoopla case.",
+  "evidence": "HTTP 403, 5,763 bytes. Headers: 'Cf-Mitigated: challenge', 'Server: cloudflare', 'CF-RAY: a216ab15df133a37-BOM'. Set-Cookie: __cf_bm. Body: <title>Just a moment...</title>, cf_chl_opt x7, and crucially cType: 'interactive' inside window._cf_chl_opt. A challenges.cloudflare.com reference is present; no sitekey value is exposed in the served HTML. Re-confirmed on a second fetch (CF-RAY a216da5f3a5c4928-BOM, 5,699 bytes, cType still 'interactive'). measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "cloudflare_block",
+  "url": "https://www.goat.com/",
+  "expect": "Cloudflare FIREWALL BLOCK rather than a challenge: there is no _cf_chl_opt block and no cf-mitigated header, so no amount of JS execution will clear it. Retrying is pointless.",
+  "evidence": "HTTP 403, 5,835 bytes. Headers: 'Server: cloudflare', 'CF-RAY: a216aa76299771b6-BOM'; NO Cf-Mitigated header and NO cType/_cf_chl_opt in the body (only the generic /cdn-cgi/challenge-platform reference). Body: title 'Attention Required! | Cloudflare', text 'Sorry, you have been blocked. You are unable to access goat.com... This website is using a security service to protect itself from online attacks.' measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "cloudflare_block",
+  "url": "https://www.sahibinden.com/",
+  "expect": "Turkish marketplace serves a fully branded Cloudflare block with its own support code derived from the CF-RAY - no 'Just a moment', no challenge markers, so signature matching on 'Just a moment' misses it.",
+  "evidence": "HTTP 403, 14,313 bytes. Headers: 'Server: cloudflare', 'CF-RAY: a216947fe800ff72-BOM'; no Cf-Mitigated, no cType. Set-Cookie: __cf_bm. Body (Turkish): 'Olagandisi bir durum tespit ettik... Su anda talebinizi gerceklestiremiyoruz' and 'Destek Kodu: F-a216947fe800ff72' - the support code is the CF-RAY. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "cloudflare_block",
+  "url": "https://www.trendyol.com/",
+  "expect": "The nastiest shape: HTTP 403 with a completely EMPTY body (0 bytes). No title, no marker, no text - only the Cloudflare cookies betray the vendor.",
+  "evidence": "HTTP 403, Content-Length 0 (body is literally 0 bytes, nothing to pattern-match). Headers: 'Server: cloudflare', 'CF-RAY: a2169543dcd947d8-BOM'. Set-Cookie: ty-lb-vid, __cf_bm, __cflb, _cfuvid - the cookie names are the only vendor evidence available. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "akamai",
+  "url": "https://www.dickssportinggoods.com/",
+  "expect": "Akamai Bot Manager 403 disguised as scheduled maintenance ('try again after 12 hours'), which will make a crawler defer instead of recognising a bot block. Full BM cookie suite is set.",
+  "evidence": "HTTP 403, 1,424 bytes. Headers: 'Server: AkamaiGHost', 'Akamai-GRN: 0.c5f5d217.1785102241.82bc3502'. Set-Cookie includes the Akamai Bot Manager suite: bm_ss, bm_s, bm_so (plus akaas_AS_EXP_DSG). Body title 'Site Maintenance': 'Oops, Something Went Wrong. We are working on the problem. Please try accessing the site again after 12 hours.' with 'Error: 0.c5f5d217...' and our IP echoed. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "akamai",
+  "url": "https://www.macys.com/",
+  "expect": "Akamai edge deny with retailer branding and a phone number instead of the standard edgesuite page - vendor detection must key on the header/reference format, not the body copy.",
+  "evidence": "HTTP 403, 5,407 bytes. Headers: 'Server: AkamaiNetStorage', 'Akamai-GRN: 0.121cc517.1785103726.8df21d'. Body title \"Access Denied - Macy's\": 'You don't have access to this page. If you believe this is an error, try updating your browser... Reference: 18.121cc517.1785103726.8df21d' (Akamai reference format). measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "akamai",
+  "url": "https://www.rakuten.co.jp/",
+  "expect": "Akamai deny served with HTTP 200 and a 42-byte body containing only a reference number. Status says success, size says nothing, and there is no vendor header beyond Server.",
+  "evidence": "HTTP 200 (not 403), 42 bytes total. Header: 'Server: AkamaiNetStorage'. Entire body: 'Reference #18.97f43717.1785102253.f07cfe0'. No title, no markup, no Akamai-GRN. A crawler keying on status alone stores this as a successful fetch. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "akamai",
+  "url": "https://www.emirates.com/",
+  "expect": "Airline redirects the denied request to a branded /error/accessrestricted.html page and returns 403 there, carrying the Akamai reference id in the query string.",
+  "evidence": "302 https://www.emirates.com/ -> HTTP 403 https://www.emirates.com/error/accessrestricted.html?refid=18.aff5d217.1785102293.2b57c97d, 5,882 bytes. Header: 'Server: AkamaiNetStorage'. Body: \"We're Sorry - The page you're trying to access is restricted. Reference number: 18.aff5d217.1785102293.2b57c97d.\" measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "akamai_custom_waf",
+  "url": "https://www.streamz.be/",
+  "expect": "A WAF that names its own operator in the block page - useful because the vendor string is the site owner (DPG Media), not a security vendor, while the reference format is Akamai's.",
+  "evidence": "HTTP 403, 451 bytes. Body title 'Access Denied': \"Your request was blocked by DPG Media's Web Application Firewall. For more information contact application support and specify: Reference: 0.450ec417.1785103021.a0b128b ClientIP: <our egress IP>\" (Akamai-style 0.x reference). Independently reproduced on the sibling host www.rtlplay.be with reference 0.55a5c117.1785103810.45d78c10. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "datadome",
+  "url": "https://www.blablacar.fr/",
+  "expect": "DataDome 403 with the vendor's own status headers and its 'Please enable JS and disable any ad blocker' stub - the body is only 772 bytes and carries the dd={ JS config.",
+  "evidence": "HTTP 403, 772 bytes. Headers: 'X-DataDome: protected', 'X-DataDome-CID: AHrlqAAAAAMA6eEJemvUpY4AJP-6nQ==', 'X-DD-B: 1', 'Access-Control-Expose-Headers: x-dd-b, x-set-cookie', 'Server: istio-envoy'. Set-Cookie: datadome=<redacted>. Body: title 'blablacar.fr', text 'Please enable JS and disable any ad blocker', dd={ config marker, captcha-delivery reference. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "datadome",
+  "url": "https://www.shutterstock.com/",
+  "expect": "DataDome running as a CloudFront Lambda@Edge response - the X-Cache header proves the block is generated at the CDN edge, never reaching the origin.",
+  "evidence": "HTTP 403, 787 bytes. Headers: 'X-DataDome: protected', 'X-DataDome-CID: AHrlqAAAAAMAT6fBpRZBPWUAJP-6nQ==', 'X-DD-B: 259', 'X-Cache: LambdaGeneratedResponse from cloudfront', 'Server: CloudFront', X-Amz-Cf-Pop BOM54-P2. Set-Cookie: datadome=<redacted>. Body: 'Please enable JS and disable any ad blocker', dd={ marker. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "datadome",
+  "url": "https://www.tripadvisor.com/",
+  "expect": "The rare case where the origin reports itself as the vendor: 'Server: DataDome'. Also sets a site cookie alongside the DataDome one.",
+  "evidence": "HTTP 403, 778 bytes. Headers: 'Server: DataDome' (vendor named in the Server header), 'X-DataDome: protected', 'X-DataDome-CID: AHrlqAAAAAMAXRKBrAYeP5EAJP-6nQ==', 'X-DD-B: 259', 'X-Cache: Error from cloudfront'. Set-Cookie: datadome=<redacted>, TAUnique. Body: 'Please enable JS and disable any ad blocker', dd={ marker. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "datadome",
+  "url": "https://www.sncf-connect.com/",
+  "expect": "Two stacked vendors: Cloudflare is the CDN (Server/CF-RAY) but DataDome is the actual gate returning the 403 - a crawler that stops at the first vendor signature will mis-tier this.",
+  "evidence": "HTTP 403, 776 bytes. Headers: 'Server: cloudflare', 'CF-RAY: a2169587ff2ebdd5-BOM' AND 'X-DataDome: protected', 'X-DataDome-CID: AHrlqAAAAAMA5YaJv_ftcX8AJP-6nQ==', 'X-DD-B: 1'. Set-Cookie: datadome=<redacted>, _cfuvid, x-visitor-id, x-nav-session-id. Body: 'Please enable JS and disable any ad blocker', dd={ marker. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "datadome",
+  "url": "https://www.carsales.com.au/",
+  "expect": "DataDome edge block on an Australian classifieds site, again generated by CloudFront Lambda rather than the origin.",
+  "evidence": "HTTP 403, 774 bytes. Headers: 'X-DataDome: protected', 'X-DataDome-CID: AHrlqAAAAAMARSu29_mxd5AAJP-6nQ==', 'X-DD-B: 1', 'X-Cache: LambdaGeneratedResponse from cloudfront', 'Server: CloudFront', X-Amz-Cf-Pop BOM78-P8. Set-Cookie: datadome=<redacted>. Body: 'Please enable JS and disable any ad blocker', dd={ marker. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "perimeterx",
+  "url": "https://www.wayfair.com/",
+  "expect": "PerimeterX/HUMAN answers with HTTP 429 rather than 403 - so a crawler's rate-limit backoff path gets triggered by what is actually a bot block, and it will wait and retry forever.",
+  "evidence": "HTTP 429 Too Many Requests, 5,825 bytes. Set-Cookie: _pxhd=<redacted>. Body title 'Access to this page has been denied', 27 matches for PerimeterX markers (_pxAppId / px-captcha / perimeterx). Fronted by Cloudflare (Server: cloudflare, CF-RAY a2169559599626a7-BOM) with PerimeterX as the real gate. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "perimeterx",
+  "url": "https://www.harborfreight.com/",
+  "expect": "Same PerimeterX deny page but at 403 and with 'Retry-After: 0' - a header that tells a naive crawler to retry immediately, producing a tight hot loop against a hard block.",
+  "evidence": "HTTP 403, 5,645 bytes. Headers: 'Retry-After: 0' (!), 'X-Served-By: cache-bom-vanm7210098-BOM' (Fastly). Set-Cookie: _pxhd=<redacted>. Body title 'Access to this page has been denied', 27 PerimeterX marker matches. Identical page shape independently observed on www.totalwine.com (403, Retry-After: 0, _pxhd). measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "perimeterx",
+  "url": "https://www.samsclub.com/",
+  "expect": "PerimeterX gate exposed as a 307 redirect to a real /are-you-human URL with a uuid - the challenge is a normal-looking page the crawler will happily enqueue and follow.",
+  "evidence": "307 https://www.samsclub.com/ -> 200 https://www.samsclub.com/are-you-human?url=Lw==&uuid=e1747fda-893d-11f1-a633-452c6dfab684&vid=&g=b, 16,078 bytes. Header: 'Akamai-GRN: 0.bef5d217.1785103429.10b43035'. Body title \"Let us know you're not a robot - Sam's Club\", 12 PerimeterX marker matches. Note final status is 200, not 4xx. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "imperva",
+  "url": "https://www.coles.com.au/",
+  "expect": "Imperva/Incapsula returns HTTP 200 with a 212-byte stub - success status, no error text, no content. Only X-Iinfo and the incap cookies identify it.",
+  "evidence": "HTTP 200, 212 bytes total (no <title>, no visible text). Header: 'X-Iinfo: 24-40768-0 2NNN RT(1785102246940 49) q(0 -1 -1 0) r(0 -1) B10(11,3405730,0)'. Set-Cookie: visid_incap_2800108=<redacted>, incap_ses_937_2800108=<redacted>. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "imperva",
+  "url": "https://trueid.net/",
+  "expect": "Imperva in scoring (not blocking) mode: it serves real content at 200 while tagging the session, and it names itself in an X-CDN header - the crawler should expect escalation on deeper paths.",
+  "evidence": "301/308/302 chain https://trueid.net/ -> 200 https://www.trueid.net/th-th/coverpage, 34,309 bytes of real content. Headers: 'X-CDN: Imperva' (vendor self-identifies), 'X-Iinfo: 52-59658697-59658725 SNNN RT(1785103395859 1027) q(0 0 0 -1) r(1 1) U12', Server: istio-envoy. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "kasada",
+  "url": "https://www.chewy.com/",
+  "expect": "Kasada proof-of-work wall answering with HTTP 429 and its x-kpsdk-* header family, stacked on top of Akamai Bot Manager cookies - two vendors, one response.",
+  "evidence": "HTTP 429, 679 bytes. Headers: 'x-kpsdk-ct: <redacted>' (170-char token), 'x-kpsdk-r: 1-AA', 'Access-Control-Expose-Headers: x-kpsdk-ct,x-kpsdk-r,x-kpsdk-c,x-kpsdk-h,x-kpsdk-fc', 'Akamai-GRN: 0.091cc517.1785103662.64551850'. Set-Cookie: KP_UIDz-ssn=<redacted>, KP_UIDz=<redacted> (Kasada) AND bm_ss, bm_s, bm_so, akaalb_chewy_ALB (Akamai Bot Manager). Body: 4x 'KPSDK' + 1x 'kpsdk'. Re-confirmed on a second fetch (429, 677 bytes, x-kpsdk-ct still present; x-kpsdk-r was seen on the first fetch only). measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "aws_waf",
+  "url": "https://www.starzplay.com/",
+  "expect": "AWS WAF CAPTCHA served with HTTP 405 Method Not Allowed on a plain GET - a status that will send the crawler down a 'method unsupported' path instead of a challenge path.",
+  "evidence": "307 https://www.starzplay.com/ -> HTTP 405 https://www.starzplay.com/en/, 2,349 bytes. Headers: 'Server: CloudFront', 'X-Cache: Error from cloudfront', X-Amz-Cf-Pop BOM78-P9. Body title 'Human Verification': 'JavaScript is disabled. In order to continue, you need to verify that you're not a robot by solving a CAPTCHA puzzle.' with awswaf markers x2. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "aws_waf",
+  "url": "https://www.espn.com/watch/",
+  "expect": "AWS WAF challenge delivered as HTTP 202 Accepted, and the vendor is only visible through the CORS expose-headers list naming x-amzn-waf-action.",
+  "evidence": "HTTP 202 Accepted (not 4xx), 1,988 bytes. Headers: 'Access-Control-Expose-Headers: x-amzn-waf-action' (the only vendor tell), 'Server: CloudFront', 'X-Cache: Error from cloudfront', X-Amz-Cf-Pop BOM78-P6. Empty <title>. Body: 'JavaScript is disabled. In order to continue, we need to verify that you're not a robot. This requires JavaScript.' awswaf marker present. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "anubis_pow",
+  "url": "https://www.opensubtitles.org/en",
+  "expect": "Anubis, the open-source anti-AI-scraper proof-of-work wall: HTTP 401 on a 307 to a /.within.website/ path, with techaro.lol-* cookies. A vendor no commercial detector knows about.",
+  "evidence": "307 https://www.opensubtitles.org/en -> HTTP 401 https://www.opensubtitles.org/.within.website/?redir=/en, 6,209 bytes. Set-Cookie: techaro.lol-anubis-auth, techaro.lol-anubis-cookie-verification. Body title \"Making sure you're not a bot!\": 'the administrator of this website has set up Anubis to protect the server against the scourge of AI companies aggressively scraping websites.' Fronted by Cloudflare (CF-RAY a216958d5dc440e7-BOM). measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "servicepipe",
+  "url": "https://okko.tv/",
+  "expect": "ServicePipe (Russian anti-bot) JS challenge served at HTTP 200 in a 1.9KB shell: a <js-challenge-loader> element, a servicepipe.ru loader script, and a noscript refresh to an obfuscated path.",
+  "evidence": "HTTP 200, 1,903 bytes, Server: nginx, header 'X-Sp-Crid: 740998309:1'. Body: <script src=\"https://servicepipe.ru/loaders/71bca65c0b61b1294230a5b18605a045.js\">, <js-challenge-loader> element, id_captcha_frame_div, and an inline options blob with \"is_captcha\":false, \"cookie_domain\":\"okko.tv\"; <noscript> refreshes to /exhkqyad. Cookies handed out in JS as spsn / oirutpspid. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "akamai_botmanager",
+  "url": "https://www.expedia.com/",
+  "expect": "HTTP 429 with a custom-branded 'Bot or Not?' page and a correlation uuid, backed by the Akamai Bot Manager cookie suite - status looks like throttling, cause is bot scoring.",
+  "evidence": "HTTP 429, 120,031 bytes. Server: istio-envoy. Set-Cookie: bm_ss, _abck, bm_s, bm_so, bm_sz (full Akamai Bot Manager jar) plus EG_ANONTOKEN, DUAID. Body title 'Bot or Not?': \"Show us your human side... We can't tell if you're a human or a bot.\" with correlation id f27fe04f-b0bc-4343-a84f-900e34bd2fbd. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ },
+ {
+  "category": "antibot",
+  "vendor": "custom_js_wall",
+  "url": "https://www.booking.com/",
+  "expect": "Bot verification returned as HTTP 202 Accepted with an EMPTY <title> - two signals (2xx status, no title) that both push a crawler to treat it as a valid page.",
+  "evidence": "HTTP 202 Accepted, 3,962 bytes, Server: istio-envoy, X-Cache: Miss from cloudfront (BOM78-P8). Empty <title></title>. Entire visible body: 'JavaScript is disabled. In order to continue, we need to verify that you're not a robot. This requires JavaScript. Enable JavaScript and then reload the page.' Set-Cookie: bkng, bkng_sso_auth, pcm_consent. measured live 2026-07-26 22:0x-22:2x UTC (2026-07-27 IST) from our own India egress.",
+  "source": "verified-live",
+  "stable": true
+ }
+]

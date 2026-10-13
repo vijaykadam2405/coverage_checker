@@ -1,0 +1,82 @@
+# Daily health-check runner for the Mallory crawler stack.
+#
+# Run it as an OVERLAY on the main stack, so it joins the same docker network and
+# reads the same .env (service names like `ingest`/`orchestrator` only resolve there):
+#
+#   docker compose -f docker-compose.yml -f docker-compose.healthcheck.yml run --rm healthcheck
+#
+# Exit 0 = healthy, 1 = at least one check FAILed (the per-area report says which).
+# It uses the crawler image (already has the crawler package + psycopg + minio); the
+# healthcheck/ package is bind-mounted in, so editing checks needs no rebuild.
+#
+# `profiles: [healthcheck]` keeps it out of a normal `docker compose up` — it only runs
+# when you name it with `run`. Read-only against production: no writes, no dispatch.
+services:
+  healthcheck:
+    build: ./crawler
+    profiles: ["healthcheck"]
+    working_dir: /app
+    volumes:
+      - ./healthcheck:/app/healthcheck:ro
+      - ${HC_LOG_DIR:-./healthcheck/logs}:/logs
+    environment:
+      # Service URLs default to the compose network names; override only if yours differ.
+      HC_INGEST_BASE: ${HC_INGEST_BASE:-http://ingest:9090}
+      HC_ORCH_BASE: ${HC_ORCH_BASE:-http://orchestrator:8090}
+      HC_CRAWLER_API_BASE: ${HC_CRAWLER_API_BASE:-http://crawler-api:8099}
+      HC_CAMOFOX_URL: ${CAMOFOX_URL:-http://camofox:9377}
+      # DB + MinIO come straight from the same .env the ingest service uses.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://mallory:mallory@postgres:5432/mallory}
+      MINIO_ENDPOINT: ${CRAWLER_MINIO_ENDPOINT:-minio:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-mallory}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-mallory123}
+      MINIO_BUCKET: ${MINIO_BUCKET:-mallory-raw}
+      MINIO_SECURE: ${MINIO_SECURE:-0}
+      HC_RECENT_HOURS: ${HC_RECENT_HOURS:-48}
+      HC_JSON_OUT: ${HC_JSON_OUT:-/logs/healthcheck-latest.json}
+      # C4 host solver + live tier probes: opt-in, off by default (see healthcheck/README.md).
+      CRAWLER_HOST_SOLVER_URL: ${CRAWLER_HOST_SOLVER_URL:-}
+      HC_C4_LIVE_SOLVE: ${HC_C4_LIVE_SOLVE:-0}
+    command: ["python", "-m", "healthcheck.run"]
+    restart: "no"
+
+  # Daily scheduler (this box has no cron / user-systemd / sudo). A tiny always-on
+  # container that sleeps to 06:00 UTC and runs the check IN-PROCESS. It forks via
+  # runc only once (to start); the daily runs are subprocesses inside it, so they
+  # do NOT hit the runc fork-wedge that a daily `docker compose run` would.
+  #   docker compose -f docker-compose.yml -f docker-compose.healthcheck.yml up -d healthcheck-cron
+  healthcheck-cron:
+    build: ./crawler
+    profiles: ["healthcheck-cron"]
+    working_dir: /app
+    volumes:
+      - ./healthcheck:/app/healthcheck:ro
+      - ${HC_LOG_DIR:-./healthcheck/logs}:/logs
+    environment:
+      HC_INGEST_BASE: ${HC_INGEST_BASE:-http://ingest:9090}
+      HC_ORCH_BASE: ${HC_ORCH_BASE:-http://orchestrator:8090}
+      HC_CRAWLER_API_BASE: ${HC_CRAWLER_API_BASE:-http://crawler-api:8099}
+      HC_CAMOFOX_URL: ${CAMOFOX_URL:-http://camofox:9377}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://mallory:mallory@postgres:5432/mallory}
+      MINIO_ENDPOINT: ${CRAWLER_MINIO_ENDPOINT:-minio:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-mallory}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-mallory123}
+      MINIO_BUCKET: ${MINIO_BUCKET:-mallory-raw}
+      MINIO_SECURE: ${MINIO_SECURE:-0}
+      HC_RECENT_HOURS: ${HC_RECENT_HOURS:-48}
+      CRAWLER_HOST_SOLVER_URL: ${CRAWLER_HOST_SOLVER_URL:-}
+      HC_C4_LIVE_SOLVE: ${HC_C4_LIVE_SOLVE:-0}
+      HC_CRON_UTC_HOUR: ${HC_CRON_UTC_HOUR:-6}
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "healthcheck-cron up; daily at ${HC_CRON_UTC_HOUR:-6}:00 UTC"
+        while true; do
+          now=$$(date -u +%s)
+          tgt=$$(date -u -d "today ${HC_CRON_UTC_HOUR:-6}:00" +%s)
+          [ "$$now" -ge "$$tgt" ] && tgt=$$(date -u -d "tomorrow ${HC_CRON_UTC_HOUR:-6}:00" +%s)
+          sleep $$((tgt-now))
+          HC_JSON_OUT=/logs/healthcheck-$$(date -u +%Y%m%d-%H%M%S).json python -m healthcheck.run \
+            > /logs/healthcheck-$$(date -u +%Y%m%d-%H%M%S).log 2>&1 || true
+        done
