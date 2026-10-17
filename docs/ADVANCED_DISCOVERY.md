@@ -20,7 +20,7 @@ arbitrary total-URL, depth, browser-page or filter-value ceiling.
 | Public CMS listings | An advertised WordPress REST root can supply its advertised public posts/pages collections. Metadata-only pages are followed using X-WP-TotalPages; item IDs and reported totals are reconciled. Other/custom CMS collections need dedicated adapters. |
 | ResourceSync | Advertised descriptions, capability lists, resource lists and change lists are followed. Deleted entries and resource/content dumps are not downloaded. A change list alone is not a complete baseline. |
 | Historical indexes | Wayback CDX runs automatically in normal dashboard/CLI scans. Continuation keys supply historical URL candidates, which still need live validation. Common Crawl needs an explicitly configured collection ID. |
-| Corpus freshness | Saved results are reused within a configurable 24-hour default lifetime. Expired checks encountered during verification are refreshed serially; prior matches are retained in history. |
+| Corpus freshness | Explicit saved-inventory verification uses a configurable 24-hour default lifetime and refreshes expired checks serially, preserving prior matches in history. Discovery resume recovers unfinished/failed checks and changed text, but reuses completed results regardless of age so a full refresh does not block new discovery. |
 | Reconciliation | Analysis distinguishes source-task completion and published collection counts from proof of entire-website completeness. |
 
 ## Workflow

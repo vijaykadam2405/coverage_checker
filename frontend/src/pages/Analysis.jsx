@@ -6,14 +6,16 @@ import { CoverageBars } from "../components/coverage/CoverageBars.jsx";
 import { useQuery } from "../hooks/useQuery.js";
 import { TYPES } from "../config/capture.js";
 import { useState } from "react";
+import { analysisRefreshInterval } from "../utils/polling.js";
 
 export function Analysis({ snapshot }) {
   const [revision, setRevision] = useState(0);
+  const refreshInterval = analysisRefreshInterval(snapshot);
   const {
     data: a,
     error,
     loading,
-  } = useQuery(`/runs/${snapshot.run.id}/analysis`, 0, revision);
+  } = useQuery(`/runs/${snapshot.run.id}/analysis`, refreshInterval, revision);
   if (error)
     return (
       <p className="error-banner" role="alert">
@@ -43,8 +45,9 @@ export function Analysis({ snapshot }) {
   return (
     <>
       <p className="scoped-summary">
-        Evidence snapshot · analysis refreshes on entry or request, not every
-        polling interval.
+        {refreshInterval
+          ? "Live saved evidence · updates automatically every 15 seconds during this scan."
+          : "Saved evidence · analysis refreshes on entry or request."}
         <button
           className="secondary"
           onClick={() => setRevision((value) => value + 1)}

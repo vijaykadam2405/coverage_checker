@@ -16,8 +16,8 @@ def issue_info(stage: str, message: str, *, readable: bool = False, url: str | N
         return ('Website script warning; HTML readable', 'Diagnostic', 'The website script failed, but HTML was captured. Current code records this as a script note, not proof of a blocked page.')
     if stage.lower().startswith('corpus') or 'corpus api' in text:
         if 'certificate' in text or 'ssl_error' in text or 'tls' in text:
-            return ('Corpus certificate could not be verified', 'Verification',
-                    'Use the API administrator\'s valid HTTPS hostname or trusted CA PEM via CRAWLSCOPE_CORPUS_CA_BUNDLE. Verification is not bypassed; saved URL presence is retained and incomplete checks remain unverified.')
+            return ('Corpus connection failure', 'Verification',
+                    'Retry the saved scan using the current API connection. No certificate setup is required. If the connection still fails, check the API address, HTTPS port and server availability. Saved successful checks are retained; incomplete checks stay unverified.')
         return ('Corpus database / service unavailable' if any(t in text for t in ('timed out', 'unreachable', 'unavailable', '503', '429', 'timeout')) else 'Corpus verification needs review',
                 'Verification', 'Checks remain unverified. Retry with paced recovery; persistent failures require Corpus database/server investigation, not a missing-page label.')
     if 'too_large' in text or 'decoded response limit' in text:

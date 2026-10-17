@@ -13,7 +13,6 @@ from crawler_coverage_auditor.validation.failure_policy import transport_reason
 
 from .credentials import load_key
 from .errors import CorpusUnavailable
-from .tls import verification_context
 
 
 class CoverageAPIClient:
@@ -31,7 +30,10 @@ class CoverageAPIClient:
         self.base_url = base_url.rstrip('/')
         self._client = httpx.AsyncClient(base_url=self.base_url + '/', timeout=timeout,
             headers={'Authorization': 'Bearer ' + key, 'Accept': 'application/json'},
-            verify=verification_context(),
+            # Operator-approved Corpus compatibility policy. No CA files or
+            # certificate setup. HTTPS does not authenticate server identity in
+            # this mode; keep this exception isolated from website/browser clients.
+            verify=False,
             follow_redirects=False, trust_env=False, transport=transport)
         self._lock = asyncio.Lock()
         self._interval = self._base_interval = max(0, min_interval)
@@ -101,9 +103,8 @@ class CoverageAPIClient:
                     failure = transport_reason(error)
                     if failure == 'SSL_ERROR':
                         raise CorpusUnavailable(
-                            'Corpus API TLS certificate verification failed. Use a valid HTTPS hostname '
-                            'or set CRAWLSCOPE_CORPUS_CA_BUNDLE to the trusted CA PEM supplied by '
-                            'your API administrator. Verification was not bypassed; URLs remain unverified.'
+                            'Corpus API HTTPS handshake failed. Check the API address, HTTPS port '
+                            'and server availability; URLs remain unverified.'
                         ) from None
                     response, status = None, 0
                 latency = asyncio.get_running_loop().time() - started

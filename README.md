@@ -85,7 +85,11 @@ production API key or database; tests use temporary local fixtures/mocked Corpus
    website/Corpus intervals without parallel workers or skipped discovery/text checks.
 4. If scanning pauses, completed checks remain saved. **Resume scan** continues
    unresolved checks before fetching the next queued page. Saved successful
-   website snapshots and comparisons are reused. **Upgrade saved scan** adds the
+   website snapshots and comparisons are reused, even if their Corpus cache age
+   exceeds 24 hours; resume is recovery, not a full freshness refresh. Failed or
+   unfinished checks and changed saved HTML text are still handled before the
+   next URL. Explicit saved-inventory verification retains the configured
+   freshness policy. **Upgrade saved scan** adds the
    new automatic discovery work; a Wayback-only upgrade does not repeat completed
    HTML work. **Update saved analysis** refreshes Corpus comparison from saved
    evidence. A timeout, unavailable service, malformed result
@@ -98,6 +102,13 @@ The removed extraction-health section is not a Corpus text-completeness measure.
 Saved websites are a searchable clickable table, not a dropdown; each opens its latest
 inventory. Older runs remain accessible through the selected website's Saved scan history.
 Discovered CDN/resource hosts are not separate tested websites.
+
+Dashboard summary reads poll automatically (about two seconds during a scan).
+The `diagnostics=false` query parameter skips the extra extraction-health query;
+it is not a failure flag and does not disable counts or saving. Detailed Analysis
+refreshes local saved evidence every 15 seconds while the selected scan is active,
+and refreshes once more when it becomes inactive. Completed inventories remain
+entry/manual-refresh only. These UI reads do not start scans or query Corpus.
 
 **URL inventory** is a read-only stored-data view, without a scan form or type-filter tabs.
 It defaults to all captured types and uses server-side search, host/status/depth/source/HTTP filters,
@@ -304,15 +315,14 @@ Configure/rotate a key locally without embedding it in source or reports:
 The helper prompts privately. A protected local credential is used on Windows;
 `CRAWLSCOPE_CORPUS_API_KEY` can override it at runtime. `CRAWLSCOPE_CORPUS_API_URL`
 sets the trusted operator-configured API origin. Credentials never enter AuditConfig,
-React state or reports. TLS certificate and hostname verification are enabled for
-every Corpus origin; there is no IP-specific verification bypass. For a private CA,
-ask the API administrator for its trusted PEM and set
-`CRAWLSCOPE_CORPUS_CA_BUNDLE=data/certificates/corpus-ca.pem` in your local `.env`.
-Relative bundle paths resolve against the project root. The server certificate must
-also match the configured hostname/IP. Do not download an unverified certificate and
-automatically trust it. Missing/invalid certificates leave checks unverified, preserve
-saved results, and produce a specific certificate diagnostic without retrying the
-same TLS failure. Certificate material remains local and ignored by Git.
+React state or reports. No Corpus certificate file, CA bundle, certificate switch
+or dashboard banner is required. The dedicated Corpus client uses the
+operator-approved compatibility connection: HTTPS is used without authenticating
+the server identity. This can expose the API key/results to network interception;
+the exception is isolated from website and browser connections, whose HTTPS
+verification remains unchanged. API-key authentication, response validation,
+sequential pacing and checkpoint recovery remain required. Connection errors leave
+URLs unverified, never missing. Resume the saved scan rather than starting over.
 API redirects are refused
 so bearer credentials cannot follow them to another host.
 

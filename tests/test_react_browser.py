@@ -4,6 +4,7 @@ import socket
 import threading
 import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -12,6 +13,65 @@ from playwright.sync_api import expect, sync_playwright
 from test_react_api import Jobs, make_inventory
 
 from crawler_coverage_auditor.web.api import create_app
+
+
+def test_live_database_counts_reach_dashboard_and_analysis_without_manual_refresh(tmp_path):
+    from crawler_coverage_auditor.storage.database import AuditDatabase
+    from crawler_coverage_auditor.storage.models import DiscoveredURL
+
+    frontend = Path(__file__).resolve().parents[1] / 'frontend' / 'dist'
+    if not (frontend / 'index.html').is_file():
+        pytest.skip('Build frontend before browser QA')
+    database = tmp_path / 'audit.sqlite'
+    run_id = make_inventory(database)
+    jobs = Jobs()
+    jobs.job = SimpleNamespace(run_id=run_id, action='discovery', target='https://example.test/',
+                              error=None, stop_event=threading.Event())
+    app = create_app(database, tmp_path / 'reports', frontend=frontend, jobs=jobs)
+    sock = socket.socket()
+    sock.bind(('127.0.0.1', 0))
+    address = f'http://127.0.0.1:{sock.getsockname()[1]}'
+    server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
+    thread = threading.Thread(target=lambda: server.run(sockets=[sock]), daemon=True)
+    thread.start()
+    try:
+        for _ in range(100):
+            if server.started:
+                break
+            time.sleep(.05)
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            page = browser.new_page(viewport={'width': 1600, 'height': 1000})
+            requests = []
+            page.on('request', lambda request: requests.append((request.method, request.url)))
+            page.goto(address)
+            html_card = page.locator('.summary-item').filter(has_text='HTML pages found').locator('strong')
+            expect(html_card).to_have_text('2')
+            page.get_by_role('button', name='Analysis', exact=True).click()
+            area = page.locator('section.panel').filter(
+                has=page.get_by_role('heading', name='Coverage by area', exact=True))
+            html_row = area.locator('tbody tr').filter(
+                has=page.get_by_role('cell', name='HTML', exact=True))
+            expect(html_row.locator('td').nth(1)).to_have_text('2')
+            expect(page.locator('.scoped-summary')).to_contain_text('updates automatically')
+            db = AuditDatabase(database)
+            fresh = 'https://example.test/fresh'
+            db.add_url(run_id, DiscoveredURL(fresh, fresh, 'STATIC', 1))
+            db.add_http_result(run_id, fresh, status_code=200, validity='VALID_PAGE')
+            db.add_corpus_match(run_id, fresh, 'NOT_FOUND', None, None, None, None, 'TEXT_NOT_AVAILABLE')
+            db.close()
+            expect(html_card).to_have_text('3', timeout=10000)
+            expect(html_row.locator('td').nth(1)).to_have_text('3', timeout=22000)
+            assert sum('/analysis' in url for _, url in requests) >= 2
+            assert all(method == 'GET' for method, _ in requests)
+            assert jobs.calls == []
+            jobs.job = None
+            expect(page.locator('.scoped-summary')).to_contain_text('Saved evidence', timeout=10000)
+            browser.close()
+    finally:
+        server.should_exit = True
+        thread.join(timeout=5)
+        sock.close()
 
 
 def test_control_room_key_entry_is_masked_saved_and_not_returned(tmp_path, monkeypatch):

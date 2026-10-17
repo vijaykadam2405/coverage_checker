@@ -38,8 +38,11 @@ older staged workflow shows a restart warning and cannot start new scans from th
 
 Inventory retrieves only 50 rows per request; filtering and full CSV export happen
 on the server. Detail evidence is lazy. Live URL activity is limited to 20 records,
-activity to 200 displayed events with incremental cursors. Analysis is entry/manual
-refresh only. Four-breakpoint Playwright checks live in `../tests/test_react_browser.py`;
+activity to 200 displayed events with incremental cursors. Analysis refreshes local
+saved data every 15 seconds for the selected active scan, and once on transition
+to inactive. Other saved scans remain entry/manual refresh only. Requests do not
+overlap: the next timer starts after the current read finishes. No UI read queries
+the production Corpus or starts a scan. Four-breakpoint Playwright checks live in `../tests/test_react_browser.py`;
 the read-only review helper is `../scripts/preview_react.py`.
 Browser test screenshots use temporary directories outside the project; the
 review helper also defaults to an external temporary directory unless `--output`

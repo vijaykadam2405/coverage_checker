@@ -247,7 +247,7 @@ def test_semantic_failure_never_counts_as_missing():
     asyncio.run(exercise())
 
 
-def test_tls_is_verified_for_every_api_origin(monkeypatch):
+def test_corpus_compatibility_is_consistent_for_api_origins(monkeypatch):
     real_client=httpx.AsyncClient
     modes=[]
     def recording_client(**kwargs):
@@ -259,4 +259,4 @@ def test_tls_is_verified_for_every_api_origin(monkeypatch):
         for origin in ['https://187.127.134.12:8445/','https://187.127.134.12:8443/','https://api.example.test:8445/']:
             async with CoverageAPIClient(origin): pass
     asyncio.run(exercise())
-    assert modes==[True,True,True]
+    assert modes==[False,False,False]

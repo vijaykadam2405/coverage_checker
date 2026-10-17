@@ -231,6 +231,9 @@ class CoverageAuditor:
                     self._corpus_api = await stack.enter_async_context(self._new_api_client())
                     self._prepare_api_verification()
                     # Recover interrupted operations, not completed website fetches.
+                    self._event('RESUME_CHECKS',
+                        'Recovering unfinished saved URL/text checks. Completed results are reused; '
+                        'age alone does not restart Corpus checks before website discovery.')
                     if await self._verify_all(api=self._corpus_api, ready_only=True) == 'CORPUS_PAUSED':
                         raise CorpusUnavailable('Saved URL checks are incomplete; resume when Corpus is available')
                 client = await stack.enter_async_context(PoliteHttpClient(1,
@@ -358,7 +361,11 @@ class CoverageAuditor:
 
     @analyzed
     async def _verify_all(self, *, api=None, only_url=None, ready_only=False) -> str:
-        """Shared serial verifier for live scans and saved inventories. Never bulk-check."""
+        """Shared serial verifier; recovery reuses completed checks regardless of age.
+
+        ready_only is crash/pause recovery before discovery, not a Corpus refresh.
+        Explicit saved-inventory verification still applies the freshness policy.
+        """
         provider = 'coverage_api:' + self.config.corpus_url.rstrip('/')
         try:
             async with AsyncExitStack() as stack:
@@ -385,7 +392,7 @@ class CoverageAuditor:
                             self.db.connection.commit()
                             row['text_status'] = 'TEXT_NOT_AVAILABLE'
                     expired = False
-                    if row.get('checked_at'):
+                    if not ready_only and row.get('checked_at'):
                         try:
                             checked = datetime.fromisoformat(row['checked_at'])
                             if checked.tzinfo is None:
