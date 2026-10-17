@@ -1,16 +1,29 @@
 """Evidence-based aggregates used by the live UI and downloadable analysis."""
 from __future__ import annotations
 
-from collections import Counter, defaultdict
 import json
+from collections import Counter, defaultdict
 from urllib.parse import urlsplit
 
-from crawler_coverage_auditor.analysis.coverage import coverage_summary, is_found, is_inventory_url
-from crawler_coverage_auditor.analysis.inventory_segments import _methods, row_archive_year
+from crawler_coverage_auditor.analysis.coverage import (
+    coverage_summary,
+    is_found,
+    is_inventory_url,
+)
+from crawler_coverage_auditor.analysis.discovery_coverage import (
+    discovery_coverage,
+    filter_label,
+)
+from crawler_coverage_auditor.analysis.inventory import (
+    html_content_duplicates,
+    inventory_breakdown,
+)
+from crawler_coverage_auditor.analysis.inventory_segments import (
+    _methods,
+    row_archive_year,
+)
 from crawler_coverage_auditor.analysis.root_cause import root_causes
 from crawler_coverage_auditor.discovery.pagination import numeric_page_parameter
-from crawler_coverage_auditor.analysis.inventory import inventory_breakdown, html_content_duplicates
-from crawler_coverage_auditor.analysis.discovery_coverage import discovery_coverage, filter_label
 
 TEXT_LABELS = {"FOUND_FULL": "Full content", "FOUND_MOSTLY_FULL": "Mostly full", "FOUND_PARTIAL_TEXT": "Partial content",
                "FOUND_VERY_PARTIAL_TEXT": "Very partial content", "TEXT_MISSING": "Text missing",
@@ -71,6 +84,7 @@ def detail_row(row: dict) -> dict:
             "Discovery method": ", ".join(sorted(_methods(row))), "Parent URL": row.get("parent_url"),
             "Content type": row.get("content_type"), "Resource": row.get("page_type", "HTML"), "Filter state": filter_state(row),
             "Pagination page": pagination[1] if pagination else None, "HTTP": row.get("status_code"), "Issue": issue,
+            'Latest website attempt': row.get('last_attempt_validity'), 'Latest retry issue': row.get('last_attempt_error'),
             "Severity": [severity], "Live text characters": row.get("text_length") if html else None, "Corpus text characters": row.get("corpus_text_length") if html else None,
             "Text similarity %": round(row["similarity"] * 100, 1) if html and not word_method and row.get("similarity") is not None else None,
             'Word coverage %': round(row['similarity'] * 100, 1) if html and word_method and row.get('similarity') is not None else None,
@@ -87,6 +101,7 @@ def detail_row(row: dict) -> dict:
 
 
 def build_analysis(rows: list[dict], sections: dict, *, include_details=True) -> dict:
+    from .reconciliation import discovery_reconciliation
     discovery = discovery_coverage(rows, sections)
     summary = coverage_summary(rows)
     valid = [row for row in rows if is_inventory_url(row) and row.get("page_type") != "IMAGE"]
@@ -98,7 +113,7 @@ def build_analysis(rows: list[dict], sections: dict, *, include_details=True) ->
                          ("Filters", discovery['groups']['Filters']),
                          ("Archives", discovery['groups']['Archives']),
                          ("Documents", docs),
-                         ("JavaScript / API", [row for row in rows if _methods(row) & {"JS_DISCOVERY", "API_DISCOVERY"}]),
+                         ("JavaScript / API", [row for row in rows if _methods(row) & {"JS_DISCOVERY", "API_DISCOVERY", "JS_SOURCE", "PUBLIC_API"}]),
                          ("Sitemap", [row for row in rows if "SITEMAP" in _methods(row)])]:
         value = coverage_summary(group)
         segments.append({"Area": label, "Valid URLs": value["expected_urls"], "Found": value["found_urls"], "Missing": value["missing_urls"],
@@ -110,7 +125,8 @@ def build_analysis(rows: list[dict], sections: dict, *, include_details=True) ->
     for item in filters:
         if item["Missing"] and item["Coverage %"] is not None and item["Coverage %"] < 80:
             gaps.append({"severity": "HIGH", "kind": "FILTER_GAP", "evidence": f"{item['Filter state']}: {item['Missing']} confirmed misses of {item['Valid URLs']} valid URLs ({item['Coverage %']}% coverage). Likely filter traversal gap; cause needs production log verification."})
-    return {"summary": summary, "details": [detail_row(row) for row in rows] if include_details else [], "segments": segments,
+    return {"summary": summary, 'discovery_reconciliation': discovery_reconciliation(sections.get('discovery_tasks', [])),
+            "details": [detail_row(row) for row in rows] if include_details else [], "segments": segments,
             "inventory": inventory_breakdown(rows), "html_duplicates": html_content_duplicates(rows),
             "depth": grouped_coverage([row for row in rows if row.get('page_type') == 'HTML'], lambda row: row.get("navigation_depth") if row.get("navigation_depth") is not None else 'Unknown', "Depth"),
             "years": grouped_coverage(rows, row_archive_year, "Year"),

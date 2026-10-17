@@ -4,17 +4,22 @@ import json
 
 import pytest
 
+from crawler_coverage_auditor.analysis.diagnostics import issue_info
 from crawler_coverage_auditor.auditor import CoverageAuditor
 from crawler_coverage_auditor.config import AuditConfig
 from crawler_coverage_auditor.services.jobs import AuditJobs
-from crawler_coverage_auditor.services.recovery import (HISTORICAL_COUNT_STAGE, needs_count_recovery,
-    reopen_count_limited_discovery, finish_count_recovery, is_count_cutoff)
+from crawler_coverage_auditor.services.recovery import (
+    HISTORICAL_COUNT_STAGE,
+    finish_count_recovery,
+    is_count_cutoff,
+    needs_count_recovery,
+    reopen_count_limited_discovery,
+)
 from crawler_coverage_auditor.storage.database import AuditDatabase
 from crawler_coverage_auditor.storage.models import DiscoveredURL
 from crawler_coverage_auditor.validation.fingerprints import sha256_text
-from crawler_coverage_auditor.validation.text_coverage import TEXT_API_VERSION
 from crawler_coverage_auditor.validation.http import FetchResult
-from crawler_coverage_auditor.analysis.diagnostics import issue_info
+from crawler_coverage_auditor.validation.text_coverage import TEXT_API_VERSION
 
 
 def saved_inventory(tmp_path):
@@ -96,6 +101,8 @@ def test_actual_resumed_discovery_finds_more_links_and_never_downloads_pdf(tmp_p
         def __init__(self, *args, **kwargs): pass
         async def __aenter__(self): return self
         async def __aexit__(self, *args): pass
+        async def head(self, url, **kwargs):
+            return FetchResult(url, url, 200, {'content-type':'application/pdf'}, b'', url_only=True)
         async def get(self, url, **kwargs):
             fetched.append(url)
             html = '<main><h1>Meaningful published content</h1>'

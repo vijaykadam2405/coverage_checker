@@ -5,7 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from crawler_coverage_auditor.services.inventory import list_runs, load_report_rows, load_run_sections
+from crawler_coverage_auditor.services.inventory import (
+    list_runs,
+    load_report_rows,
+    load_run_sections,
+)
 from crawler_coverage_auditor.storage.database import SCHEMA
 
 

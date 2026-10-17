@@ -11,8 +11,8 @@ import hashlib
 import json
 import os
 import sys
-import time
 import tempfile
+import time
 from http.cookiejar import Cookie
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -136,6 +136,7 @@ def main() -> int:
     from crawler_coverage_auditor.validation.network_safety import validate_target
     validate_target(args.url, resolve=True)
     from playwright.sync_api import sync_playwright
+
     from crawler_coverage_auditor.validation.access import detect_access
     print("A separate browser will open. Complete any public-page CAPTCHA yourself.")
     print("Do not sign in, register, accept subscriptions or bypass certificate warnings.")

@@ -9,10 +9,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import httpx
 import pytest
 
-from crawler_coverage_auditor.auditor import CoverageAuditor
-from crawler_coverage_auditor.config import AuditConfig
 from crawler_coverage_auditor.analysis.coverage import coverage_summary
 from crawler_coverage_auditor.analysis.dashboard import build_analysis, detail_row
+from crawler_coverage_auditor.auditor import CoverageAuditor
+from crawler_coverage_auditor.config import AuditConfig
 from crawler_coverage_auditor.discovery.browser import BrowserExplorer
 from crawler_coverage_auditor.validation.http import PoliteHttpClient
 
@@ -22,6 +22,12 @@ class ResourceSite(BaseHTTPRequestHandler):
 
     def log_message(self, *_):
         pass
+
+    def do_HEAD(self):
+        mime = 'image/png' if any(value in self.path for value in ('picture', 'small', 'large')) else 'application/pdf'
+        self.send_response(200)
+        self.send_header('Content-Type', mime)
+        self.end_headers()
 
     def do_GET(self):
         type(self).paths.append(self.path)
@@ -79,9 +85,9 @@ def test_known_files_and_extensionless_sources_recorded_without_get(tmp_path, re
     with sqlite3.connect(config.database_path) as db:
         rows = dict(db.execute('SELECT normalized_url,validity FROM http_results'))
         assert all(rows[resource_site + path] == 'URL_ONLY' for path in expected)
-        assert rows['https://cdn.example.test/report.pdf'] == 'URL_ONLY'
+        assert 'https://cdn.example.test/report.pdf' not in rows
         assert db.execute("SELECT COUNT(*) FROM page_snapshots p JOIN urls u ON u.audit_run_id=p.audit_run_id AND u.normalized_url=p.normalized_url WHERE u.page_type IN ('DOCUMENT','IMAGE','RESOURCE')").fetchone()[0] == 0
-        assert db.execute("SELECT COUNT(*) FROM http_results WHERE validity='URL_ONLY' AND (status_code IS NOT NULL OR text_length IS NOT NULL)").fetchone()[0] == 0
+        assert db.execute("SELECT COUNT(*) FROM http_results WHERE validity='URL_ONLY' AND text_length IS NOT NULL").fetchone()[0] == 0
 
 
 @pytest.mark.parametrize('mime,disposition', [('application/pdf', ''), ('image/png', ''),

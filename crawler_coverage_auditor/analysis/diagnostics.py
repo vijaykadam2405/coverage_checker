@@ -4,6 +4,8 @@ from collections import defaultdict
 
 def issue_info(stage: str, message: str, *, readable: bool = False, url: str | None = None) -> tuple[str, str, str]:
     text = message.lower()
+    if stage == 'Historical discovery retry':
+        return ('Recovered discovery source', 'Historical', 'This source was successfully retried. The previous error remains as history; other discovery boundaries still apply.')
     if stage == 'Historical pause':
         return ('Saved pause checkpoint', 'Historical', 'The scan continued from its saved checkpoint and exhausted its pending work. This pause is retained as history, not a current discovery boundary. Other website/Corpus errors still apply.')
     if stage == 'Historical count cutoff':
@@ -13,6 +15,9 @@ def issue_info(stage: str, message: str, *, readable: bool = False, url: str | N
     if 'javascript error:' in text and readable:
         return ('Website script warning; HTML readable', 'Diagnostic', 'The website script failed, but HTML was captured. Current code records this as a script note, not proof of a blocked page.')
     if stage.lower().startswith('corpus') or 'corpus api' in text:
+        if 'certificate' in text or 'ssl_error' in text or 'tls' in text:
+            return ('Corpus certificate could not be verified', 'Verification',
+                    'Use the API administrator\'s valid HTTPS hostname or trusted CA PEM via CRAWLSCOPE_CORPUS_CA_BUNDLE. Verification is not bypassed; saved URL presence is retained and incomplete checks remain unverified.')
         return ('Corpus database / service unavailable' if any(t in text for t in ('timed out', 'unreachable', 'unavailable', '503', '429', 'timeout')) else 'Corpus verification needs review',
                 'Verification', 'Checks remain unverified. Retry with paced recovery; persistent failures require Corpus database/server investigation, not a missing-page label.')
     if 'too_large' in text or 'decoded response limit' in text:

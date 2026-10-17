@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable
+
 from crawler_coverage_auditor.validation.text_coverage import ASSESSED_TEXT_STATUSES
 
 FOUND_STATUSES = {"EXACT_MATCH", "NORMALIZED_MATCH", "CANONICAL_MATCH", "REDIRECT_MATCH", "FOUND_EXACT", "FOUND_NORMALIZED", "FOUND_CANONICAL", "FOUND_REDIRECT"}

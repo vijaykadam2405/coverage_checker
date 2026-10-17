@@ -151,6 +151,16 @@ export function Analysis({ snapshot }) {
       )}
       {[
         [
+          "Discovery source progress",
+          a.discovery_reconciliation?.sources || [],
+          "Source tasks, not page counts. Failed or pending sources leave discovery unresolved.",
+        ],
+        [
+          "Public collection reconciliation",
+          a.discovery_reconciliation?.collections || [],
+          "Published totals apply to that API collection and observation time, not the entire website.",
+        ],
+        [
           "Pagination probe evidence",
           a.pagination_probes,
           "Up to 200 recorded probes; blocking or non-monotonic content does not prove a maximum.",

@@ -9,9 +9,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from pathlib import Path, PurePosixPath, PureWindowsPath
 import re
 import stat
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +19,7 @@ SOURCE_SECRET = re.compile(rb'(?:cov_[A-Za-z0-9]{25,}|sk-[A-Za-z0-9_-]{20,}|gh[p
 RUNTIME_NAMES = {'results.jsonl', 'trap_results.jsonl', 'checklist_status.jsonl', 'edgecase_report.xlsx',
                  'persite.json', 'corpuspages.json', 'pages_attr.json', 'man_attr.json', 'samples.json'}
 TEXT_SUFFIXES = {'.py', '.js', '.mjs', '.html', '.css', '.md', '.json', '.jsonl', '.yml', '.yaml', '.txt', '.toml', '.csv', '.sh', '.ps1', '.sql', '.conf'}
+IMAGE_SUFFIXES = {'.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.ico', '.bmp', '.avif', '.tif', '.tiff', '.heic'}
 
 
 def digest(data: bytes) -> str:
@@ -26,6 +27,8 @@ def digest(data: bytes) -> str:
 
 
 def exclusion(path: PurePosixPath) -> str | None:
+    if path.suffix.lower() in IMAGE_SUFFIXES:
+        return 'Image asset excluded at user request; source logic is retained'
     if any(part in {'.git', '__pycache__', '.venv', 'node_modules'} for part in path.parts):
         return 'Repository metadata or installed/generated dependency cache'
     if any(part in {'data', 'sessions', 'state', 'logs'} for part in path.parts):
@@ -71,6 +74,11 @@ def import_source(source: Path, destination: Path) -> dict:
             copied = original
             if relative.suffix.lower() in TEXT_SUFFIXES:
                 copied = SOURCE_SECRET.sub(b'REDACTED_SOURCE_CREDENTIAL', copied)
+                if relative == PurePosixPath('crawler/tests/fixtures/index.json'):
+                    entries = json.loads(copied)
+                    entries = {url: item for url, item in entries.items()
+                               if PurePosixPath(item.get('file', '')).suffix.lower() not in IMAGE_SUFFIXES}
+                    copied = (json.dumps(entries, indent=2, ensure_ascii=False) + '\n').encode('utf-8')
             elif SOURCE_SECRET.search(copied):
                 records.append({'source': entry.filename, 'path': str(relative), 'status': 'excluded', 'reason': 'Sensitive token in binary artifact'})
                 continue
@@ -97,9 +105,9 @@ def import_source(source: Path, destination: Path) -> dict:
         comparable = json.loads(encoded)
         for record in comparable['files']:
             record.pop('text_sha256', None)
-        if old != comparable:
+        if old != json.loads(encoded) and old != comparable:
             raise ValueError('Existing import manifest differs; choose a separate reviewed revision rather than overwriting')
-        upgrade_manifest = True  # Same bytes/revision; add line-ending-tolerant verification metadata only.
+        upgrade_manifest = True  # Same records/revision; normalize serialization or add verification metadata.
     for target, content in plan:
         if not target.exists():
             target.parent.mkdir(parents=True, exist_ok=True)

@@ -1,8 +1,9 @@
 """One public translation for independent website, Corpus and HTML-text states."""
+import json
+import math
+
 from crawler_coverage_auditor.analysis.coverage import is_found, is_inventory_url
 from crawler_coverage_auditor.analysis.dashboard import TEXT_LABELS
-import math
-import json
 from crawler_coverage_auditor.validation.text_coverage import ASSESSED_TEXT_STATUSES
 
 RUN_LABELS = {'AWAITING_CORPUS': 'Saved inventory', 'CORPUS_PAUSED': 'Scan paused',
@@ -27,7 +28,9 @@ LABELS = {
 METHOD_LABELS = {'SEED': 'Entered website', 'STATIC': 'Page links', 'SITEMAP': 'Sitemap',
     'JS_DISCOVERY': 'Rendered page links', 'API_DISCOVERY': 'Observed API', 'FILTER_GET': 'GET filter',
     'PAGINATION': 'Pagination', 'STRUCTURED_DATA': 'Structured data', 'HTTP_LINK': 'HTTP link header',
-    'FEED': 'Feed', 'INCREMENTAL_RECHECK': 'Saved recheck'}
+    'FEED': 'Feed', 'INCREMENTAL_RECHECK': 'Saved recheck', 'JS_SOURCE': 'JavaScript source',
+    'METADATA': 'Published metadata', 'PUBLIC_API': 'Public content API',
+    'RESOURCESYNC': 'ResourceSync inventory', 'EXTERNAL_INDEX': 'Historical URL index'}
 
 
 def text_comparison_state(row):
@@ -67,6 +70,8 @@ def public_states(row):
     website = 'fetching' if row.get('state') == 'FETCHING' else 'rendering' if row.get('state') == 'RENDERING' else 'collected' if row.get('validity') == 'URL_ONLY' else 'validated' if valid else 'discovered' if not row.get('validity') else 'rendering' if row.get('validity') == 'RENDER_REQUIRED' else 'failed'
     corpus = 'not_applicable' if not valid else 'checking' if row.get('state') == 'CHECKING_CORPUS' else 'not_tracked' if row.get('match_status') == 'NOT_TRACKED' else 'found' if is_found(row) else 'missing' if row.get('match_status') == 'NOT_FOUND' else 'unverified' if row.get('match_status') else 'pending'
     text = 'URL only' if row.get('page_type') != 'HTML' else 'Live text captured' if (row.get('text_length') or 0) > 0 else 'Rendering required' if row.get('validity') == 'RENDER_REQUIRED' else 'Not assessed' if row.get('text_length') is None else 'No readable live text'
-    return {'website_state': website, 'website_label': LABELS[website][0], 'corpus_state': corpus,
+    retry_warning = valid and row.get('last_attempt_validity') not in {None, 'VALID_PAGE', 'URL_ONLY'}
+    return {'website_state': website, 'website_label': 'Previously validated · latest retry failed' if retry_warning else LABELS[website][0],
+            'retry_warning': bool(retry_warning), 'corpus_state': corpus,
             'corpus_label': LABELS[corpus][0], 'status': 'processing' if corpus == 'checking' or website in {'fetching', 'rendering'} else 'failed' if website == 'failed' else corpus,
             'text_label': text, 'eligible': valid, **text_comparison_state(row)}

@@ -2,7 +2,6 @@
 from time import monotonic
 from urllib.parse import urlsplit
 
-
 BACKGROUND_ENDPOINTS = {
     'google-analytics.com': frozenset({'/collect', '/g/collect', '/j/collect', '/mp/collect'}),
     'clarity.ms': frozenset({'/collect'}),

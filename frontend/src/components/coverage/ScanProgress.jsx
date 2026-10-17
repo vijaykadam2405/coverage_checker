@@ -68,8 +68,12 @@ export function Process({ snapshot, active }) {
       </div>
       <div className="progress-caption">
         <span>
-          {number(m.checked)} URL checks saved · {number(m.discovered)} URLs
-          collected
+          {number(m.discovered)} URLs saved · {number(m.processed ?? 0)}{" "}
+          processed
+          {" · "}
+          {number(m.saved_corpus_checks ?? m.checked)} Corpus checks saved
+          {" · "}
+          {number(m.queued_urls ?? m.pending_website)} queued
         </span>
         <span>
           {progress == null

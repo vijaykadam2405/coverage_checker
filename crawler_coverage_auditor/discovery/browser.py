@@ -1,20 +1,34 @@
 from __future__ import annotations
 
 import asyncio
-import re
 import inspect
+import json
+import re
 from dataclasses import dataclass
 from urllib.parse import urlsplit
 
-from crawler_coverage_auditor.discovery.resources import json_links, resource_type, URL_ONLY_TYPES
-from crawler_coverage_auditor.discovery.evidence import embedded_links, header_links
-from crawler_coverage_auditor.discovery.static_links import Link, extract_links
-from crawler_coverage_auditor.validation.fingerprints import sha256_text
-from crawler_coverage_auditor.validation.access import detect_access
-from crawler_coverage_auditor.discovery.tabs import detect_tabs, merge_tab_content, panel_has_content, same_document_url, TAB_SELECTOR
-from crawler_coverage_auditor.validation.text_extract import extract_text
-from crawler_coverage_auditor.discovery.readiness import ContentReadiness
 from bs4 import BeautifulSoup
+
+from crawler_coverage_auditor.discovery.evidence import embedded_links, header_links
+from crawler_coverage_auditor.discovery.page import analyzed
+from crawler_coverage_auditor.discovery.readiness import ContentReadiness
+from crawler_coverage_auditor.discovery.resources import (
+    URL_ONLY_TYPES,
+    json_links,
+    resource_type,
+)
+from crawler_coverage_auditor.discovery.static_links import Link, extract_links
+from crawler_coverage_auditor.discovery.tabs import (
+    TAB_SELECTOR,
+    detect_tabs,
+    merge_tab_content,
+    panel_has_content,
+    same_document_url,
+)
+from crawler_coverage_auditor.validation.access import detect_access
+from crawler_coverage_auditor.validation.fingerprints import sha256_text
+from crawler_coverage_auditor.validation.resource_policy import excluded_resource_url
+from crawler_coverage_auditor.validation.text_extract import extract_text
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,11 +57,12 @@ class BrowserExplorer:
 
     def __init__(self, actions: int | None = None, on_event=None, allowed=None, stopped=None, pace=None,
                  storage_state=None, challenge_wait_seconds: float = 12.0, on_response=None, user_agent=None,
-                 sources=None, max_filter_values=None):
+                 sources=None, max_filter_values=None, target_scope=None):
         # Accept historical arguments without reinstating arbitrary count cutoffs.
         self.actions = None
         self.on_event = on_event
         self.allowed = allowed
+        self.target_scope = target_scope
         self.stopped = stopped or (lambda: False)
         self.pace = pace
         self.storage_state = storage_state
@@ -59,26 +74,56 @@ class BrowserExplorer:
         self.max_filter_values = None
         self._paused_hosts: set[str] = set()
         self.playwright = self.browser = self.context = None
+        self._camoufox = None
+        self.engine = None
+        self._route_links = {}
+        self._route_limitations = []
+        self._header_lock = asyncio.Lock()
         self.error = None
 
     async def __aenter__(self):
         try:
             from playwright.async_api import async_playwright
-            from crawler_coverage_auditor.integrations.main_crawler import browser_profile
-            profile = browser_profile()
-            self.playwright = await async_playwright().start()
-            self.browser = await self.playwright.chromium.launch(headless=True,
-                **({'args': profile['args'], 'ignore_default_args': profile['ignore_default_args']} if profile['enabled'] else {}))
+
+            from crawler_coverage_auditor.discovery.local_browser import (
+                browser_engine,
+                camoufox_options,
+            )
+            from crawler_coverage_auditor.integrations.main_crawler import (
+                browser_profile,
+            )
+            self.engine = browser_engine()
+            profile = browser_profile() if self.engine == 'chromium' else {'enabled': False, 'init_script': None}
+            if self.engine == 'camoufox':
+                from camoufox.async_api import AsyncCamoufox
+                self._camoufox = AsyncCamoufox(**camoufox_options())
+                self.browser = await self._camoufox.__aenter__()
+            else:
+                self.playwright = await async_playwright().start()
+                self.browser = await self.playwright.chromium.launch(headless=True,
+                    **({'args': profile['args'], 'ignore_default_args': profile['ignore_default_args']} if profile['enabled'] else {}))
             self.context = await self.browser.new_context(ignore_https_errors=False, accept_downloads=False, service_workers='block',
                                                          storage_state=self.storage_state,
-                                                         **({'user_agent': self.user_agent} if self.user_agent else {}))
+                                                         **({'no_viewport': True} if self.engine == 'camoufox' else {}),
+                                                         **({'user_agent': self.user_agent} if self.user_agent and self.engine == 'chromium' else {}))
+            if self.on_event:
+                self.on_event('BROWSER_ENGINE', f'Using local {self.engine} browser; no main-crawler browser service connection', None)
             if profile['init_script']:
                 await self.context.add_init_script(profile['init_script'])
                 if self.on_event:
                     self.on_event('MAIN_CRAWLER_PROFILE', 'Using the imported main crawler browser identity helpers; access success still requires actual valid content', None)
             async def restrict(route):
                 request = route.request
-                from crawler_coverage_auditor.validation.network_safety import check_public_request
+                if request.is_navigation_request() and self.target_scope and not self.target_scope(request.url):
+                    self._route_limitations.append(f'OUT_OF_SCOPE: external browser navigation blocked: {request.url}')
+                    await route.abort()
+                    return
+                if excluded_resource_url(request.url):
+                    await route.abort()
+                    return
+                from crawler_coverage_auditor.validation.network_safety import (
+                    check_public_request,
+                )
                 try:
                     await check_public_request(request.url)
                 except ValueError:
@@ -112,16 +157,68 @@ class BrowserExplorer:
                 if not permitted:
                     await route.abort()
                 else:
+                    if self.engine == 'camoufox' and request.resource_type in {'document', 'xhr', 'fetch'}:
+                        if not await self._headers_permit(request):
+                            await route.abort()
+                            return
+                        # The HEAD probe and the actual browser request are both paced.
+                        if self.pace and not await self.pace(request.url):
+                            await route.abort()
+                            return
                     await route.continue_()
             await self.context.route("**/*", restrict)
         except Exception as error:
             self.error = f"Browser rendering unavailable: {error}"
         return self
 
+    async def _headers_permit(self, request):
+        """Firefox has no CDP response interception: check headers without bodies.
+
+        Unknown/unsupported HEAD responses fail closed. Do not claim the browser
+        explored content that the URL-only resource guard prevented it loading.
+        Redirects are rechecked by routing each subsequent browser request.
+        """
+        if request.method not in {'GET', 'HEAD'}:
+            self._route_limitations.append(f'Local Camoufox skipped non-read-only request: {request.method} {request.url}')
+            return False
+        response = None
+        try:
+            async with self._header_lock:
+                response = await self.context.request.head(request.url, max_redirects=0, timeout=15000)
+                headers, status = response.headers, response.status
+                cooldown = self.on_response(request.url, status, headers) if self.on_response else 0
+                if status == 429 or (cooldown and cooldown > 60):
+                    self._paused_hosts.add(urlsplit(request.url).netloc)
+                    self._route_limitations.append(f'Browser header check rate limited: HTTP {status} at {request.url}')
+                    return False
+                if status in {401, 451} or status >= 500:
+                    self._route_limitations.append(f'Local Camoufox header check blocked: HTTP {status} at {request.url}; body not requested')
+                    return False
+                kind = resource_type(request.url, headers.get('content-type', ''))
+                if kind in URL_ONLY_TYPES or 'attachment' in headers.get('content-disposition', '').lower():
+                    tag = 'img' if kind == 'IMAGE' else 'source' if kind == 'RESOURCE' else 'download'
+                    self._route_links[request.url] = Link(request.url, 'Resource URL only', tag)
+                    return False
+                if status in {301, 302, 303, 307, 308}:
+                    return True
+                mime = headers.get('content-type', '').split(';')[0].lower().strip()
+                if status != 405 and (mime in {'text/html', 'application/xhtml+xml', 'application/json', 'text/json'} or mime.endswith('+json')):
+                    return True
+                self._route_limitations.append(f'Local Camoufox cannot confirm safe HTML/JSON headers: HTTP {status} at {request.url}; body not requested')
+                return False
+        except Exception as error:
+            self._route_limitations.append(f'Local Camoufox header check unavailable: {type(error).__name__} at {request.url}; body not requested')
+            return False
+        finally:
+            if response:
+                await response.dispose()
+
     async def __aexit__(self, *_):
         if self.context:
             await self._close_bounded(self.context.close, 'browser context')
-        if self.browser:
+        if self._camoufox:
+            await self._close_bounded(lambda: self._camoufox.__aexit__(None, None, None), 'local Camoufox driver')
+        elif self.browser:
             await self._close_bounded(self.browser.close, 'browser')
         if self.playwright:
             await self._close_bounded(self.playwright.stop, 'browser driver')
@@ -148,6 +245,7 @@ class BrowserExplorer:
                 task.exception()
         return not pending
 
+    @analyzed
     async def explore(self, url: str) -> BrowserDiscovery:
         if not self.context:
             return BrowserDiscovery((), (), self.error or "Browser unavailable")
@@ -156,6 +254,8 @@ class BrowserExplorer:
         links: dict[str, Link] = {}
         network: list[NetworkRequest] = []
         limitations: list[str] = []
+        self._route_links = links
+        self._route_limitations = limitations
         states: list[dict] = []
         script_errors: dict[tuple[str, str], dict] = {}
         tab_fragments: list[str] = []
@@ -172,11 +272,18 @@ class BrowserExplorer:
         page.on('requestfinished', readiness.finished)
         page.on('requestfailed', readiness.finished)
         def resource_link(request):
+            if excluded_resource_url(request.url):
+                return
             kind = resource_type(request.url)
             if request.resource_type in {'image', 'media', 'font'} or (kind in URL_ONLY_TYPES and request.resource_type not in {'script', 'stylesheet'}):
                 tag = 'img' if request.resource_type == 'image' or kind == 'IMAGE' else 'download' if kind == 'DOCUMENT' else 'source'
                 links[request.url] = Link(request.url, 'Resource URL only', tag)
         page.on('request', resource_link)
+        async def cancel_download(download):
+            if not excluded_resource_url(download.url):
+                links[download.url] = Link(download.url, 'Resource URL only', 'download')
+            await download.cancel()
+        page.on('download', lambda download: tasks.append(asyncio.create_task(cancel_download(download))))
         async def inspect_headers(event):
             # Extensionless downloads cannot be classified until headers arrive.
             # Pause at the response stage and cancel before reading their bodies.
@@ -225,8 +332,19 @@ class BrowserExplorer:
                 limitations.append(f"Browser {request.resource_type} blocked: HTTP {response.status} at {response.url}")
             if 'API' in self.sources and "json" in response.headers.get("content-type", ""):
                 try:
-                    for link in json_links(await response.text(), response.url):
+                    body = await response.text()
+                    for link in json_links(body, response.url):
                         links[link.url] = link
+                    observer = getattr(self, 'on_json_response', None)
+                    if observer and request.method == 'GET':
+                        from datetime import UTC, datetime
+
+                        from crawler_coverage_auditor.validation.http import FetchResult
+                        headers = {key: value for key, value in response.headers.items()
+                                   if key.lower() not in {'content-encoding', 'content-length'}}
+                        headers['content-type'] = 'application/json; charset=utf-8'
+                        observer(FetchResult(request.url, response.url, response.status, headers,
+                            body.encode('utf-8'), captured_at=datetime.now(UTC).isoformat()), await request.all_headers())
                 except Exception:
                     pass
         page.on("response", lambda response: tasks.append(asyncio.create_task(record(response))))
@@ -319,9 +437,10 @@ class BrowserExplorer:
                 if stable >= 2:
                     break
         try:
-            session = await self.context.new_cdp_session(page)
-            session.on('Fetch.requestPaused', lambda event: tasks.append(asyncio.create_task(inspect_headers(event))))
-            await session.send('Fetch.enable', {'patterns': [{'urlPattern': '*', 'requestStage': 'Response'}]})
+            if self.engine != 'camoufox':
+                session = await self.context.new_cdp_session(page)
+                session.on('Fetch.requestPaused', lambda event: tasks.append(asyncio.create_task(inspect_headers(event))))
+                await session.send('Fetch.enable', {'patterns': [{'urlPattern': '*', 'requestStage': 'Response'}]})
             event("RENDERING", "Rendering JavaScript and inspecting controls")
             page.on('pageerror', script_error)
             initial_response = await navigate(url)
@@ -349,12 +468,15 @@ class BrowserExplorer:
             initial_html = await collect()
             initial_url = page.url
             baseline_ready = True
-            control_specs = await page.locator("select, input[type=checkbox], input[type=radio]").evaluate_all("""els => els.map(e => ({
+            control_script = """els => els.map(e => ({
                 name:e.name||e.id, type:e.tagName.toLowerCase()==='select'?'select':e.type,
                 values:e.tagName.toLowerCase()==='select'?Array.from(e.options).filter(o=>!o.disabled&&o.value).map(o=>({value:o.value,label:o.textContent})): [{value:e.value,label:e.getAttribute('aria-label')||e.labels?.[0]?.textContent||e.value}],
                 method:e.form?.method||'javascript', action:e.form?.action||'', id:e.id,
                 unsafe:!!e.form?.querySelector('input[type=password], input[type=file], input[type=email], input[type=tel], textarea, input[name=email], input[name=phone], input[name=organization], input[name^=captcha]') || /login|checkout|cart|register|delete|subscribe|contact|feedback/i.test(e.form?.action||'')
-            })).filter(e=>e.name)""")
+            })).filter(e=>e.name)"""
+            control_specs = await page.locator("select, input[type=checkbox], input[type=radio]").evaluate_all(control_script)
+            baseline_specs = list(control_specs)
+            seen_dependencies = set()
             if await page.locator('[role=combobox]:not(select), [role=checkbox]:not(input)').count():
                 limitations.append("Custom JavaScript filter controls detected; full value enumeration may require a website adapter")
             for spec in control_specs if 'FILTER_BROWSER' in self.sources else []:
@@ -372,6 +494,15 @@ class BrowserExplorer:
                         await navigate(url)
                         await settle()
                         baseline_ready = True
+                    # Reconstruct only observed read-only dependencies after reset.
+                    for prerequisite in spec.get('setup', []):
+                        locator = page.locator(f'[name={json.dumps(prerequisite["name"])}]').first
+                        if prerequisite['type'] == 'select':
+                            await locator.select_option(prerequisite['value'], timeout=3000)
+                        else:
+                            locator = page.locator(f'[name={json.dumps(prerequisite["name"])}][value={json.dumps(prerequisite["value"])}]').first
+                            await locator.check(timeout=3000)
+                        await settle()
                     escaped = spec["name"].replace('"', '\\"')
                     control = page.locator(f'{"select" if spec["type"] == "select" else "input"}[name="{escaped}"], {"select" if spec["type"] == "select" else "input"}[id="{escaped}"]')
                     if spec["type"] != "select":
@@ -395,6 +526,18 @@ class BrowserExplorer:
                             limitations.append(f"POST filter {spec['name']} has no recognized read-only submit action")
                     await settle()
                     html = await collect()
+                    from crawler_coverage_auditor.discovery.filters import (
+                        dependent_controls,
+                    )
+                    changed = await page.locator("select, input[type=checkbox], input[type=radio]").evaluate_all(control_script)
+                    selection = {'name': spec['name'], 'type': spec['type'], 'value': value['value'], 'setup': spec.get('setup', []), 'method': spec['method']}
+                    for dependency in dependent_controls(baseline_specs, changed, selection):
+                        key = (dependency['name'], tuple(sorted({entry['name']: entry['value'] for entry in dependency['setup']}.items())),
+                               tuple(item['value'] for item in dependency['values']))
+                        if key not in seen_dependencies:
+                            seen_dependencies.add(key)
+                            control_specs.append(dependency)
+                            event('FILTER_DEPENDENCY', f"Filter dependency observed: {spec['name']} changes {dependency['name']} values")
                     states.append({"source_url": url, "state_url": page.url, "control": spec["name"], "value": value["value"], "label": value["label"], "method": spec["method"], "html": html})
                     used += 1
                     if page.url == url and html != initial_html:

@@ -41,7 +41,16 @@ on the server. Detail evidence is lazy. Live URL activity is limited to 20 recor
 activity to 200 displayed events with incremental cursors. Analysis is entry/manual
 refresh only. Four-breakpoint Playwright checks live in `../tests/test_react_browser.py`;
 the read-only review helper is `../scripts/preview_react.py`.
+Browser test screenshots use temporary directories outside the project; the
+review helper also defaults to an external temporary directory unless `--output`
+is supplied explicitly.
 
 Do not edit generated `dist/` or treat `node_modules/` as application source.
 Backend prerequisites, formulas, safety boundaries and API contracts are documented
 in the root README and `../docs/IMPLEMENTATION_AUDIT.md`.
+
+The Control Room has five capture choices and a masked Corpus API-key form.
+Discovery methods are automatic, including Wayback, browser rendering and pagination;
+there are no developer-tuning tabs. Keys are sent only to the local protected-save
+endpoint, never read back or persisted in browser storage. Windows encrypts saved
+keys for the current user. Environment-managed keys retain their precedence.

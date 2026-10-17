@@ -3,11 +3,38 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlparse, urlsplit
+
 from crawler_coverage_auditor.corpus.credentials import API_URL
 
 CAPTURE_TYPES = frozenset({'HTML', 'PDF', 'DOCUMENT', 'IMAGE', 'API', 'FEED', 'MEDIA', 'OTHER'})
 DISCOVERY_SOURCES = frozenset({'SITEMAP', 'STATIC', 'RENDERED', 'API', 'STRUCTURED_DATA',
-                              'HTTP_LINK', 'FEED', 'FILTER_GET', 'FILTER_BROWSER', 'PAGINATION', 'TABS', 'LOAD_MORE'})
+                              'HTTP_LINK', 'FEED', 'FILTER_GET', 'FILTER_BROWSER', 'PAGINATION', 'TABS', 'LOAD_MORE',
+                              'JS_SOURCE', 'METADATA', 'PUBLIC_API', 'RESOURCESYNC', 'EXTERNAL_INDEX'})
+DEFAULT_DISCOVERY_SOURCES = DISCOVERY_SOURCES - {'EXTERNAL_INDEX'}
+AUTOMATIC_DISCOVERY_SOURCES = DISCOVERY_SOURCES
+DISCOVERY_ENGINE_VERSION = 3
+LEGACY_DISCOVERY_SOURCES = DEFAULT_DISCOVERY_SOURCES - {'JS_SOURCE', 'METADATA', 'PUBLIC_API', 'RESOURCESYNC'}
+
+
+def upgraded_discovery_sources(values):
+    sources = set(values.get('discovery_sources', LEGACY_DISCOVERY_SOURCES))
+    if values.get('discovery_version', 1) < 2 and sources == LEGACY_DISCOVERY_SOURCES:
+        sources = set(DEFAULT_DISCOVERY_SOURCES)
+    return sources
+
+
+def automatic_scan_settings(values: dict) -> dict:
+    """Normal scans run all supported discovery, including live-validated Wayback.
+
+    Capture choices and conservative pacing remain user-controlled/preserved.
+    Diagnostic callers can still construct an explicit AuditConfig source subset.
+    """
+    return dict(values) | {
+        'discovery_sources': sorted(AUTOMATIC_DISCOVERY_SOURCES),
+        'discovery_version': DISCOVERY_ENGINE_VERSION,
+        'use_browser': True, 'include_subdomains': True,
+        'external_resources': False, 'reuse_public_session': True,
+    }
 LEGACY_DISCOVERY_LIMITS = ('max_urls', 'max_browser_pages', 'max_browser_actions',
                          'max_filter_values', 'maximum_pagination_probe')
 WEBSITE_DELAY_SECONDS = 1.0
@@ -116,15 +143,19 @@ class AuditConfig:
     corpus_interval_seconds: float = CORPUS_INTERVAL_SECONDS
     pacing_version: int = PACING_VERSION
     corpus_timeout_seconds: float = 60.0
+    corpus_cache_ttl_seconds: float = 86400.0
     browser_challenge_wait_seconds: float = 12.0
     seed_hosts: set[str] = field(default_factory=set)
     capture_types: set[str] = field(default_factory=lambda: set(CAPTURE_TYPES))
-    discovery_sources: set[str] = field(default_factory=lambda: set(DISCOVERY_SOURCES))
-    external_resources: bool = True
+    discovery_sources: set[str] = field(default_factory=lambda: set(DEFAULT_DISCOVERY_SOURCES))
+    discovery_version: int = DISCOVERY_ENGINE_VERSION
+    # Kept for reading older configurations; target inventories exclude external hosts.
+    external_resources: bool = False
     reuse_public_session: bool = True
     maximum_pagination_probe: int | None = None
 
     def __post_init__(self) -> None:
+        self.external_resources = False
         # Resuming an old scan must not restore its previous discovery cutoffs.
         for name in LEGACY_DISCOVERY_LIMITS:
             setattr(self, name, None)
@@ -148,6 +179,8 @@ class AuditConfig:
         self.website_delay_seconds = max(0.0, self.website_delay_seconds)
         self.corpus_interval_seconds = max(0.0, self.corpus_interval_seconds)
         self.corpus_batch_size = 1
+        if self.corpus_cache_ttl_seconds <= 0:
+            raise ValueError('Corpus cache refresh interval must be positive')
         self.browser_challenge_wait_seconds = min(30.0, max(0.0, self.browser_challenge_wait_seconds))
 
     def captures(self, page_type: str, url: str, content_type: str = '') -> bool:

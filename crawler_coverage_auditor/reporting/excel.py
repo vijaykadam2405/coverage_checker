@@ -4,9 +4,9 @@ from pathlib import Path
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
+
 from crawler_coverage_auditor.analysis.coverage import is_inventory_url
 from crawler_coverage_auditor.analysis.dashboard import build_analysis
-
 
 SHEETS = ("Executive Summary", "All Discovered URLs", "Missing From Corpus", "Partial Text", "Depth Coverage",
           "Pagination Analysis", "Filter Analysis", "Archive Coverage", "Sitemap Coverage", "Documents",

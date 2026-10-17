@@ -324,17 +324,97 @@ h2 {
 .missing-count {
   color: #ffacb4;
 }
+.url-table,
 .live-url-table {
-  min-width: 1000px;
+  table-layout: fixed;
+  font-size: 12px;
 }
-.live-url-table td:first-child {
-  min-width: 300px;
+.url-table {
+  min-width: 1280px;
 }
-.url-button span {
-  max-width: 460px;
-  white-space: normal;
+.live-url-table {
+  min-width: 1130px;
+}
+.column-url {
+  width: 320px;
+}
+.column-host {
+  width: 170px;
+}
+.column-type {
+  width: 130px;
+}
+.column-website,
+.column-corpus {
+  width: 180px;
+}
+.column-text {
+  width: 130px;
+}
+.column-depth {
+  width: 56px;
+}
+.column-discovery {
+  width: 135px;
+}
+.column-period {
+  width: 75px;
+}
+.column-action {
+  width: 40px;
+}
+.url-table th,
+.live-url-table th {
+  font-size: 11px;
+  padding: 14px 16px;
+}
+.url-table td,
+.live-url-table td {
+  padding: 16px;
+  line-height: 1.5;
+  font-size: 12px;
+  vertical-align: middle;
+}
+.url-address,
+.url-title,
+.cell-host,
+.cell-method {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
   overflow-wrap: anywhere;
+}
+.url-button .url-address {
+  display: -webkit-box;
   font-size: 13px;
+  line-height: 1.6;
+}
+.url-button .url-title {
+  -webkit-line-clamp: 1;
+}
+.cell-host {
+  -webkit-line-clamp: 1;
+}
+.url-table .badge,
+.live-url-table .badge {
+  max-width: 100%;
+  white-space: nowrap;
+  font-size: 11px;
+  padding: 6px 9px;
+}
+.url-table .badge-label,
+.live-url-table .badge-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.numeric-cell {
+  font-variant-numeric: tabular-nums;
+}
+.url-table time,
+.live-url-table time {
+  white-space: nowrap;
 }
 .url-button small,
 .cell-note {
@@ -343,8 +423,41 @@ h2 {
   color: #9cb0cd;
 }
 .text-coverage-cell {
+  width: 100%;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.text-coverage-value {
   font-size: 12px;
-  line-height: 1.6;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #dce6f6;
+}
+.text-coverage-track {
+  height: 7px;
+  border-radius: 5px;
+  background: #2b374b;
+  overflow: hidden;
+}
+.text-coverage-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #64b5f6;
+}
+.text-coverage-track.high .text-coverage-fill {
+  background: #48d5b1;
+}
+.text-coverage-track.medium .text-coverage-fill {
+  background: #edbd6a;
+}
+.text-coverage-track.low .text-coverage-fill {
+  background: #ee8995;
+}
+.text-coverage-unavailable {
+  color: #7890af;
 }
 th {
   font-size: 11px;

@@ -6,46 +6,87 @@ import json
 import os
 from contextlib import AsyncExitStack
 from dataclasses import asdict
-from html import escape
+from datetime import UTC, datetime
 from hashlib import sha256
+from html import escape
 from pathlib import Path
 from urllib.parse import parse_qsl, urljoin, urlsplit
 from urllib.robotparser import RobotFileParser
 
-from bs4 import BeautifulSoup
-
-from crawler_coverage_auditor.analysis.coverage import coverage_by_depth, coverage_summary, is_inventory_url, is_found
+from crawler_coverage_auditor.analysis.coverage import (
+    coverage_by_depth,
+    coverage_summary,
+    is_found,
+    is_inventory_url,
+)
 from crawler_coverage_auditor.analysis.gaps import missing_rows
-from crawler_coverage_auditor.analysis.root_cause import root_causes
-from crawler_coverage_auditor.analysis.inventory_segments import archive_coverage, js_only_rows, sitemap_coverage
+from crawler_coverage_auditor.analysis.inventory_segments import (
+    archive_coverage,
+    js_only_rows,
+    sitemap_coverage,
+)
 from crawler_coverage_auditor.analysis.regression import compare_runs
+from crawler_coverage_auditor.analysis.root_cause import root_causes
 from crawler_coverage_auditor.config import AuditConfig
-from crawler_coverage_auditor.corpus.errors import CorpusUnavailable
 from crawler_coverage_auditor.corpus.coverage_api import CoverageAPIClient
+from crawler_coverage_auditor.corpus.errors import CorpusUnavailable
 from crawler_coverage_auditor.discovery.browser import BrowserExplorer
+from crawler_coverage_auditor.discovery.engine import AdvancedDiscovery
+from crawler_coverage_auditor.discovery.evidence import (
+    embedded_links,
+    feed_links,
+    header_links,
+)
 from crawler_coverage_auditor.discovery.filters import detect_filters, get_filter_urls
-from crawler_coverage_auditor.discovery.tabs import same_document_url
-from crawler_coverage_auditor.discovery.max_page import find_maximum_page, PaginationUnverified
-from crawler_coverage_auditor.discovery.pagination import detect_pagination, numeric_page_parameter, pagination_series_key, replace_page_parameter
-from crawler_coverage_auditor.discovery.resources import json_links, resource_type, trap_reason, URL_ONLY_TYPES, link_resource_hint
-from crawler_coverage_auditor.discovery.evidence import embedded_links, feed_links, header_links
+from crawler_coverage_auditor.discovery.max_page import (
+    PaginationUnverified,
+    find_maximum_page,
+)
+from crawler_coverage_auditor.discovery.page import analyzed, parsed_html
+from crawler_coverage_auditor.discovery.pagination import (
+    detect_pagination,
+    numeric_page_parameter,
+    pagination_series_key,
+    replace_page_parameter,
+)
+from crawler_coverage_auditor.discovery.resources import (
+    URL_ONLY_TYPES,
+    json_links,
+    link_resource_hint,
+    resource_type,
+    trap_reason,
+)
 from crawler_coverage_auditor.discovery.sitemap import discover_sitemaps
-from crawler_coverage_auditor.discovery.static_links import count_listing_items, extract_links
+from crawler_coverage_auditor.discovery.static_links import (
+    count_listing_items,
+    extract_links,
+)
+from crawler_coverage_auditor.discovery.tabs import same_document_url
 from crawler_coverage_auditor.reporting.excel import write_excel
 from crawler_coverage_auditor.reporting.html import write_html
+from crawler_coverage_auditor.services.checkpoints import ScanProgress
+from crawler_coverage_auditor.services.recovery import (
+    HISTORICAL_COUNT_STAGE,
+    finish_count_recovery,
+    reopen_count_limited_discovery,
+)
 from crawler_coverage_auditor.storage.database import AuditDatabase
 from crawler_coverage_auditor.storage.models import DiscoveredURL
+from crawler_coverage_auditor.validation.access import detect_access, requires_rendering
 from crawler_coverage_auditor.validation.fingerprints import sha256_text
-from crawler_coverage_auditor.validation.text_coverage import compare_html_text, ASSESSED_TEXT_STATUSES, TEXT_API_VERSION
 from crawler_coverage_auditor.validation.http import PoliteHttpClient
 from crawler_coverage_auditor.validation.normalize import normalize_url, same_scope
-from crawler_coverage_auditor.validation.soft404 import assess_page_validity
-from crawler_coverage_auditor.validation.text_extract import extract_text
-from crawler_coverage_auditor.validation.access import detect_access, requires_rendering
-from crawler_coverage_auditor.validation.site_session import SiteSessionStore
 from crawler_coverage_auditor.validation.publication import publication_evidence
-from crawler_coverage_auditor.services.recovery import HISTORICAL_COUNT_STAGE, reopen_count_limited_discovery, finish_count_recovery
-from crawler_coverage_auditor.services.checkpoints import ScanProgress
+from crawler_coverage_auditor.validation.resource_policy import excluded_resource_url
+from crawler_coverage_auditor.validation.site_session import SiteSessionStore
+from crawler_coverage_auditor.validation.soft404 import assess_page_validity
+from crawler_coverage_auditor.validation.text_coverage import (
+    ASSESSED_TEXT_STATUSES,
+    TEXT_API_VERSION,
+    compare_html_text,
+)
+from crawler_coverage_auditor.validation.text_extract import extract_text
+
 
 class CoverageAuditor:
     """Independent website inventory, conservative corpus verification, and persisted live evidence."""
@@ -62,6 +103,21 @@ class CoverageAuditor:
         if self.run_id is None:
             self.run_id = self.db.create_run(config.target_url, config.corpus_url, asdict(config))
         self._inventory_was_ready = bool(self.db.connection.execute('SELECT discovery_completed_at FROM audit_runs WHERE id=?', (self.run_id,)).fetchone()[0])
+        previous = self.db.connection.execute('SELECT discovery_engine_version,config_json FROM audit_runs WHERE id=?', (self.run_id,)).fetchone()
+        engine_version = previous['discovery_engine_version']
+        previous_config = json.loads(previous['config_json'])
+        old_sources = set(previous_config.get('discovery_sources', ()))
+        self._discovery_upgrade = config.resume and engine_version < config.discovery_version and bool(
+            config.discovery_sources & {'JS_SOURCE','METADATA','PUBLIC_API','RESOURCESYNC','EXTERNAL_INDEX'})
+        self._upgrade_revisit_sources = engine_version < 2 or bool(
+            (config.discovery_sources - {'EXTERNAL_INDEX'}) - old_sources) or any(
+            getattr(config, name) and not previous_config.get(name, False)
+            for name in ('use_browser', 'include_subdomains', 'external_resources'))
+        from crawler_coverage_auditor.services.discovery_tasks import (
+            source_work_remaining,
+        )
+        if source_work_remaining(self.db.connection, self.run_id):
+            self._inventory_was_ready = False
         self.on_event = on_event
         self.stopped = stopped or (lambda: False)
         self.phase = "Starting"
@@ -81,10 +137,12 @@ class CoverageAuditor:
         self._browser_user_agent = None
         self._static_filters_seen: set[tuple[str, int, str]] = set()
         self._api_prepared = False
+        self.analysis_metrics = {}
         self._pagination_probing = False
         self._processing_probe = False
-        self._limited.update((row['stage'], row['url'], row['reason']) for row in self.db.connection.execute("SELECT stage,url,reason FROM audit_limits WHERE audit_run_id=?", (self.run_id,)) if row['stage'] not in {HISTORICAL_COUNT_STAGE, 'Historical pause'})
+        self._limited.update((row['stage'], row['url'], row['reason']) for row in self.db.connection.execute("SELECT stage,url,reason FROM audit_limits WHERE audit_run_id=?", (self.run_id,)) if row['stage'] not in {HISTORICAL_COUNT_STAGE, 'Historical pause', 'Historical discovery retry'})
         self.progress = ScanProgress(self.db, self.run_id)
+        self.advanced = AdvancedDiscovery(self)
 
     def _event(self, kind: str, message: str, url: str | None = None, depth: int | None = None,
                severity: str = "INFO", **details) -> None:
@@ -107,6 +165,12 @@ class CoverageAuditor:
             self._limited.add(key)
             self.db.limit(self.run_id, stage, url, reason, self._last_successful)
             self._event("LIMITED", reason, url, severity="WARNING", last_successful_url=self._last_successful)
+
+    def _in_scope(self, url: str) -> bool:
+        try:
+            return urlsplit(url).scheme in {'http', 'https'} and same_scope(url, self.config.seed_hosts, self.config.include_subdomains)
+        except ValueError:
+            return False
 
     async def _allowed(self, url: str) -> bool:
         if not self.config.respect_robots or not same_scope(url, self.config.seed_hosts, self.config.include_subdomains):
@@ -136,6 +200,11 @@ class CoverageAuditor:
     async def run(self) -> dict:
         try:
             self.progress.begin()
+            self.advanced.tasks.restore(retry_failed=self.config.resume)
+            if self._discovery_upgrade:
+                upgraded = self.advanced.prepare_upgrade(revisit_sources=self._upgrade_revisit_sources)
+                self._inventory_was_ready = False
+                self._event('DISCOVERY_UPGRADE', f'{upgraded:,} saved source pages queued for new discovery methods; Corpus results retained')
             if self.config.resume and reopen_count_limited_discovery(self.db, self.run_id) is not None:
                 self._inventory_was_ready = False
         except Exception:
@@ -156,6 +225,7 @@ class CoverageAuditor:
             else:
                 self._add_discovery(seed, "SEED", 0, None, "")
             self.progress.restore()
+            self.advanced.seed_external()
             async with AsyncExitStack() as stack:
                 if not self.config.discovery_only:
                     self._corpus_api = await stack.enter_async_context(self._new_api_client())
@@ -165,7 +235,8 @@ class CoverageAuditor:
                         raise CorpusUnavailable('Saved URL checks are incomplete; resume when Corpus is available')
                 client = await stack.enter_async_context(PoliteHttpClient(1,
                     self.config.request_timeout_seconds, self.config.max_retries, self.config.user_agent,
-                    on_event=self._event, allowed=self._allowed, min_interval=self.config.website_delay_seconds, stopped=self.stopped))
+                    on_event=self._event, allowed=self._allowed, min_interval=self.config.website_delay_seconds, stopped=self.stopped,
+                    target_scope=self._in_scope))
                 self._website_client = client
                 try:
                     directory = Path(os.environ.get("CRAWLSCOPE_SESSION_DIR", str(Path(self.config.database_path).parent / "sessions")))
@@ -189,7 +260,8 @@ class CoverageAuditor:
                         challenge_wait_seconds=self.config.browser_challenge_wait_seconds,
                         on_response=client.observe_response,
                         user_agent=self._public_session.get('user_agent') if self._public_session else None,
-                        sources=self.config.discovery_sources, max_filter_values=self.config.max_filter_values))
+                        sources=self.config.discovery_sources, max_filter_values=self.config.max_filter_values,
+                        target_scope=self._in_scope))
                     if browser.error:
                         self._limit("Browser", seed, browser.error)
                     else:
@@ -243,6 +315,7 @@ class CoverageAuditor:
             self.db.finish_run(self.run_id, "FAILED", str(error))
             raise
         finally:
+            await self.advanced.close()
             self.db.close()
 
     async def verify_inventory(self) -> dict:
@@ -283,6 +356,7 @@ class CoverageAuditor:
         self.db.connection.commit()
         self._api_prepared = True
 
+    @analyzed
     async def _verify_all(self, *, api=None, only_url=None, ready_only=False) -> str:
         """Shared serial verifier for live scans and saved inventories. Never bulk-check."""
         provider = 'coverage_api:' + self.config.corpus_url.rstrip('/')
@@ -291,6 +365,7 @@ class CoverageAuditor:
                 api = api if api is not None else await stack.enter_async_context(self._new_api_client())
                 self._prepare_api_verification()
                 candidates = [row for row in self.db.report_rows(self.run_id, only_url=only_url, enrich_archives=False) if is_inventory_url(row)
+                    and not excluded_resource_url(row['url']) and not excluded_resource_url(row['normalized_url'])
                     and (not ready_only or row['state'] not in {'PENDING', 'FETCHING', 'RENDERING'})]
                 current_url = self.progress.state()['current_url']
                 candidates.sort(key=lambda row: row['normalized_url'] != current_url)
@@ -309,7 +384,16 @@ class CoverageAuditor:
                                 (self.run_id, row['normalized_url']))
                             self.db.connection.commit()
                             row['text_status'] = 'TEXT_NOT_AVAILABLE'
-                    needs_presence = row['match_status'] not in {'NOT_FOUND', 'EXACT_MATCH', 'NORMALIZED_MATCH', 'CANONICAL_MATCH', 'REDIRECT_MATCH', 'NOT_TRACKED'} or row['page_type'] != 'HTML' and json.loads(row.get('evidence_json') or '{}').get('api_contract_version') != TEXT_API_VERSION
+                    expired = False
+                    if row.get('checked_at'):
+                        try:
+                            checked = datetime.fromisoformat(row['checked_at'])
+                            if checked.tzinfo is None:
+                                checked = checked.replace(tzinfo=UTC)
+                            expired = (datetime.now(UTC)-checked).total_seconds() >= self.config.corpus_cache_ttl_seconds
+                        except ValueError:
+                            expired = True
+                    needs_presence = expired or row['match_status'] not in {'NOT_FOUND', 'EXACT_MATCH', 'NORMALIZED_MATCH', 'CANONICAL_MATCH', 'REDIRECT_MATCH', 'NOT_TRACKED'} or row['page_type'] != 'HTML' and json.loads(row.get('evidence_json') or '{}').get('api_contract_version') != TEXT_API_VERSION
                     needs_text = row['page_type'] == 'HTML' and is_found(row) and row['text_status'] not in ASSESSED_TEXT_STATUSES
                     if not needs_presence and not needs_text:
                         saved_stage = self.progress.url(row['normalized_url'])
@@ -330,7 +414,7 @@ class CoverageAuditor:
                         else:
                             status, queried, seen = 'NOT_FOUND', row['url'], {row['url']}
                             for alternate, kind in [(row['normalized_url'], 'NORMALIZED_MATCH'), (row.get('final_url'), 'REDIRECT_MATCH'), (row.get('canonical_url'), 'CANONICAL_MATCH')]:
-                                if not alternate or alternate in seen or urlsplit(alternate).scheme not in {'http', 'https'} or not urlsplit(alternate).hostname:
+                                if not alternate or excluded_resource_url(alternate) or alternate in seen or urlsplit(alternate).scheme not in {'http', 'https'} or not urlsplit(alternate).hostname:
                                     continue
                                 if kind == 'CANONICAL_MATCH' and not same_scope(alternate, self.config.seed_hosts, self.config.include_subdomains):
                                     continue
@@ -359,9 +443,8 @@ class CoverageAuditor:
         return "LIMITED" if self._limited else "COMPLETED"
 
     def _save_api_match(self, row: dict, item: dict, status: str, provider: str, queried: str) -> None:
-        previous = json.loads(row.get('evidence_json') or '{}')
-        if row.get('match_status') and row['page_type'] != 'HTML' and previous.get('api_contract_version') != TEXT_API_VERSION:
-            # Preserve old file-index results while upgrading to the new contract.
+        if row.get('match_status'):
+            # Preserve the old result before a freshness/contract refresh.
             self.db.connection.execute('INSERT INTO corpus_match_history SELECT * FROM corpus_matches WHERE audit_run_id=? AND normalized_url=?', (self.run_id, row['normalized_url']))
         metadata = {name: item.get(name) for name in ('lookup_status', 'kind', 'match', 'match_method', 'matched_url', 'record_id', 'content_type', 'page_url', 'first_fetched', 'last_fetched', 'published_at', 'title', 'versions')}
         metadata['queried_url'] = queried
@@ -382,6 +465,7 @@ class CoverageAuditor:
             evidence.get('record_id') or row.get('document_id'), length, score, status, provider=provider, evidence=evidence)
         self.db.set_url_state(self.run_id, row['normalized_url'], 'DONE')
 
+    @analyzed
     async def _compare_api_html(self, api, provider, *, only_url=None):
         rows = [row for row in self.db.report_rows(self.run_id, only_url=only_url, enrich_archives=False)
                 if row['page_type'] == 'HTML' and is_inventory_url(row) and is_found(row)
@@ -446,17 +530,19 @@ class CoverageAuditor:
 
     def _add_discovery(self, url: str, method: str, depth: int, parent: str | None, anchor: str, resource_hint: str | None = None) -> bool:
         url = url.strip()
+        if excluded_resource_url(url):
+            return False
         source = {'API_DISCOVERY': 'API', 'JS_DISCOVERY': 'RENDERED'}.get(method, method)
-        if source in {'SITEMAP', 'STATIC', 'RENDERED', 'API', 'STRUCTURED_DATA', 'HTTP_LINK', 'FEED', 'FILTER_GET', 'FILTER_BROWSER', 'PAGINATION'} and not self.config.discovers(source):
+        if source in {'SITEMAP', 'STATIC', 'RENDERED', 'API', 'STRUCTURED_DATA', 'HTTP_LINK', 'FEED', 'FILTER_GET', 'FILTER_BROWSER', 'PAGINATION', 'JS_SOURCE', 'METADATA', 'PUBLIC_API', 'RESOURCESYNC', 'EXTERNAL_INDEX'} and not self.config.discovers(source):
             return False
         try:
-            from crawler_coverage_auditor.validation.network_safety import validate_target
+            from crawler_coverage_auditor.validation.network_safety import (
+                validate_target,
+            )
             validate_target(url)
             normalized = normalize_url(url)
             page_type = resource_hint or resource_type(normalized)
-            if urlsplit(normalized).scheme not in {"http", "https"} or (page_type not in URL_ONLY_TYPES and not same_scope(normalized, self.config.seed_hosts, self.config.include_subdomains)):
-                return False
-            if page_type in URL_ONLY_TYPES and not self.config.external_resources and not same_scope(normalized, self.config.seed_hosts, self.config.include_subdomains):
+            if not self._in_scope(normalized):
                 return False
         except ValueError:
             return False
@@ -485,19 +571,36 @@ class CoverageAuditor:
                 self._add_discovery(link.url, source, depth, parent, link.anchor_text, link_resource_hint(link))
 
     def _record_resource_url(self, row: dict, page_type: str, *, content_type: str | None = None,
-                             final_url: str | None = None) -> None:
+                             final_url: str | None = None, status_code: int | None = None) -> None:
         """Record a link, not evidence that a file exists or its contents were captured."""
         normalized = row['normalized_url']
         self.db.set_page_type(self.run_id, normalized, page_type)
         captured = self.config.captures(page_type, normalized, content_type or '')
         self.db.set_capture_enabled(self.run_id, normalized, captured)
-        self.db.add_http_result(self.run_id, normalized, status_code=None, final_url=final_url,
+        self.db.add_http_result(self.run_id, normalized, status_code=status_code, final_url=final_url,
             content_type=content_type, title=None, h1=None, text_length=None, validity='URL_ONLY', error=None)
         self.db.set_url_state(self.run_id, normalized, 'DONE')
         if page_type == 'DOCUMENT' and captured:
             self.db.add_document(self.run_id, normalized, row.get('parent_url'), Path(urlsplit(normalized).path).suffix.lstrip('.'))
+            self.db.connection.execute('UPDATE documents SET mime_type=? WHERE audit_run_id=? AND normalized_url=?',
+                (content_type, self.run_id, normalized))
+        elif page_type != 'DOCUMENT':
+            self.db.connection.execute('DELETE FROM documents WHERE audit_run_id=? AND normalized_url=?', (self.run_id, normalized))
+        self.db.connection.commit()
         if captured:
             self._event('RESOURCE_URL', 'Resource URL collected only; file content and text are not fetched', normalized, row['min_depth'])
+
+    def _record_resource_boundary(self, row, response, validity, reason):
+        normalized = row['normalized_url']
+        self.db.add_http_result(self.run_id, normalized, status_code=response.status_code or None,
+            final_url=response.final_url, content_type=response.headers.get('content-type'),
+            title=None, h1=None, text_length=None, validity=validity, error=reason)
+        if validity == 'OUT_OF_SCOPE':
+            self.db.set_capture_enabled(self.run_id, normalized, False)
+        self.db.connection.execute('DELETE FROM documents WHERE audit_run_id=? AND normalized_url=?', (self.run_id, normalized))
+        self.db.connection.commit()
+        self.db.set_url_state(self.run_id, normalized, 'DONE')
+        self._event(validity, reason, normalized, row['min_depth'], severity='WARNING', final_url=response.final_url)
 
     async def _crawl_static(self, client: PoliteHttpClient) -> None:
         if self._corpus_api and not self.progress.preferred_pending():
@@ -506,6 +609,8 @@ class CoverageAuditor:
             preferred = self.progress.preferred_pending()
             pending = [preferred] if preferred else self.db.pending_urls(self.run_id, limit=1)
             if not pending:
+                if await self.advanced.step(client):
+                    continue
                 return
             row = dict(pending[0])
             self._phase('Discovering website URLs')
@@ -533,6 +638,8 @@ class CoverageAuditor:
                 await self._drain_pagination(client)
             elif not self.stopped():
                 self.progress.mark(row['normalized_url'], 'COMPLETED')
+            if not self.stopped():
+                await self.advanced.step(client)
 
     async def _drain_pagination(self, client):
         while not self.stopped():
@@ -545,7 +652,7 @@ class CoverageAuditor:
                 return
             self.progress.enter(task['source_url'], 'PAGINATION')
             # Persist only discovered links/kinds, not raw DOM or page bodies.
-            html = ''.join(f'<a href="{escape(hint["url"], quote=True)}">{"Next" if hint["kind"] == "NEXT" else "Page"}</a>' for hint in json.loads(task['hints_json']))
+            html = ''.join(f'<a href="{escape(hint["url"], quote=True)}">{hint["kind"].title() if hint["kind"] in {"NEXT", "PREVIOUS", "FIRST", "LAST"} else "Page"}</a>' for hint in json.loads(task['hints_json']))
             self._pagination_probing = True
             try:
                 await self._analyze_pagination(client, html, task['source_url'], task['depth'])
@@ -555,11 +662,39 @@ class CoverageAuditor:
             finally:
                 self._pagination_probing = False
 
+    @analyzed
     async def _process_url(self, client: PoliteHttpClient, row: dict, *, response=None) -> None:
         url, normalized = row["url"], row["normalized_url"]
-        if row.get('page_type') in URL_ONLY_TYPES:
-            self._record_resource_url(row, row['page_type'])
+        if not self._in_scope(normalized):
+            self.db.set_capture_enabled(self.run_id, normalized, False)
+            self.db.set_url_state(self.run_id, normalized, 'DONE')
             return
+        if row.get('page_type') in URL_ONLY_TYPES:
+            checked = await client.head(url, referer=row.get('parent_url'))
+            mime = checked.headers.get('content-type', '').split(';', 1)[0].strip().lower()
+            if checked.failure_reason == 'OUT_OF_SCOPE' or not self._in_scope(checked.final_url):
+                self._record_resource_boundary(row, checked, 'OUT_OF_SCOPE', 'External redirect; excluded from target coverage')
+                return
+            if checked.error or not 200 <= checked.status_code < 300 or not mime:
+                self._record_resource_boundary(row, checked, 'RESOURCE_UNVERIFIED', checked.error or f'File header check inconclusive: HTTP {checked.status_code}; file body not requested')
+                return
+            kind = resource_type(checked.final_url, mime)
+            if resource_type('https://resource.invalid/', mime) == 'HTML' and mime not in {'text/html', 'application/xhtml+xml'}:
+                self._record_resource_boundary(row, checked, 'RESOURCE_UNVERIFIED', 'Response MIME does not identify a supported file/page type')
+                return
+            if kind in URL_ONLY_TYPES:
+                self._record_resource_url(row, kind, content_type=mime, final_url=checked.final_url, status_code=checked.status_code)
+                return
+            if kind not in {'HTML', 'API', 'FEED'} or (kind == 'HTML' and mime not in {'text/html', 'application/xhtml+xml'}):
+                self._record_resource_boundary(row, checked, 'RESOURCE_UNVERIFIED', 'File type could not be verified from response headers')
+                return
+            # A .pdf/.doc link may now serve a real page. Fetch HTML/metadata
+            # normally, never download a document body or parse it as HTML.
+            self.db.set_page_type(self.run_id, normalized, kind)
+            self.db.connection.execute('DELETE FROM documents WHERE audit_run_id=? AND normalized_url=?', (self.run_id, normalized))
+            self.db.connection.commit()
+            row = dict(row, page_type=kind)
+            response = None
         depth = row.get("navigation_depth") if row.get("navigation_depth") is not None else int(row["min_depth"])
         if urlsplit(url).netloc in self._paused_hosts:
             self.db.add_http_result(self.run_id, normalized, status_code=0, final_url=url, content_type=None, title=None, h1=None,
@@ -570,15 +705,19 @@ class CoverageAuditor:
         self._event("CHECKING", "Fetching website content", normalized, depth)
         response = response if response is not None else await client.get(url, referer=row.get("parent_url"))
         failure_reason = getattr(response, 'failure_reason', None)
-        mime = response.headers.get("content-type", "").split(";", 1)[0]
-        page_type = resource_type(normalized, mime)
+        if failure_reason == 'OUT_OF_SCOPE' or not self._in_scope(response.final_url):
+            self._record_resource_boundary(row, response, 'OUT_OF_SCOPE', 'External redirect; excluded from target coverage')
+            return
+        mime = response.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+        page_type = resource_type(response.final_url, mime)
         if response.url_only:
             if page_type not in URL_ONLY_TYPES:
                 page_type = 'DOCUMENT'
-            self._record_resource_url(row, page_type, content_type=mime, final_url=response.final_url)
+            self._record_resource_url(row, page_type, content_type=mime, final_url=response.final_url, status_code=response.status_code)
             return
         html = response.text
-        if ('xml' in mime or page_type == 'FEED') and feed_links(html, response.final_url):
+        discovered_feed = feed_links(html, response.final_url) if 'xml' in mime or page_type == 'FEED' else []
+        if discovered_feed:
             page_type = 'FEED'
         self.db.set_page_type(self.run_id, normalized, page_type)
         captured = self.config.captures(page_type, normalized, mime)
@@ -634,7 +773,7 @@ class CoverageAuditor:
             text_length=len(text or ""), fingerprint=sha256_text(text or "") if text else None,
             validity=validity, error=response.error or (f'{failure_reason}: HTTP {response.status_code}' if failure_reason else None),
             fetched_at=getattr(response, 'captured_at', None))
-        if page_type == 'HTML' and captured:
+        if page_type == 'HTML' and captured and validity == 'VALID_PAGE':
             self.db.add_page_snapshot(self.run_id, normalized, text or "")
             if validity == 'VALID_PAGE':
                 publication = publication_evidence(html, response.final_url)
@@ -642,6 +781,8 @@ class CoverageAuditor:
                     self.db.content_evidence(self.run_id, normalized, {'website_publication': publication})
         self._event("VALIDATED", f"Website: {validity.replace('_', ' ').lower()} — HTTP {response.status_code}", normalized, depth, http_status=response.status_code)
         if validity != "VALID_PAGE":
+            if page_type == 'HTML' and response.status_code == 200 and not response.error and not access and validity in {'RENDER_REQUIRED','EMPTY_PAGE'}:
+                await self.advanced.inspect(html, response.final_url, depth, response.headers)
             self.db.set_url_state(self.run_id, normalized, "DONE")
             reason = access.reason if access else response.error or title or ''
             self.db.add_error(self.run_id, "Website", normalized, f"{validity}: HTTP {response.status_code}; {reason}")
@@ -651,7 +792,7 @@ class CoverageAuditor:
             return
         self._last_successful = normalized
         if page_type == "HTML":
-            soup = BeautifulSoup(html, "lxml")
+            soup = parsed_html(html)
             canonical = soup.select_one("link[rel=canonical][href]")
             self.db.set_canonical(self.run_id, normalized, normalize_url(urljoin(response.final_url, canonical["href"])) if canonical else None)
         if page_type in {"DOCUMENT", "IMAGE"}:
@@ -661,9 +802,10 @@ class CoverageAuditor:
         if not self.config.incremental:
             self._collect_links(links, 'API_DISCOVERY' if page_type == 'API' else 'STATIC', depth + 1, normalized)
             self._collect_links(embedded_links(html, response.final_url) if page_type == 'HTML' else [], 'STRUCTURED_DATA', depth + 1, normalized)
-            self._collect_links(feed_links(html, response.final_url) if page_type == 'FEED' else [], 'FEED', depth + 1, normalized)
+            self._collect_links(discovered_feed, 'FEED', depth + 1, normalized)
             self._collect_links(header_links(response.headers.get('link', ''), response.final_url), 'HTTP_LINK', depth + 1, normalized)
         if page_type == "HTML":
+            await self.advanced.inspect(html, response.final_url, depth, response.headers)
             self._analyze_static_filters(html, response.final_url, depth)
             await self._analyze_pagination(client, html, response.final_url, depth)
         elif page_type == "API":
@@ -700,6 +842,7 @@ class CoverageAuditor:
                 self._limit("Filters", source, "Multiple filter controls: discovered values and current URL dependencies explored; exhaustive combinations are not proven")
         self._static_filters_seen.add(signature)
 
+    @analyzed
     async def _crawl_browser(self, browser: BrowserExplorer, client: PoliteHttpClient, *, only_url=None) -> bool:
         candidates = [row for row in self.db.report_rows(self.run_id, include_traversal=True, only_url=only_url, enrich_archives=False) if row["page_type"] == "HTML"
                       and row["validity"] in {"VALID_PAGE", "EMPTY_PAGE", "RENDER_REQUIRED", "BLOCKED", "BOT_BLOCKED", "CAPTCHA_REQUIRED"} and row["normalized_url"] not in self._browser_seen
@@ -717,7 +860,13 @@ class CoverageAuditor:
                 await browser.context.add_cookies(cookies)
             self._browser_depth = row['navigation_depth'] if row.get('navigation_depth') is not None else row['min_depth']
             self.db.set_url_state(self.run_id, row['normalized_url'], 'RENDERING')
+            browser.on_json_response = client.remember_browser_response if hasattr(client, 'remember_browser_response') else None
             result = await browser.explore(row["url"])
+            if result.final_url and not self._in_scope(result.final_url):
+                from crawler_coverage_auditor.validation.http import FetchResult
+                self._record_resource_boundary(row, FetchResult(row['url'], result.final_url, result.http_status or 0, {}, b''),
+                    'OUT_OF_SCOPE', 'External browser redirect; excluded from target coverage')
+                continue
             rendered_text = extract_text(result.html) if result.html and not result.error else ('', None, None)
             for diagnostic in result.script_errors:
                 self._event('JAVASCRIPT_DIAGNOSTIC', f"Website script warning: {diagnostic['message']}. Recorded as a diagnostic, not proof that this page is unavailable.", diagnostic['url'], self._browser_depth,
@@ -761,10 +910,11 @@ class CoverageAuditor:
                 await self._analyze_pagination(client, state["html"], state["state_url"], row["min_depth"] + 1)
             if result.html and not result.error:
                 text, title, h1 = rendered_text
+                await self.advanced.inspect(result.html, result.final_url or row['url'], row['min_depth'])
                 self._analyze_static_filters(result.html, result.final_url or row["url"], row["min_depth"])
                 await self._analyze_pagination(client, result.html, result.final_url or row["url"], row["min_depth"])
                 if text.strip():
-                    if self.config.captures('HTML', row['normalized_url']):
+                    if result.http_status == 200 and assess_page_validity(result.http_status, text).status == 'VALID_PAGE' and self.config.captures('HTML', row['normalized_url']):
                         self.db.add_page_snapshot(self.run_id, row["normalized_url"], text)
                     if result.http_status == 200:
                         validity = assess_page_validity(result.http_status, text).status
@@ -806,7 +956,7 @@ class CoverageAuditor:
                     if name.lower() in {"offset", "start", "cursor", "cursormark"}:
                         self.db.upsert_pagination_series(self.run_id, pagination_series_key(candidate, name), candidate, name,
                             page_url, int(value) if value.isdigit() else 1, status="OBSERVED", evidence="Observed next/offset/cursor URLs followed; no verified numeric boundary")
-                if hint.kind == "NEXT":
+                if hint.kind in {'NEXT', 'PREVIOUS', 'FIRST', 'LAST'}:
                     self._add_discovery(candidate, "PAGINATION", depth + 1, normalize_url(page_url), "Observed next/offset/cursor link")
                 continue
             parameter, observed_page = parameter_and_value
@@ -937,6 +1087,11 @@ class CoverageAuditor:
     def _write_reports(self) -> dict:
         rows = [dict(row) for row in self.db.report_rows(self.run_id)]
         summary = coverage_summary(rows)
+        summary.update({f'performance_{key}': value for key, value in self.analysis_metrics.items()})
+        for prefix, owner in [('website', self._website_client), ('corpus', self._corpus_api)]:
+            summary.update({f'performance_{prefix}_{key}': value for key, value in getattr(owner, 'metrics', {}).items()})
+        observed = getattr(self._website_client, 'observed_responses', None)
+        summary['performance_browser_response_reuses'] = observed.hits if observed else 0
         start_time = self.db.connection.execute("SELECT started_at FROM audit_runs WHERE id=?", (self.run_id,)).fetchone()[0]
         summary.update({"audit_run_id": self.run_id, "target": self.config.target_url, "started_at": start_time,
                         "audit_status": self._report_status,
@@ -953,7 +1108,8 @@ class CoverageAuditor:
         destination = Path(self.config.output_dir)
         destination.mkdir(parents=True, exist_ok=True)
         write_excel(destination / "coverage_report.xlsx", summary, rows, depth, issues, pagination_rows, filter_rows, document_rows, archive_coverage(rows), sitemap_coverage(rows), js_only_rows(rows), limits=limits, events=events, errors=errors)
-        write_html(destination / "coverage_report.html", summary, rows, issues, depth_rows=depth, pagination_rows=pagination_rows, filter_rows=filter_rows, document_rows=document_rows, archive_rows=archive_coverage(rows), sitemap_rows=sitemap_coverage(rows), js_rows=js_only_rows(rows), limits=limits, events=events, errors=errors)
+        write_html(destination / "coverage_report.html", summary, rows, issues, depth_rows=depth, pagination_rows=pagination_rows, filter_rows=filter_rows, document_rows=document_rows, archive_rows=archive_coverage(rows), sitemap_rows=sitemap_coverage(rows), js_rows=js_only_rows(rows), limits=limits, events=events, errors=errors,
+            discovery_tasks=[dict(row) for row in self.db.connection.execute('SELECT kind,url,state,evidence_json FROM discovery_tasks WHERE audit_run_id=?', (self.run_id,))])
         missing = missing_rows(rows)
         with (destination / "missing_from_corpus.csv").open("w", newline="", encoding="utf-8") as handle:
             writer = csv.DictWriter(handle, fieldnames=list(missing[0]) if missing else ["url", "status"])

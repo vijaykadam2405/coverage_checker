@@ -7,10 +7,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from crawler_coverage_auditor.storage.models import DiscoveredURL
-from crawler_coverage_auditor.validation.publication import enrich_archive_rows
 from crawler_coverage_auditor.services.checkpoints import SCHEMA as CHECKPOINT_SCHEMA
-
+from crawler_coverage_auditor.services.discovery_tasks import SCHEMA as DISCOVERY_SCHEMA
+from crawler_coverage_auditor.storage.models import DiscoveredURL
+from crawler_coverage_auditor.validation.normalize import same_scope
+from crawler_coverage_auditor.validation.publication import enrich_archive_rows
+from crawler_coverage_auditor.validation.resource_policy import excluded_resource_url
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -107,6 +109,16 @@ CREATE TABLE IF NOT EXISTS pagination_tasks (
  audit_run_id INTEGER NOT NULL REFERENCES audit_runs(id), source_url TEXT NOT NULL,
  depth INTEGER NOT NULL, hints_json TEXT NOT NULL, PRIMARY KEY(audit_run_id,source_url)
 );
+CREATE TABLE IF NOT EXISTS http_attempts (
+ id INTEGER PRIMARY KEY, audit_run_id INTEGER NOT NULL REFERENCES audit_runs(id),
+ normalized_url TEXT NOT NULL, validity TEXT, status_code INTEGER, error TEXT,
+ fetched_at TEXT NOT NULL, retained_success INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS attempts_url ON http_attempts(audit_run_id,normalized_url,id);
+CREATE TABLE IF NOT EXISTS page_snapshot_history (
+ id INTEGER PRIMARY KEY, audit_run_id INTEGER NOT NULL REFERENCES audit_runs(id),
+ normalized_url TEXT NOT NULL, cleaned_text TEXT NOT NULL, saved_at TEXT NOT NULL
+);
 """
 
 
@@ -120,6 +132,7 @@ class AuditDatabase:
         self.connection.execute("PRAGMA journal_mode=WAL")
         self.connection.executescript(SCHEMA)
         self.connection.executescript(CHECKPOINT_SCHEMA)
+        self.connection.executescript(DISCOVERY_SCHEMA)
         self._ensure_column('scan_checkpoints', 'paused_at', 'TEXT')
         self._ensure_column('scan_checkpoints', 'pause_reason', 'TEXT')
         self._ensure_column('pagination_probe_checkpoints', 'captured_at', 'TEXT')
@@ -130,6 +143,7 @@ class AuditDatabase:
         self._ensure_column("audit_runs", "status", "TEXT")
         self._ensure_column("audit_runs", "phase", "TEXT")
         self._ensure_column("audit_runs", "failure", "TEXT")
+        self._ensure_column('audit_runs', 'discovery_engine_version', 'INTEGER NOT NULL DEFAULT 1')
         self._ensure_column("audit_runs", "discovery_completed_at", "TEXT")
         self._ensure_column("audit_runs", "verification_started_at", "TEXT")
         self._ensure_column("audit_runs", "verification_completed_at", "TEXT")
@@ -138,6 +152,8 @@ class AuditDatabase:
         self._ensure_column("urls", "host", "TEXT")
         self._ensure_column("urls", "first_discovery_method", "TEXT")
         self._ensure_column("urls", "discovered_at", "TEXT")
+        for name in ('last_attempt_validity', 'last_attempt_error', 'last_attempt_at'):
+            self._ensure_column('http_results', name, 'TEXT')
         from urllib.parse import urlsplit
         self.connection.executemany('UPDATE urls SET host=? WHERE id=?',
             [((urlsplit(row['normalized_url']).hostname or '').lower(), row['id'])
@@ -196,8 +212,8 @@ class AuditDatabase:
     def create_run(self, target_url: str, corpus_url: str, config: dict[str, Any]) -> int:
         now = datetime.now(UTC).isoformat()
         cursor = self.connection.execute(
-            "INSERT INTO audit_runs(target_url, corpus_url, started_at, config_json) VALUES (?, ?, ?, ?)",
-            (target_url, corpus_url, now, json.dumps(config, default=lambda value: sorted(value) if isinstance(value, set) else str(value))),
+            "INSERT INTO audit_runs(target_url, corpus_url, started_at, config_json,discovery_engine_version) VALUES (?, ?, ?, ?, ?)",
+            (target_url, corpus_url, now, json.dumps(config, default=lambda value: sorted(value) if isinstance(value, set) else str(value)), config.get('discovery_version',1)),
         )
         self.connection.commit()
         return int(cursor.lastrowid)
@@ -271,6 +287,22 @@ class AuditDatabase:
         self.connection.commit()
 
     def add_url(self, run_id: int, item: DiscoveredURL) -> bool:
+        if excluded_resource_url(item.url) or excluded_resource_url(item.normalized_url):
+            return False
+        # All discovery adapters share this final admission gate, including callers
+        # that insert directly rather than going through CoverageAuditor.
+        from urllib.parse import urlsplit
+        run = self.connection.execute('SELECT target_url,config_json FROM audit_runs WHERE id=?', (run_id,)).fetchone()
+        if run:
+            config = json.loads(run['config_json'])
+            hosts = set(config.get('seed_hosts') or [])
+            target_host = (urlsplit(run['target_url']).hostname or '').lower()
+            hosts.add(target_host)
+            if target_host.startswith('www.'):
+                hosts.add(target_host.removeprefix('www.'))
+            if any(urlsplit(url).scheme not in {'http', 'https'} or not same_scope(url, hosts, config.get('include_subdomains', False))
+                   for url in (item.url, item.normalized_url)):
+                return False
         navigational = item.discovery_method in {"SEED", "STATIC", "JS_DISCOVERY", "API_DISCOVERY", "FILTER_GET", "PAGINATION", "STRUCTURED_DATA", "FEED", "HTTP_LINK"}
         row = self.connection.execute(
             "SELECT id, min_depth, navigation_depth, discovery_methods FROM urls WHERE audit_run_id=? AND normalized_url=?", (run_id, item.normalized_url)
@@ -337,6 +369,22 @@ class AuditDatabase:
 
     def add_http_result(self, run_id: int, normalized_url: str, **values: Any) -> None:
         fetched_at = values.pop('fetched_at', None) or datetime.now(UTC).isoformat()
+        previous = self.connection.execute('SELECT validity FROM http_results WHERE audit_run_id=? AND normalized_url=?',
+                                           (run_id, normalized_url)).fetchone()
+        # A temporary network failure must not erase the last verified page.
+        # Genuine deletions/soft-404s still update its current eligibility.
+        temporary = values.get('validity') in {'DNS_FAILURE', 'FETCH_ERROR', 'TIMEOUT', 'CONNECTION_FAILURE',
+            'TLS_FAILURE', 'SSL_ERROR', 'SITE_PAUSED', 'RATE_LIMITED'} or (values.get('status_code') or 0) >= 500
+        retained = bool(previous and previous['validity'] == 'VALID_PAGE' and temporary)
+        self.connection.execute('INSERT INTO http_attempts(audit_run_id,normalized_url,validity,status_code,error,fetched_at,retained_success) VALUES(?,?,?,?,?,?,?)',
+            (run_id, normalized_url, values.get('validity'), values.get('status_code'), values.get('error'), fetched_at, int(retained)))
+        attempt = {'last_attempt_validity': values.get('validity'), 'last_attempt_error': values.get('error'), 'last_attempt_at': fetched_at}
+        if retained:
+            self.connection.execute('UPDATE http_results SET last_attempt_validity=?,last_attempt_error=?,last_attempt_at=? WHERE audit_run_id=? AND normalized_url=?',
+                (*attempt.values(), run_id, normalized_url))
+            self.connection.commit()
+            return
+        values.update(attempt)
         columns = ["audit_run_id", "normalized_url", *values.keys(), "fetched_at"]
         placeholders = ",".join("?" for _ in columns)
         self.connection.execute(
@@ -346,6 +394,14 @@ class AuditDatabase:
         self.connection.commit()
 
     def add_page_snapshot(self, run_id: int, normalized_url: str, cleaned_text: str) -> None:
+        if not cleaned_text.strip():
+            return
+        previous = self.page_snapshot(run_id, normalized_url)
+        if previous == cleaned_text:
+            return
+        if previous:
+            self.connection.execute('INSERT INTO page_snapshot_history(audit_run_id,normalized_url,cleaned_text,saved_at) VALUES(?,?,?,?)',
+                (run_id, normalized_url, previous, datetime.now(UTC).isoformat()))
         self.connection.execute("INSERT OR REPLACE INTO page_snapshots(audit_run_id,normalized_url,cleaned_text,word_count) VALUES(?,?,?,?)",
                                 (run_id, normalized_url, cleaned_text, len(cleaned_text.split())))
         self.connection.commit()
@@ -456,8 +512,9 @@ class AuditDatabase:
         url_clause = ' AND u.normalized_url=?' if only_url is not None else ''
         rows = self.connection.execute(f"""
             SELECT u.url,u.normalized_url,u.canonical_url,u.page_type,u.min_depth,u.navigation_depth,u.discovery_methods,u.parent_url,u.anchor_text,
-                   h.status_code,h.final_url,h.validity,h.title,h.h1,h.text_length,h.content_type,h.error,h.fetched_at,u.state,
-                   c.match_status,c.corpus_url,c.document_id,c.similarity,c.text_status,c.corpus_text_length,c.provider,c.evidence_json,
+                   h.status_code,h.final_url,h.validity,h.title,h.h1,h.text_length,h.content_type,h.error,h.fetched_at,
+                   h.last_attempt_validity,h.last_attempt_error,h.last_attempt_at,u.state,
+                   c.match_status,c.corpus_url,c.document_id,c.similarity,c.text_status,c.corpus_text_length,c.provider,c.evidence_json,c.checked_at,
                    e.evidence_json AS content_evidence_json
             FROM urls u LEFT JOIN http_results h ON h.audit_run_id=u.audit_run_id AND h.normalized_url=u.normalized_url
             LEFT JOIN corpus_matches c ON c.audit_run_id=u.audit_run_id AND c.normalized_url=u.normalized_url

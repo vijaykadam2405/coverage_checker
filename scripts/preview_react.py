@@ -1,14 +1,18 @@
 """Read-only visual QA of a running local dashboard; never starts audit jobs."""
 import argparse
 import json
+import tempfile
 from pathlib import Path
-from playwright.sync_api import sync_playwright, expect
+
+from playwright.sync_api import expect, sync_playwright
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--url', default='http://127.0.0.1:8000')
-    parser.add_argument('--output', type=Path, default=Path('reports/ui-review'))
+    parser.add_argument('--output', type=Path, help='Screenshot directory; defaults to a temporary folder outside the project')
     args = parser.parse_args()
+    if args.output is None:
+        args.output = Path(tempfile.mkdtemp(prefix='crawlscope-ui-review-'))
     args.output.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as p:
         browser = p.chromium.launch()
@@ -26,5 +30,5 @@ if __name__ == '__main__':
                 expect(page.get_by_role('heading', name=view, exact=True)).to_be_visible()
                 page.screenshot(path=str(args.output/f'{width}-{view.lower().replace(" ","-")}.png'), full_page=True, animations='disabled')
                 layouts.append({'width': width, 'view': view, 'overflow': page.evaluate('document.documentElement.scrollWidth > innerWidth')})
-        print(json.dumps({'errors': errors, 'layouts': layouts}))
+        print(json.dumps({'errors': errors, 'layouts': layouts, 'screenshots': str(args.output.resolve())}))
         browser.close()

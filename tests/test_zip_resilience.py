@@ -1,9 +1,9 @@
 """Controlled tests for compatible ZIP adaptations; no live bypass or Corpus load."""
 import asyncio
-from datetime import datetime, timezone
 import gzip
 import json
 import ssl
+from datetime import datetime, timezone
 
 import httpx
 import pytest
@@ -16,7 +16,13 @@ from crawler_coverage_auditor.discovery.resources import json_links
 from crawler_coverage_auditor.discovery.sitemap import discover_sitemaps
 from crawler_coverage_auditor.discovery.static_links import extract_links
 from crawler_coverage_auditor.validation.access import detect_access, requires_rendering
-from crawler_coverage_auditor.validation.failure_policy import quota_delay, retry_after, retryable_status, status_reason, transport_reason
+from crawler_coverage_auditor.validation.failure_policy import (
+    quota_delay,
+    retry_after,
+    retryable_status,
+    status_reason,
+    transport_reason,
+)
 from crawler_coverage_auditor.validation.http import FetchResult, PoliteHttpClient
 
 
@@ -177,7 +183,9 @@ def test_oversized_robots_response_never_becomes_allow_all(tmp_path):
         auditor.db.close()
 
 
-def test_gzip_sitemap_decoded_limit_is_reported_not_silently_truncated():
+def test_gzip_sitemap_decoded_limit_is_reported_not_silently_truncated(monkeypatch):
+    # Sitemap streaming has its own protocol-size budget, not the HTML buffer cap.
+    monkeypatch.setattr('crawler_coverage_auditor.discovery.sitemap.MAX_SITEMAP_BYTES', 128)
     errors, urls = [], []
     class Client:
         max_response_bytes = 128

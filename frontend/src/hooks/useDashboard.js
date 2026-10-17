@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api.js";
+import { availableRunId } from "../utils/inventory.js";
 
 /** Local inventory polling and job actions; polling never triggers a crawl. */
 export function useDashboard() {
@@ -29,14 +30,16 @@ export function useDashboard() {
         if (cancelled) return;
         if (data.active) delay = 2000;
         setState(data);
-        const selected = runId ?? data.active?.run_id ?? data.runs[0]?.id;
-        if (selected && runId === null) {
+        const selected = availableRunId(data.runs, runId, data.active?.run_id);
+        if (selected !== runId) {
           setRunId(selected);
-          return;
+          setSnapshot(null);
+          setError("");
+          if (selected) return;
         }
         if (selected) {
           const result = await api(
-            `/runs/${selected}/summary`,
+            `/runs/${selected}/summary?diagnostics=false`,
             undefined,
             "GET",
             {
@@ -45,6 +48,8 @@ export function useDashboard() {
           );
           if (cancelled) return;
           setSnapshot(result);
+        } else {
+          setSnapshot(null);
         }
         setConnected(true);
       } catch (failure) {

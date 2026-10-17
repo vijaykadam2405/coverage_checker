@@ -14,7 +14,11 @@ from crawler_coverage_auditor.config import AuditConfig
 from crawler_coverage_auditor.discovery.browser import BrowserExplorer
 from crawler_coverage_auditor.validation.access import detect_access
 from crawler_coverage_auditor.validation.http import FetchResult, PoliteHttpClient
-from crawler_coverage_auditor.validation.site_session import SiteSessionStore, import_cookies, scoped_state
+from crawler_coverage_auditor.validation.site_session import (
+    SiteSessionStore,
+    import_cookies,
+    scoped_state,
+)
 
 
 @pytest.mark.parametrize('text', [
@@ -85,6 +89,12 @@ class AccessHandler(BaseHTTPRequestHandler):
 
     def log_message(self, *_):
         pass
+
+    def do_HEAD(self):
+        authorized = self.mode != 'browser' or ('public_session=ready' in self.headers.get('Cookie', '') and self.headers.get('Referer', '').endswith('/'))
+        self.send_response(200 if self.path == '/asset.txt' and authorized else 403)
+        self.send_header('Content-Type', 'text/plain')
+        self.end_headers()
 
     def do_GET(self):
         type(self).paths.append(self.path)

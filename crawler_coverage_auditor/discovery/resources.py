@@ -1,12 +1,12 @@
 """URL-only resource typing and published API link discovery."""
 from __future__ import annotations
 
-import json
 import re
 from urllib.parse import urlsplit
 
-from crawler_coverage_auditor.discovery.static_links import Link, published_url
 from crawler_coverage_auditor.discovery.api_pagination import continuations
+from crawler_coverage_auditor.discovery.page import parsed_json, snapshot_value
+from crawler_coverage_auditor.discovery.static_links import Link, published_url
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".ico", ".avif", ".bmp", ".tif", ".tiff"}
 FILE_EXTENSIONS = {".pdf", ".doc", ".docx", '.docm', ".xls", ".xlsx", '.xlsm', '.xlsb', ".ppt", ".pptx", '.pptm', ".csv", ".txt", ".rtf", ".odt", ".ods", ".odp", ".zip", ".xml", ".epub", ".7z", ".rar", ".gz", ".tar"}
@@ -54,8 +54,12 @@ def link_resource_hint(link: Link) -> str | None:
 
 def json_links(content: str, base_url: str) -> list[Link]:
     """Follow URLs actually supplied by APIs, including next/cursor links."""
+    return list(snapshot_value(('json_links', content, base_url), lambda: tuple(_json_links(content, base_url))))
+
+
+def _json_links(content: str, base_url: str) -> list[Link]:
     try:
-        payload = json.loads(content)
+        payload = parsed_json(content)
     except ValueError:
         return []
     result: list[Link] = []

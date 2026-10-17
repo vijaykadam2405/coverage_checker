@@ -5,19 +5,36 @@ import csv
 import io
 import json
 import math
+import os
 from contextlib import closing
 from pathlib import Path
-import os
 from urllib.parse import urlsplit
 
 from crawler_coverage_auditor.analysis.coverage import FOUND_STATUSES, metrics
 from crawler_coverage_auditor.analysis.dashboard import build_analysis, detail_row
-from crawler_coverage_auditor.analysis.diagnostics import issue_info, diagnostic_summary, split_boundaries
+from crawler_coverage_auditor.analysis.diagnostics import (
+    diagnostic_summary,
+    issue_info,
+    split_boundaries,
+)
 from crawler_coverage_auditor.analysis.states import METHOD_LABELS, public_states
-from crawler_coverage_auditor.config import CAPTURE_TYPES, capture_category, resource_subtype
-from crawler_coverage_auditor.services.inventory import _connect_readonly, load_report_rows, load_run_sections
-from crawler_coverage_auditor.validation.site_session import SiteSessionStore
+from crawler_coverage_auditor.config import (
+    CAPTURE_TYPES,
+    capture_category,
+    resource_subtype,
+)
 from crawler_coverage_auditor.services.checkpoints import checkpoint_snapshot
+from crawler_coverage_auditor.services.discovery_tasks import (
+    source_work_remaining,
+    task_summary,
+)
+from crawler_coverage_auditor.services.inventory import (
+    _connect_readonly,
+    load_report_rows,
+    load_run_sections,
+)
+from crawler_coverage_auditor.services.read_cache import cached_read
+from crawler_coverage_auditor.validation.site_session import SiteSessionStore
 
 
 def _json(value, default=None):
@@ -39,10 +56,12 @@ def site_key(url):
 def run(database, run_id):
     with closing(_connect_readonly(database)) as connection:
         row = connection.execute('SELECT * FROM audit_runs WHERE id=?', (run_id,)).fetchone()
+        remaining = source_work_remaining(connection, run_id) if row else False
     if row is None:
         return None
     result = dict(row)
     result['config'] = _json(result.pop('config_json'))
+    result['discovery_work_remaining'] = remaining
     return result
 
 
@@ -56,7 +75,7 @@ def history(database, limit=100):
         return []
     with closing(_connect_readonly(database)) as connection:
         rows = connection.execute('SELECT * FROM audit_runs ORDER BY id DESC LIMIT ?', (limit,)).fetchall()
-    return [dict(row) | {'config': _json(row['config_json'])} for row in rows]
+        return [dict(row) | {'config': _json(row['config_json']), 'discovery_work_remaining': source_work_remaining(connection,row['id'])} for row in rows]
 
 
 def _cte(connection):
@@ -66,6 +85,9 @@ def _cte(connection):
     ccols = {row[1] for row in connection.execute('PRAGMA table_info(corpus_matches)')}
     optional = lambda name: f'u.{name}' if name in ucols else f'NULL AS {name}'
     cap = 'u.capture_enabled=1' if 'capture_enabled' in ucols else '1=1'
+    hcols = {row[1] for row in connection.execute('PRAGMA table_info(http_results)')}
+    attempts = ','.join(f'h.{name}' if name in hcols else f'NULL AS {name}' for name in
+                        ('last_attempt_validity', 'last_attempt_error', 'last_attempt_at'))
     provider = ','.join(f'c.{name}' if name in ccols else f'NULL AS {name}' for name in ('provider', 'evidence_json', 'text_status'))
     return f"""WITH inventory AS (
         SELECT u.id,u.url,u.normalized_url,u.canonical_url,u.page_type,u.min_depth,
@@ -73,7 +95,7 @@ def _cte(connection):
             u.discovery_methods,u.parent_url,u.anchor_text,u.state,
             COALESCE({('u.host' if 'host' in ucols else 'NULL')},url_host(u.normalized_url)) AS host,
             h.status_code,h.final_url,h.content_type,h.validity,h.title,h.h1,h.text_length,
-            h.fingerprint,h.error AS http_error,h.fetched_at,
+            h.fingerprint,h.error AS http_error,h.fetched_at,{attempts},
             c.match_status,c.corpus_url,c.document_id,c.similarity,c.corpus_text_length,c.checked_at,{provider},
             capture_category(u.page_type,u.normalized_url,COALESCE(h.content_type,'')) AS category,
             CASE WHEN h.validity='VALID_PAGE' OR (h.validity='URL_ONLY' AND u.page_type IN ('DOCUMENT','IMAGE','RESOURCE')) THEN 1 ELSE 0 END AS eligible,
@@ -94,6 +116,10 @@ def _aggregate(connection, cte, run_id, where='1=1', args=()):
         COALESCE(SUM(validity IS NULL),0) AS pending_website,
         COALESCE(SUM(state='FETCHING'),0) AS fetching,
         COALESCE(SUM(state='RENDERING'),0) AS rendering,
+        COALESCE(SUM(state='DONE' AND validity IS NOT NULL),0) AS processed,
+        COALESCE(SUM(state='PENDING'),0) AS queued_urls,
+        COALESCE(SUM(match_status IN ({','.join(repr(s) for s in sorted(FOUND_STATUSES))},'NOT_FOUND')),0) AS saved_corpus_checks,
+        COALESCE(SUM(validity='VALID_PAGE' AND last_attempt_validity IS NOT NULL AND last_attempt_validity!='VALID_PAGE'),0) AS retained_after_retry,
         COALESCE(SUM(eligible=0 AND validity IS NOT NULL AND validity!='RENDER_REQUIRED'),0) AS failed,
         MAX(navigation_depth) AS max_depth FROM inventory WHERE {where}""", (run_id, *args)).fetchone())
 
@@ -118,6 +144,9 @@ def _decorate(row, detail=False):
             row['detail']['Saved word coverage %'] = row['detail'].pop('Saved text similarity %')
             row['detail'].pop('Text similarity %', None)
         row['detail']['Depth'] = row.get('navigation_depth')
+        row['detail']['Latest website attempt'] = row.get('last_attempt_validity')
+        row['detail']['Latest website attempt time'] = row.get('last_attempt_at')
+        row['detail']['Latest retry issue'] = row.get('last_attempt_error')
     else:
         for field in ('evidence_json', 'corpus_text_length', 'similarity', 'fingerprint', 'corpus_url', 'document_id', 'h1', 'anchor_text', 'canonical_url', 'final_url'):
             row.pop(field, None)
@@ -142,7 +171,8 @@ def extraction_health(connection, cte, run_id):
     return result
 
 
-def summary(database, run_id, compact=False):
+@cached_read
+def summary(database, run_id, compact=False, *, diagnostics=True):
     with closing(_connect_readonly(database)) as connection:
         cte = _cte(connection)
         total = _aggregate(connection, cte, run_id)
@@ -180,9 +210,10 @@ def summary(database, run_id, compact=False):
             counters['boundaries'] -= notes_count
             limits = [dict(row) for row in connection.execute(f'SELECT l.* {boundary_sql} AND NOT ({note_condition}) ORDER BY l.id DESC LIMIT 20', (run_id,))]
         return {'counts': {kind: item['eligible'] for kind, item in by_type.items()}, 'total': total['eligible'],
+                'discovery_tasks': task_summary(connection, run_id),
                 'checkpoint': checkpoint_snapshot(connection, run_id),
                 'metrics': total | metrics(total['eligible'], total['found'], total['missing'], total['not_tracked']), 'types': by_type,
-                'html_coverage': by_type['HTML'], 'hosts': hosts, 'health': extraction_health(connection, cte, run_id),
+                'html_coverage': by_type['HTML'], 'hosts': hosts, 'health': extraction_health(connection, cte, run_id) if diagnostics else None,
                 'counters': counters | {'queued': queued}, 'latest_event': _event(dict(latest)) if latest else None, 'processing_urls': processing,
                 'boundaries': limits, 'notes_count': notes_count, 'activity_stages': stages, 'analysis': {'max_depth': total['max_depth']},
                 'public_session_available': SiteSessionStore(Path(os.getenv('CRAWLSCOPE_SESSION_DIR', str(Path(database).parent / 'sessions')))).path(

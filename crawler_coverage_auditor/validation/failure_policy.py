@@ -3,12 +3,12 @@
 Restrictions are reported, not defeated. Origin-side TLS faults are distinct from
 failure to verify the certificate of our own connection.
 """
-from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
 import math
 import re
 import socket
 import ssl
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 
 import httpx
 

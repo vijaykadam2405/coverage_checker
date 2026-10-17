@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from crawler_coverage_auditor.analysis.inventory_segments import (
+    archive_coverage,
+    js_only_rows,
+    sitemap_coverage,
+)
 from crawler_coverage_auditor.analysis.pagination_gaps import pagination_missing_ranges
-from crawler_coverage_auditor.analysis.inventory_segments import archive_coverage, js_only_rows, sitemap_coverage
 
 
 def root_causes(rows: list[dict]) -> list[dict[str, str]]:
@@ -22,4 +26,4 @@ def root_causes(rows: list[dict]) -> list[dict[str, str]]:
     for row in archive_coverage(rows):
         if row["missing"] and row["coverage_percent"] < 80:
             causes.append({"severity": "HIGH", "kind": "ARCHIVE_GAP", "evidence": f"Archive year {row['year']} coverage is {row['coverage_percent']}%"})
-    return causes
+    return [cause | {'cause_status': 'Observed gap pattern; production cause requires logs/configuration'} for cause in causes]

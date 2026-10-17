@@ -2,13 +2,18 @@
 from __future__ import annotations
 
 import asyncio
-import threading
 import sys
+import threading
 from dataclasses import dataclass, field, fields
 from pathlib import Path
 
 from crawler_coverage_auditor.auditor import CoverageAuditor
-from crawler_coverage_auditor.config import AuditConfig, paced_scan_settings
+from crawler_coverage_auditor.config import (
+    DISCOVERY_ENGINE_VERSION,
+    AuditConfig,
+    automatic_scan_settings,
+    paced_scan_settings,
+)
 from crawler_coverage_auditor.corpus.credentials import api_url, load_key
 from crawler_coverage_auditor.validation.text_coverage import TEXT_API_VERSION
 
@@ -40,7 +45,7 @@ class AuditJobs:
         load_key()  # Fail before discovery if automatic verification is not configured.
         values = dict(use_browser=True, include_subdomains=True, max_retries=2)
         values.update(settings or {})
-        values = paced_scan_settings(values)
+        values = automatic_scan_settings(paced_scan_settings(values))
         config = AuditConfig(target_url=target, database_path=database, output_dir=reports, corpus_url=corpus,
             discovery_only=False, **values)
         if capture_types is not None:
@@ -55,7 +60,9 @@ class AuditJobs:
         saved = run(database, run_id)
         if not saved:
             raise ValueError('Saved scan not found')
-        if saved.get('discovery_completed_at') and not needs_count_recovery(database, run_id):
+        sources = set(automatic_scan_settings(saved['config'])['discovery_sources'])
+        upgrade = saved.get('discovery_engine_version',1) < DISCOVERY_ENGINE_VERSION
+        if saved.get('discovery_completed_at') and not needs_count_recovery(database, run_id) and not upgrade and not saved.get('discovery_work_remaining'):
             return self.start_corpus(run_id, database, reports)
         load_key()
         values = {name: value for name, value in saved['config'].items() if name in {item.name for item in fields(AuditConfig)}}
@@ -63,7 +70,8 @@ class AuditJobs:
             output_dir=reports / f'run_{run_id}', discovery_only=False, resume=True,
             seed_hosts=set(values.get('seed_hosts', [])) if isinstance(values.get('seed_hosts', []), (list, set, tuple)) else set(),
             max_concurrency=1, corpus_batch_size=1)
-        values = paced_scan_settings(values, upgrade_legacy=True)
+        values = automatic_scan_settings(paced_scan_settings(values, upgrade_legacy=True))
+        values['discovery_sources'] = sources
         return self._launch(AuditConfig(**values), reports, 'discovery', run_id)
 
     def start_corpus(self, run_id: int, database: Path, reports: Path) -> AuditJob:

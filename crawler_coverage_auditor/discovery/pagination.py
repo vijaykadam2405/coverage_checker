@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from bs4 import BeautifulSoup
-
+from crawler_coverage_auditor.discovery.page import parsed_html
+from crawler_coverage_auditor.discovery.static_links import document_base, published_url
 
 PAGE_PARAMETERS = {"page", "paged", "p", "pg", "pagina", "pagenumber", "page_number", "offset", "start"}
 NUMERIC_PAGE_PARAMETERS = PAGE_PARAMETERS - {"offset", "start"}
@@ -19,21 +19,30 @@ class PaginationHint:
 
 
 def detect_pagination(html: str, page_url: str) -> list[PaginationHint]:
-    soup = BeautifulSoup(html, "lxml")
+    soup = parsed_html(html)
+    page_url = document_base(html, page_url)
     hints: list[PaginationHint] = []
-    for link in soup.select("a[href], link[rel=next][href], link[rel=last][href]"):
+    for link in soup.select("a[href], link[rel~=next][href], link[rel~=last][href], link[rel~=first][href], link[rel~=prev][href], link[rel~=previous][href]"):
         rel = " ".join(link.get("rel", [])).lower()
         text = link.get_text(" ", strip=True).lower()
-        href = urljoin(page_url, link["href"])
-        if rel == "next" or text in {"next", "older", "more", ">", "»", ">>"}:
+        href = published_url(link['href'], page_url)
+        if not href:
+            continue
+        if 'next' in rel.split() or text in {"next", "older", "more", ">", "»", ">>"}:
             hints.append(PaginationHint("NEXT", None, href))
+        elif {'prev', 'previous'} & set(rel.split()) or text in {'previous', 'prev', 'newer', '<', '«'}:
+            hints.append(PaginationHint('PREVIOUS', None, href))
+        elif 'first' in rel.split() or text == 'first':
+            hints.append(PaginationHint('FIRST', None, href))
+        elif 'last' in rel.split() or text == 'last':
+            hints.append(PaginationHint('LAST', None, href))
         for name, value in parse_qsl(urlsplit(href).query):
             if name.lower() in PAGE_PARAMETERS and value.isdigit():
                 hints.append(PaginationHint("QUERY", int(value), href))
         match = re.search(r"/page/(\d+)/?$", urlsplit(href).path)
         if match:
             hints.append(PaginationHint("PATH", int(match.group(1)), href))
-    return hints
+    return list(dict.fromkeys(hints))
 
 
 def numeric_page_parameter(url: str) -> tuple[str, int] | None:

@@ -13,10 +13,14 @@ service or enabling every production behaviour.
 | Import result | Count |
 | --- | ---: |
 | Python source files, including engine, services, scripts and tests | 311 |
-| Files copied unchanged | 484 |
-| Benchmark fixture with a credential-like token redacted | 1 |
-| Git metadata, environment values and runtime/generated state excluded | 39 |
-| Imported artifacts with checksum verification | 485 |
+| Files copied unchanged | 481 |
+| Adapted fixtures (credential redaction and image-reference cleanup) | 2 |
+| Git metadata, environment values, runtime/generated state and image assets excluded | 41 |
+| Retained imported artifacts with checksum verification | 483 |
+
+On 17 October 2026, the two binary test images were removed at the user's request.
+Their fixture-index entries were removed too, with updated checksums and import
+accounting. Future imports exclude image assets. All 311 Python source files remain.
 
 All 311 Python files are present without code modifications. This includes
 `captcha.py`, `captcha_solver.py`, `siteauth.py`, `stealth.py`, `camofox_client.py`,
@@ -46,7 +50,7 @@ Local CrawlScope API and serial CoverageAuditor
     |
     +-- Reviewed main-crawler bridge
             |
-            +-- Original parse helpers              active
+            +-- Consolidated owned link parsers     active
             +-- Original vendor/challenge detector  active
             +-- Original browser identity helpers   opt-in
 
@@ -74,11 +78,11 @@ before loading them and refuses to load account creation, full-engine or ingest
 entrypoints in the coverage process. It does not add the vendor tree to the global
 Python path or replace the existing `crawler_coverage_auditor` package.
 
-- Static discovery uses the original `parse.extract_links_with_text()` and
-  `parse.extract_rel_links()` alongside CrawlScope's resource, SPA and button-link
-  handling. Original extraction is supplementary: its asset/depth/relevance
-  exclusions do not replace CrawlScope's independent inventory.
-- HTTP Link discovery also uses original `parse.links_from_link_header()`.
+- Static and HTTP Link discovery use one CrawlScope-owned pipeline. The former
+  second vendor-parser execution pass was retired after URL-set parity tests;
+  documents, SPA fragments, malformed targets and previous/first/last relations
+  are preserved. Imported parsing source and compatibility adapters remain
+  available for source accounting/tests, not duplicate normal-scan execution.
 - Access checks also use original `captcha.detect_http()`, accepting only a
   blocking verdict, not merely an embedded widget/vendor. Rate limiting, login,
   legal restrictions and dead pages cannot be reclassified as successful content.
@@ -92,6 +96,10 @@ normalization and Corpus rules rather than wholesale replacing them with
 production gates, conditional skips or deletion logic.
 
 ## Internal switches
+
+Standalone local browser setup is now available: see [LOCAL_BROWSER.md](LOCAL_BROWSER.md).
+It uses Camoufox directly inside CrawlScope, not the imported CamoFox REST client
+or the production crawler's browser service. No remote browser URL is configured.
 
 No technical controls were added to the main dashboard.
 

@@ -5,6 +5,7 @@ import { Coverage } from "../components/coverage/Coverage.jsx";
 import { Panel } from "../components/common/Panel.jsx";
 import { Badge } from "../components/common/Badge.jsx";
 import { TextCoverageCell } from "../components/inventory/TextCoverageCell.jsx";
+import { UrlIdentityCell } from "../components/inventory/UrlIdentityCell.jsx";
 import { useQuery } from "../hooks/useQuery.js";
 
 export function Overview({ snapshot, onDetail }) {
@@ -38,6 +39,19 @@ export function Overview({ snapshot, onDetail }) {
         )}
         <div className="table-scroll">
           <table className="live-url-table">
+            <colgroup>
+              {[
+                "url",
+                "type",
+                "website",
+                "corpus",
+                "text",
+                "depth",
+                "period",
+              ].map((column) => (
+                <col key={column} className={`column-${column}`} />
+              ))}
+            </colgroup>
             <thead>
               <tr>
                 <th>URL</th>
@@ -53,13 +67,7 @@ export function Overview({ snapshot, onDetail }) {
               {(live?.items || []).map((row) => (
                 <tr key={row.id}>
                   <td>
-                    <button
-                      className="url-button"
-                      onClick={() => onDetail(row)}
-                    >
-                      <span>{row.url}</span>
-                      {row.title && <small>{row.title}</small>}
-                    </button>
+                    <UrlIdentityCell row={row} onDetail={onDetail} />
                   </td>
                   <td>{TYPES[row.category] || row.category}</td>
                   <td>
@@ -73,7 +81,9 @@ export function Overview({ snapshot, onDetail }) {
                   <td>
                     <TextCoverageCell row={row} />
                   </td>
-                  <td>{row.navigation_depth ?? "Unknown"}</td>
+                  <td className="numeric-cell">
+                    {row.navigation_depth ?? "—"}
+                  </td>
                   <td>
                     <time
                       dateTime={row.updated_at}

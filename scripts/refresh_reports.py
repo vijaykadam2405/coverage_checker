@@ -1,19 +1,30 @@
 """Regenerate reports from saved evidence only; no crawl, Corpus request or DB write."""
-from pathlib import Path
 import argparse
-import sys
 import os
+import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from crawler_coverage_auditor.services.inventory import load_report_rows, load_run_sections, load_events
-from crawler_coverage_auditor.services.queries import run
-from crawler_coverage_auditor.analysis.coverage import coverage_summary, coverage_by_depth
+from crawler_coverage_auditor.analysis.coverage import (
+    coverage_by_depth,
+    coverage_summary,
+)
+from crawler_coverage_auditor.analysis.inventory_segments import (
+    archive_coverage,
+    js_only_rows,
+    sitemap_coverage,
+)
 from crawler_coverage_auditor.analysis.root_cause import root_causes
-from crawler_coverage_auditor.analysis.inventory_segments import archive_coverage, sitemap_coverage, js_only_rows
-from crawler_coverage_auditor.reporting.html import write_html
 from crawler_coverage_auditor.reporting.excel import write_excel
+from crawler_coverage_auditor.reporting.html import write_html
+from crawler_coverage_auditor.services.inventory import (
+    load_events,
+    load_report_rows,
+    load_run_sections,
+)
+from crawler_coverage_auditor.services.queries import run
 
 
 def refresh(database, run_id, destination):

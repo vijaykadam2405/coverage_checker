@@ -5,14 +5,14 @@ Use a private package name so the production `crawler` package cannot shadow our
 """
 from __future__ import annotations
 
-from functools import lru_cache
 import hashlib
 import importlib.util
 import json
 import os
-from pathlib import Path
 import sys
 import threading
+from functools import lru_cache
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 VENDOR = ROOT / 'vendor/main_crawler'
@@ -119,7 +119,7 @@ def status():
             'import_counts': data['summary'], 'helpers_enabled': enabled(),
             'browser_identity_enabled': identity_enabled,
             'features': [
-                {'feature': 'Original HTML / relation / HTTP Link discovery', 'state': 'active' if enabled() else 'disabled'},
+                {'feature': 'HTML / relation / HTTP Link discovery', 'state': 'active; consolidated CrawlScope-owned parser'},
                 {'feature': 'Original challenge/vendor classification', 'state': 'active' if enabled() else 'disabled'},
                 {'feature': 'Original browser identity helpers', 'state': 'optional; enabled' if identity_enabled else 'optional; disabled'},
                 *[{'feature': name, 'state': 'source retained; not activated in coverage scans'} for name in

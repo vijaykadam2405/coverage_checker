@@ -9,13 +9,13 @@ from email.utils import format_datetime
 import httpx
 import pytest
 
+from crawler_coverage_auditor.analysis.coverage import coverage_summary
 from crawler_coverage_auditor.auditor import CoverageAuditor
 from crawler_coverage_auditor.config import AuditConfig
+from crawler_coverage_auditor.corpus import credentials
 from crawler_coverage_auditor.corpus.coverage_api import CoverageAPIClient
 from crawler_coverage_auditor.corpus.errors import CorpusUnavailable
-from crawler_coverage_auditor.corpus import credentials
 from crawler_coverage_auditor.storage.models import DiscoveredURL
-from crawler_coverage_auditor.analysis.coverage import coverage_summary
 
 
 def response(url, held=True, **fields):
@@ -247,7 +247,7 @@ def test_semantic_failure_never_counts_as_missing():
     asyncio.run(exercise())
 
 
-def test_tls_exception_is_limited_to_the_authorized_api_origin(monkeypatch):
+def test_tls_is_verified_for_every_api_origin(monkeypatch):
     real_client=httpx.AsyncClient
     modes=[]
     def recording_client(**kwargs):
@@ -259,4 +259,4 @@ def test_tls_exception_is_limited_to_the_authorized_api_origin(monkeypatch):
         for origin in ['https://187.127.134.12:8445/','https://187.127.134.12:8443/','https://api.example.test:8445/']:
             async with CoverageAPIClient(origin): pass
     asyncio.run(exercise())
-    assert modes==[False,True,True]
+    assert modes==[True,True,True]

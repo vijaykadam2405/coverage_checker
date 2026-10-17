@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from fastapi.testclient import TestClient
 
 from crawler_coverage_auditor.auditor import CoverageAuditor
-from crawler_coverage_auditor.config import AuditConfig, LEGACY_DISCOVERY_LIMITS
+from crawler_coverage_auditor.config import LEGACY_DISCOVERY_LIMITS, AuditConfig
 from crawler_coverage_auditor.discovery.browser import BrowserDiscovery, BrowserExplorer
 from crawler_coverage_auditor.discovery.max_page import find_maximum_page
 from crawler_coverage_auditor.discovery.sitemap import discover_sitemaps

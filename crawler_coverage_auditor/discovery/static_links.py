@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from urllib.parse import urljoin, urlsplit
 
-from bs4 import BeautifulSoup
+from crawler_coverage_auditor.discovery.page import parsed_html
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,15 +26,19 @@ def published_url(raw: str, base: str) -> str | None:
 
 def extract_links(html: str, page_url: str) -> list[Link]:
     """Extract navigational links from a static response without site-specific rules."""
-    soup = BeautifulSoup(html, "lxml")
-    base = soup.select_one('base[href]')
-    if base:
-        page_url = published_url(base['href'], page_url) or page_url
+    soup = parsed_html(html)
+    page_url = document_base(html, page_url)
     links: list[Link] = []
+    positions = {}
     def add(raw, text, kind):
         target = published_url(raw, page_url)
         if target:
-            links.append(Link(target, text, kind))
+            key = (target, kind)
+            if key not in positions:
+                positions[key] = len(links)
+                links.append(Link(target, text, kind))
+            elif text and not links[positions[key]].anchor_text:
+                links[positions[key]] = Link(target, text, kind)
     attrs = {"a": "href", "iframe": "src", "img": "src", "source": "src", "video": "src", 'audio': 'src', 'object': 'data', 'embed': 'src'}
     for tag_name, attr in attrs.items():
         for element in soup.find_all(tag_name):
@@ -42,11 +46,11 @@ def extract_links(html: str, page_url: str) -> list[Link]:
             if not raw or (raw.startswith("#") and not raw.startswith(("#/", "#!/"))) or raw.startswith(("mailto:", "tel:", "javascript:", "data:")):
                 continue
             add(raw, element.get_text(" ", strip=True), 'download' if element.has_attr('download') else tag_name)
-    for element in soup.select("link[rel=canonical], link[rel=alternate], link[rel=next], link[rel=prev], a[download], [data-href], [data-url], [onclick]"):
+    for element in soup.select("link[rel~=canonical], link[rel~=alternate], link[rel~=first], link[rel~=next], link[rel~=prev], link[rel~=previous], link[rel~=last], a[download], [data-href], [data-url], [onclick]"):
         raw = element.get("data-href") or element.get("data-url") or element.get("href")
         if not raw and element.get("onclick"):
             import re
-            match = re.search(r"(?:location(?:\.href)?\s*=|(?:window\.)?open\s*\()\s*['\"]([^'\"]+)", element["onclick"])
+            match = re.search(r"(?:location(?:\.href)?\s*=|(?:window\.)?open\s*\(|location\.(?:assign|replace)\s*\()\s*['\"]([^'\"]+)", element["onclick"])
             raw = match.group(1) if match else None
         raw = raw.strip() if raw else raw
         if raw and not raw.startswith(("javascript:", "data:", "mailto:", "tel:")):
@@ -68,17 +72,16 @@ def extract_links(html: str, page_url: str) -> list[Link]:
     for form in soup.select("form[action]"):
         if form.get("method", "get").lower() == "get":
             add(form['action'], "Search/filter form", "form")
-    from crawler_coverage_auditor.integrations.main_crawler import html_links
-    known = {link.url for link in links}
-    for target, label in html_links(html, page_url):
-        if target not in known:
-            add(target, label, 'a')
-            known.add(target)
     return links
+
+
+def document_base(html, page_url):
+    base = parsed_html(html).select_one('base[href]')
+    return (published_url(base['href'], page_url) or page_url) if base else page_url
 
 
 def count_listing_items(html: str) -> int | None:
     """Conservative signal for page validity; None means no clear listing structure."""
-    soup = BeautifulSoup(html, "lxml")
+    soup = parsed_html(html)
     candidates = soup.select("article, .result, .search-result, .card, li[class*='item']")
     return len(candidates) if candidates else None

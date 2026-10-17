@@ -1,5 +1,11 @@
-from crawler_coverage_auditor.analysis.inventory import inventory_breakdown, html_content_duplicates
-from crawler_coverage_auditor.analysis.diagnostics import diagnostic_summary, split_boundaries
+from crawler_coverage_auditor.analysis.diagnostics import (
+    diagnostic_summary,
+    split_boundaries,
+)
+from crawler_coverage_auditor.analysis.inventory import (
+    html_content_duplicates,
+    inventory_breakdown,
+)
 
 
 def test_resource_groups_are_disjoint_and_html_validity_is_explicit():

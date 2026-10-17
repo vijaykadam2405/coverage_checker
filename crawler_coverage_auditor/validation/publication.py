@@ -1,10 +1,10 @@
 """Conservative publication evidence from website content, never Corpus dates."""
-from datetime import date
 import json
 import re
+from datetime import date
 from urllib.parse import unquote, urlsplit
 
-from bs4 import BeautifulSoup
+from crawler_coverage_auditor.discovery.page import parsed_html, parsed_json
 
 
 def _date(value):
@@ -56,7 +56,7 @@ def snapshot_publication(text, url, heading=None):
 
 def publication_evidence(html, url):
     """Read page-level published metadata; conflicting or unrelated dates are unknown."""
-    soup = BeautifulSoup(html, 'lxml')
+    soup = parsed_html(html, mutable=True)
     dates = {_date(item.get('content') or item.get('datetime')) for item in soup.select(
         'meta[property="article:published_time"], meta[itemprop="datePublished"], time[itemprop="datePublished"][datetime]')}
     current = urlsplit(url)
@@ -80,9 +80,11 @@ def publication_evidence(html, url):
             if set(kinds) & {'Article', 'NewsArticle', 'BlogPosting', 'Report'}:
                 dates.add(_date(item.get('datePublished')))
 
-    for script in soup.select('script[type="application/ld+json"]'):
+    for script in soup.select('script'):
+        if script.get('type', '').split(';')[0].strip().lower() != 'application/ld+json':
+            continue
         try:
-            collect(json.loads(script.get_text()))
+            collect(parsed_json(script.get_text()))
         except (TypeError, ValueError):
             pass
     dates.discard(None)

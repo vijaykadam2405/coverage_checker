@@ -1,4 +1,8 @@
-from crawler_coverage_auditor.analysis.inventory_segments import archive_coverage, js_only_rows, sitemap_coverage
+from crawler_coverage_auditor.analysis.inventory_segments import (
+    archive_coverage,
+    js_only_rows,
+    sitemap_coverage,
+)
 
 
 def test_segments_preserve_discovery_provenance() -> None:

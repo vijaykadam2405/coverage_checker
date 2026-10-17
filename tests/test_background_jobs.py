@@ -4,8 +4,8 @@ import asyncio
 import sys
 from pathlib import Path
 
-from crawler_coverage_auditor.storage.database import AuditDatabase
 from crawler_coverage_auditor.services.jobs import AuditJobs
+from crawler_coverage_auditor.storage.database import AuditDatabase
 from crawler_coverage_auditor.storage.models import DiscoveredURL
 
 

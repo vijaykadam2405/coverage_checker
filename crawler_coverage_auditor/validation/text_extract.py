@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from bs4 import BeautifulSoup
+from crawler_coverage_auditor.discovery.page import parsed_html
 
 
 def extract_text(html: str) -> tuple[str, str | None, str | None]:
     """Meaningful HTML text, including preloaded tab panels, without nav/script noise."""
-    soup = BeautifulSoup(html, "lxml")
+    soup = parsed_html(html, mutable=True)
     for node in soup(["script", "style", "noscript", "template", "svg"]):
         node.decompose()
     title = soup.title.get_text(" ", strip=True) if soup.title else None

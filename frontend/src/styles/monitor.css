@@ -143,35 +143,12 @@ h1 {
 .bar-track i {
   background: #458dd6;
 }
-.health-head {
-  padding: 8px 22px 18px;
-  display: flex;
-  align-items: baseline;
-  gap: 15px;
-}
-.health-head strong {
-  font-size: 26px;
-  font-weight: 550;
-}
-.health-head span {
-  font-size: 11px;
-  color: var(--muted);
-}
 .footnote {
   color: #9aaac0;
   font-size: 10px;
 }
 td {
   font-size: 11px;
-}
-.url-table {
-  min-width: 1150px;
-}
-.url-button small {
-  color: #91b0d8;
-}
-.url-button span {
-  max-width: 330px;
 }
 .filter-field {
   display: flex;
@@ -182,7 +159,7 @@ td {
   min-width: 0;
 }
 .filter-field input,
-.numeric-control input {
+.corpus-key-field input {
   background: #0c1420;
   color: #dfebfc;
   border: 1px solid #34465f;
@@ -233,33 +210,66 @@ td {
 .control-grid .capture-option input {
   flex-shrink: 0;
 }
-.control-note {
-  padding: 16px;
-  background: #142237;
-  border-radius: 6px;
+.automatic-discovery-note {
+  display: flex;
+  gap: 12px;
+  padding: 20px 22px;
+  border-top: 1px solid var(--line);
   font-size: 12px;
   line-height: 1.7;
-  grid-column: 1/-1;
 }
-.control-note p {
-  margin-top: 5px;
+.automatic-discovery-note svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--green);
+}
+.automatic-discovery-note p {
   color: var(--muted);
+  margin-top: 6px;
+  max-width: 900px;
 }
-.numeric-control {
+.corpus-key-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 20px 22px 0;
+  font-size: 13px;
+}
+.corpus-key-status svg {
+  color: var(--blue);
+}
+.corpus-key-status > span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.corpus-key-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 22px;
+}
+.corpus-key-field {
   display: grid;
-  gap: 8px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  gap: 9px;
+  flex: 1;
   font-size: 12px;
   min-width: 0;
 }
-.numeric-control input {
-  max-width: 180px;
+.corpus-key-field input {
+  width: 100%;
 }
-.numeric-control small {
-  font-size: 11px;
-  line-height: 1.6;
+.corpus-key-help {
+  padding: 0 22px 22px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+@media (max-width: 600px) {
+  .corpus-key-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 .control-footer {
   border-top: 1px solid var(--line);
@@ -389,9 +399,6 @@ td {
   }
   .progress-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .health-head {
-    flex-wrap: wrap;
   }
   .chart-bar {
     grid-template-columns: 110px 1fr 36px;

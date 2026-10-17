@@ -6,6 +6,7 @@ import sqlite3
 from contextlib import closing
 from pathlib import Path
 from typing import Any
+
 from crawler_coverage_auditor.validation.publication import enrich_archive_rows
 
 
@@ -54,6 +55,9 @@ def load_report_rows(database_path: Path, run_id: int) -> list[dict[str, Any]]:
         navigation = "u.navigation_depth" if "navigation_depth" in {row[1] for row in connection.execute("PRAGMA table_info(urls)")} else "NULL AS navigation_depth"
         capture = ' AND u.capture_enabled=1' if 'capture_enabled' in {r[1] for r in connection.execute('PRAGMA table_info(urls)')} else ''
         columns = {row[1] for row in connection.execute('PRAGMA table_info(corpus_matches)')}
+        http_columns = {row[1] for row in connection.execute('PRAGMA table_info(http_results)')}
+        attempts = ','.join(f'h.{name}' if name in http_columns else f'NULL AS {name}' for name in
+            ('last_attempt_validity', 'last_attempt_error', 'last_attempt_at'))
         provider = 'c.provider, c.evidence_json' if 'provider' in columns and 'evidence_json' in columns else 'NULL AS provider, NULL AS evidence_json'
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         content = 'e.evidence_json AS content_evidence_json' if 'content_evidence' in tables else 'NULL AS content_evidence_json'
@@ -62,7 +66,7 @@ def load_report_rows(database_path: Path, run_id: int) -> list[dict[str, Any]]:
             SELECT u.url, u.normalized_url, u.canonical_url, u.page_type, u.min_depth,
                    {navigation}, u.discovery_methods, u.parent_url, u.anchor_text, u.state,
                    h.status_code, h.final_url, h.content_type, h.validity, h.title,
-                   h.h1, h.text_length, h.fingerprint, h.error AS http_error, h.fetched_at,
+                   h.h1, h.text_length, h.fingerprint, h.error AS http_error, h.fetched_at, {attempts},
                    c.match_status, c.corpus_url, c.document_id, c.similarity,
                    c.text_status, c.corpus_text_length, c.checked_at, {provider}, {content}
             FROM urls u
@@ -90,11 +94,13 @@ def load_run_sections(database_path: Path, run_id: int) -> dict[str, list[dict[s
         "network": "SELECT source_url, request_url, method, resource_type, status_code FROM network_requests WHERE audit_run_id = ? ORDER BY source_url, request_url",
         "limits": "SELECT stage,url,reason,last_successful_url,created_at FROM audit_limits WHERE audit_run_id=? ORDER BY id DESC",
         "content": "SELECT normalized_url,evidence_json FROM content_evidence WHERE audit_run_id=?",
+        "discovery_tasks": "SELECT kind,url,state,evidence_json FROM discovery_tasks WHERE audit_run_id=? ORDER BY id",
     }
     with closing(_connect_readonly(database_path)) as connection:
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         return {name: [dict(row) for row in connection.execute(query, (run_id,)).fetchall()] if
-                (name != "limits" or "audit_limits" in tables) and (name != "content" or "content_evidence" in tables) else [] for name, query in queries.items()}
+                (name != "limits" or "audit_limits" in tables) and (name != "content" or "content_evidence" in tables)
+                and (name != 'discovery_tasks' or 'discovery_tasks' in tables) else [] for name, query in queries.items()}
 
 
 def load_events(database_path: Path, run_id: int, limit: int = 200) -> list[dict[str, Any]]:

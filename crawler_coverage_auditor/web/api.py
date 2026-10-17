@@ -6,7 +6,7 @@ import threading
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Request, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -14,8 +14,20 @@ from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from crawler_coverage_auditor.analysis.states import LABELS, METHOD_LABELS, RUN_LABELS
-from crawler_coverage_auditor.config import AuditConfig, DISCOVERY_SOURCES, paced_scan_settings, WEBSITE_DELAY_SECONDS, CORPUS_INTERVAL_SECONDS
-from crawler_coverage_auditor.corpus.credentials import api_url, configured
+from crawler_coverage_auditor.config import (
+    AUTOMATIC_DISCOVERY_SOURCES,
+    CORPUS_INTERVAL_SECONDS,
+    DISCOVERY_ENGINE_VERSION,
+    WEBSITE_DELAY_SECONDS,
+    AuditConfig,
+    automatic_scan_settings,
+    paced_scan_settings,
+)
+from crawler_coverage_auditor.corpus.credentials import (
+    api_url,
+    public_key_status,
+    save_key,
+)
 from crawler_coverage_auditor.services import queries
 from crawler_coverage_auditor.services.jobs import AuditJobs
 from crawler_coverage_auditor.services.revision import BackendRevision
@@ -29,10 +41,11 @@ ROOT = Path(__file__).resolve().parents[2]
 class Settings(BaseModel):
     schema_version: Literal[2] = 2
     pacing_version: Literal[2] = 2
+    discovery_version: Literal[3] = DISCOVERY_ENGINE_VERSION
     capture_types: list[CaptureType] = Field(default_factory=lambda: DEFAULT_CAPTURE.copy(), min_length=1, max_length=8)
-    discovery_sources: list[Literal['SITEMAP', 'STATIC', 'RENDERED', 'API', 'STRUCTURED_DATA', 'HTTP_LINK', 'FEED', 'FILTER_GET', 'FILTER_BROWSER', 'PAGINATION', 'TABS', 'LOAD_MORE']] = Field(default_factory=lambda: sorted(DISCOVERY_SOURCES), max_length=12)
+    discovery_sources: list[Literal['SITEMAP', 'STATIC', 'RENDERED', 'API', 'STRUCTURED_DATA', 'HTTP_LINK', 'FEED', 'FILTER_GET', 'FILTER_BROWSER', 'PAGINATION', 'TABS', 'LOAD_MORE', 'JS_SOURCE', 'METADATA', 'PUBLIC_API', 'RESOURCESYNC', 'EXTERNAL_INDEX']] = Field(default_factory=lambda: sorted(AUTOMATIC_DISCOVERY_SOURCES), max_length=17)
     include_subdomains: bool = True
-    external_resources: bool = True
+    external_resources: Literal[False] = False
     use_browser: bool = True
     reuse_public_session: bool = True
     browser_challenge_wait_seconds: float = Field(default=12, ge=0, le=30)
@@ -57,6 +70,8 @@ def public_run(run: dict) -> dict:
         'capture_types': run.get('config', {}).get('capture_types', ['HTML', 'PDF', 'DOCUMENT', 'IMAGE', 'OTHER']),
         'status_label': RUN_LABELS.get(run.get('status'), 'Unknown'),
         'corpus_provider': run.get('config', {}).get('corpus_provider', 'historical'),
+        'discovery_upgrade_available': run.get('discovery_engine_version',1) < DISCOVERY_ENGINE_VERSION,
+        'discovery_work_remaining': run.get('discovery_work_remaining',False),
         'needs_api_check': run.get('config', {}).get('corpus_provider') != 'coverage_api' or run.get('corpus_url', '').rstrip('/') != api_url().rstrip('/') or run.get('config', {}).get('corpus_text_api_version') != TEXT_API_VERSION}
 
 
@@ -108,7 +123,7 @@ def create_app(database: Path | None = None, reports: Path | None = None,
                 if saved.get('schema_version', 1) < 2 and 'OTHER' in saved.get('capture_types', []):
                     saved['capture_types'] = sorted(set(saved['capture_types']) | {'API', 'FEED', 'MEDIA'})
                 saved['schema_version'] = 2
-                saved = paced_scan_settings(saved, upgrade_legacy=True)
+                saved = automatic_scan_settings(paced_scan_settings(saved, upgrade_legacy=True))
                 return Settings.model_validate(saved).model_dump()
             except (ValueError, TypeError, OSError):
                 pass
@@ -119,7 +134,35 @@ def create_app(database: Path | None = None, reports: Path | None = None,
         return {'application': 'CrawlScope', 'ui': 'react', 'scan_workflow': 'serial-automatic',
                 'backend_revision': revision.loaded, 'backend_update_available': revision.update_available(),
                 'runs': [public_run(run) for run in saved_runs()], 'active': active_job(), 'settings': read_settings(),
-                'corpus_api': {'configured': configured(), 'text_comparison_supported': True}, 'status_model': LABELS, 'run_labels': RUN_LABELS, 'discovery_methods': METHOD_LABELS}
+                'corpus_api': public_key_status(), 'status_model': LABELS, 'run_labels': RUN_LABELS, 'discovery_methods': METHOD_LABELS}
+
+    @app.post('/api/corpus/key')
+    async def save_corpus_key(request: Request):
+        # Do not use a validation error containing the submitted secret as input.
+        raw = bytearray()
+        async for chunk in request.stream():
+            raw.extend(chunk)
+            if len(raw) > 4096:
+                raise HTTPException(413, 'API-key request is too large.')
+        try:
+            body = json.loads(raw)
+        except (ValueError, UnicodeDecodeError):
+            raise HTTPException(422, 'Enter a valid Corpus API key.') from None
+        key = body.get('key') if isinstance(body, dict) else None
+        if not isinstance(key, str) or not 1 <= len(key.strip()) <= 512:
+            raise HTTPException(422, 'Enter a valid Corpus API key.')
+        with settings_lock:
+            if jobs.active():
+                raise HTTPException(409, 'Pause the scan and wait for it to save before changing the API key.')
+            if os.getenv('CRAWLSCOPE_CORPUS_API_KEY', '').strip():
+                raise HTTPException(409, 'The API key is managed by the backend environment. Remove CRAWLSCOPE_CORPUS_API_KEY from that configuration and restart before saving a key here.')
+            try:
+                save_key(key)
+            except ValueError:
+                raise HTTPException(422, 'Could not save this key. Use a valid API key on Windows, or configure the backend environment on other systems.') from None
+            except OSError:
+                raise HTTPException(503, 'Could not write the protected local credential file.') from None
+        return public_key_status()
 
     @app.get('/api/main-crawler/features')
     def main_crawler_features():
@@ -136,17 +179,19 @@ def create_app(database: Path | None = None, reports: Path | None = None,
                 raise HTTPException(409, 'Capture selection is locked until the current scan finishes.')
             settings_path.parent.mkdir(parents=True, exist_ok=True)
             temporary = settings_path.with_suffix('.tmp')
-            settings = value.model_dump()
+            settings = automatic_scan_settings(value.model_dump())
             settings['capture_types'] = sorted(set(value.capture_types))
-            settings['discovery_sources'] = sorted(set(value.discovery_sources))
             temporary.write_text(json.dumps(settings), encoding='utf-8')
             temporary.replace(settings_path)
         return read_settings()
 
     @app.post('/api/discover', status_code=202)
     def discover(value: Discovery):
+        require_current_backend()
         try:
-            from crawler_coverage_auditor.validation.network_safety import validate_target
+            from crawler_coverage_auditor.validation.network_safety import (
+                validate_target,
+            )
             validate_target(value.target_url.strip())
             options = read_settings()
             options.pop('schema_version')
@@ -163,6 +208,7 @@ def create_app(database: Path | None = None, reports: Path | None = None,
 
     @app.post('/api/runs/{run_id}/resume', status_code=202)
     def resume(run_id: int):
+        require_current_backend()
         get_run(run_id)
         try:
             job = jobs.resume(run_id, database, reports)
@@ -174,6 +220,7 @@ def create_app(database: Path | None = None, reports: Path | None = None,
 
     @app.post('/api/runs/{run_id}/verify', status_code=202)
     def verify(run_id: int):
+        require_current_backend()
         get_run(run_id)
         try:
             job = jobs.start_corpus(run_id, database, reports)
@@ -182,6 +229,12 @@ def create_app(database: Path | None = None, reports: Path | None = None,
             return {'run_id': job.run_id, 'action': job.action}
         except ValueError as error:
             raise HTTPException(409, str(error)) from error
+
+    def require_current_backend():
+        # Reads and pausing remain available; never launch a worker using stale
+        # imported modules after the operator has updated source files.
+        if revision.update_available(force=True):
+            raise HTTPException(409, 'Backend code has changed. Pause any active scan, wait for it to save, then restart CrawlScope before starting or resuming a scan.')
 
     @app.post('/api/runs/{run_id}/stop', status_code=202)
     def stop(run_id: int):
@@ -192,9 +245,9 @@ def create_app(database: Path | None = None, reports: Path | None = None,
         return {'stopping': True}
 
     @app.get('/api/runs/{run_id}')
-    def snapshot(run_id: int):
+    def snapshot(run_id: int, diagnostics: bool = True):
         run = get_run(run_id)
-        return queries.summary(database, run_id) | {'run': public_run(run), 'active': active_job()}
+        return queries.summary(database, run_id, diagnostics=diagnostics) | {'run': public_run(run), 'active': active_job()}
 
     app.get('/api/runs/{run_id}/summary')(snapshot)
 

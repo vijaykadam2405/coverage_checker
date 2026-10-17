@@ -85,6 +85,14 @@ def configured() -> bool:
         return False
 
 
+def public_key_status() -> dict:
+    """Only status, never a key, prefix, ciphertext or credential-file contents."""
+    environment = bool(os.getenv('CRAWLSCOPE_CORPUS_API_KEY', '').strip())
+    return {'configured': configured(),
+            'source': 'environment' if environment else 'protected_local' if credential_path().is_file() else 'missing',
+            'key_management_supported': os.name == 'nt', 'text_comparison_supported': True}
+
+
 if __name__ == '__main__':
     save_key(getpass.getpass('Corpus API key (hidden): '))
     print('Corpus API key saved locally, protected for this Windows user. No secret was written to source code.')

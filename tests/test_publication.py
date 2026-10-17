@@ -8,7 +8,10 @@ from crawler_coverage_auditor.analysis.inventory_segments import row_archive_yea
 from crawler_coverage_auditor.services.inventory import load_report_rows
 from crawler_coverage_auditor.storage.database import AuditDatabase
 from crawler_coverage_auditor.storage.models import DiscoveredURL
-from crawler_coverage_auditor.validation.publication import publication_evidence, snapshot_publication
+from crawler_coverage_auditor.validation.publication import (
+    publication_evidence,
+    snapshot_publication,
+)
 
 URL = 'https://example.test/blog/remote-soc-a-challenge-for-security-professionals'
 TEXT = 'Home 25/02/2022 09:26 AM Remote SOC: A Challenge for Security Professionals Article text. Copyright 2026.'

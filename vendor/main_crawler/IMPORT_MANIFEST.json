@@ -4,9 +4,9 @@
   "archive_sha256": "4356d544ed167ef56e97ad4bbbc45062d9c355a8ab6e09b8e32e6ce907853d59",
   "policy": "Complete source preserved as optional; CrawlScope remains HTML-text-only, URL-only files, serial and read-only Corpus",
   "summary": {
-    "copied": 484,
-    "redacted": 1,
-    "excluded": 39
+    "copied": 481,
+    "redacted": 2,
+    "excluded": 41
   },
   "python_sources": 311,
   "files": [
@@ -1558,11 +1558,8 @@
     {
       "source": "Crawler/crawler/tests/fixtures/caesar.jpg",
       "path": "crawler/tests/fixtures/caesar.jpg",
-      "status": "copied",
-      "source_sha256": "d655a08a8566cb6e34ca9ed8a09624a2397ef532f89ae6f9aff7b2f46db0cbb6",
-      "copied_sha256": "d655a08a8566cb6e34ca9ed8a09624a2397ef532f89ae6f9aff7b2f46db0cbb6",
-      "text_sha256": null,
-      "bytes": 22621
+      "status": "excluded",
+      "reason": "Image asset excluded at user request; source logic is retained"
     },
     {
       "source": "Crawler/crawler/tests/fixtures/caesar_spec.html",
@@ -1576,11 +1573,11 @@
     {
       "source": "Crawler/crawler/tests/fixtures/index.json",
       "path": "crawler/tests/fixtures/index.json",
-      "status": "copied",
+      "status": "redacted",
       "source_sha256": "7896d83d27cb057fd8b1d5896aafdc77c753eb8861d3167d6e3a1615d824647c",
-      "copied_sha256": "7896d83d27cb057fd8b1d5896aafdc77c753eb8861d3167d6e3a1615d824647c",
-      "text_sha256": "c5c9841fd1888b35db9217b64aee0fd2c536397250f607501d565dfc690abc84",
-      "bytes": 2932
+      "copied_sha256": "2d1b783ef5860e1e162824cef847ea2d08ecdce6d44f34c6eec731209ffa40f9",
+      "text_sha256": "2d1b783ef5860e1e162824cef847ea2d08ecdce6d44f34c6eec731209ffa40f9",
+      "bytes": 2756
     },
     {
       "source": "Crawler/crawler/tests/fixtures/knds_fr.html",
@@ -1594,11 +1591,8 @@
     {
       "source": "Crawler/crawler/tests/fixtures/logo.png",
       "path": "crawler/tests/fixtures/logo.png",
-      "status": "copied",
-      "source_sha256": "126c87667e59259a60667c0182d3fc2f6b3153395c4fdd5bae134f3b68cdc70f",
-      "copied_sha256": "126c87667e59259a60667c0182d3fc2f6b3153395c4fdd5bae134f3b68cdc70f",
-      "text_sha256": null,
-      "bytes": 629
+      "status": "excluded",
+      "reason": "Image asset excluded at user request; source logic is retained"
     },
     {
       "source": "Crawler/crawler/tests/fixtures/loiter_tech.html",

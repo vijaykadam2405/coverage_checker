@@ -14,7 +14,9 @@ def sha256_text(text: str) -> str:
 
 def text_similarity(left: str, right: str) -> float:
     """Token-set similarity appropriate for initial coverage classification."""
-    left_tokens, right_tokens = set(clean_text(left).lower().split()), set(clean_text(right).lower().split())
+    # split() already removes/collapses whitespace. Keep legacy lower()/whitespace
+    # tokens distinct from directional casefold()/Unicode-word tokenization.
+    left_tokens, right_tokens = set(left.lower().split()), set(right.lower().split())
     if not left_tokens and not right_tokens:
         return 1.0
     if not left_tokens or not right_tokens:

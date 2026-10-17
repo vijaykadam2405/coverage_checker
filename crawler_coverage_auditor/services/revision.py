@@ -17,7 +17,7 @@ def _revision(files):
 def source_revision(root):
     root = Path(root).resolve()
     paths = sorted((root / 'crawler_coverage_auditor').rglob('*.py'))
-    paths += [path for path in (root / 'dashboard.py', root / 'audit.py') if path.is_file()]
+    paths += [path for path in (root / 'dashboard.py', root / 'audit.py', root / 'frontend/scripts/mine-javascript.mjs') if path.is_file()]
     files = []
     for path in paths:
         stat = path.stat()
@@ -33,9 +33,9 @@ class BackendRevision:
         self._checked_at = float('-inf')
         self._changed = False
 
-    def update_available(self):
+    def update_available(self, *, force=False):
         now = self.clock()
-        if now - self._checked_at >= 5:
+        if force or now - self._checked_at >= 5:
             try:
                 self._changed = source_revision(self.root) != self.loaded
             except OSError:

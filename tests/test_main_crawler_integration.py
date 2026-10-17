@@ -5,13 +5,13 @@ from pathlib import Path
 from types import SimpleNamespace
 from zipfile import ZipFile
 
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
 
-from crawler_coverage_auditor.integrations import main_crawler as bridge
-from crawler_coverage_auditor.discovery.static_links import extract_links
-from crawler_coverage_auditor.discovery.evidence import header_links
 from crawler_coverage_auditor.discovery.browser import BrowserExplorer
+from crawler_coverage_auditor.discovery.evidence import header_links
+from crawler_coverage_auditor.discovery.static_links import extract_links
+from crawler_coverage_auditor.integrations import main_crawler as bridge
 from crawler_coverage_auditor.validation.access import detect_access
 from crawler_coverage_auditor.web.api import create_app
 from scripts.import_main_crawler import import_source
@@ -23,11 +23,38 @@ def test_every_imported_source_artifact_verifies_without_execution():
     assert len([row for row in data['files'] if row['path'].endswith('.py')]) == 311
     assert all(row['status'] == 'copied' for row in data['files'] if row['path'].endswith('.py'))
     result = bridge.verify_source(check_syntax=True)
-    assert result['ok'] and result['checked_files'] == 485
-    assert result['excluded_files'] == 39
+    assert result['ok'] and result['checked_files'] == 483
+    assert result['excluded_files'] == 41
+    excluded_images = {row['path'] for row in data['files'] if row['status'] == 'excluded' and Path(row['path']).suffix in {'.jpg', '.png'}}
+    assert excluded_images == {'crawler/tests/fixtures/caesar.jpg', 'crawler/tests/fixtures/logo.png'}
     core = [row for row in data['files'] if row['path'].startswith('crawler/crawler/') and row['path'].endswith('.py')]
     assert {'siteauth.py', 'captcha.py', 'captcha_solver.py', 'hostsolver.py', 'camofox_client.py',
             'stealth.py', 'paid_proxy.py', 'async_engine.py', 'pdfextract.py', 'ingest_client.py'} <= {Path(row['path']).name for row in core}
+
+
+def test_import_excludes_images_and_cleans_fixture_references_idempotently(tmp_path):
+    source=tmp_path/'Crawler.zip'
+    destination=tmp_path/'vendor'/'main_crawler'
+    with ZipFile(source,'w') as archive:
+        archive.writestr('Crawler/crawler/__init__.py','')
+        archive.writestr('Crawler/crawler/tests/fixtures/photo.jpg',b'not needed')
+        archive.writestr('Crawler/crawler/tests/fixtures/logo.png',b'not needed')
+        archive.writestr('Crawler/crawler/tests/fixtures/page.html','<h1>Kept</h1>')
+        archive.writestr('Crawler/crawler/tests/fixtures/index.json',json.dumps({
+            'https://example.test/':{'file':'page.html'},
+            'https://example.test/photo.jpg':{'file':'photo.jpg'},
+            'https://example.test/logo.png':{'file':'logo.png'},
+        }))
+    manifest=import_source(source,destination)
+    assert manifest['summary']=={'copied':2,'redacted':1,'excluded':2}
+    assert not list(destination.rglob('*.png')) and not list(destination.rglob('*.jpg'))
+    assert json.loads((destination/'crawler/tests/fixtures/index.json').read_text())=={
+        'https://example.test/':{'file':'page.html'}}
+    assert import_source(source,destination)==manifest
+    # Harmless Git line-ending normalization must not defeat repeat imports.
+    path=destination/'IMPORT_MANIFEST.json'
+    path.write_bytes(path.read_bytes().replace(b'\n',b'\r\n'))
+    assert import_source(source,destination)==manifest
 
 
 def test_pure_loader_never_imports_account_ingestion_or_engine_entrypoints():
@@ -37,18 +64,14 @@ def test_pure_loader_never_imports_account_ingestion_or_engine_entrypoints():
     assert bridge.load_helper('parse').__name__.startswith('_crawlscope_main_crawler.')
 
 
-def test_source_parser_is_used_by_actual_discovery_functions(monkeypatch):
-    calls = []
-    parser = SimpleNamespace(
-        extract_links_with_text=lambda html, base: calls.append('html') or [(base+'from-main', 'Original helper')],
-        extract_rel_links=lambda html, base: calls.append('relations') or [base+'next'],
-        links_from_link_header=lambda value, base: calls.append('http') or [base+'last'])
-    monkeypatch.setattr(bridge, 'load_helper', lambda name: parser)
-    monkeypatch.setenv('CRAWLSCOPE_MAIN_CRAWLER_HELPERS', '1')
-    assert {'https://example.test/static', 'https://example.test/from-main', 'https://example.test/next'} <= {
-        link.url for link in extract_links('<a href="/static">Normal</a>', 'https://example.test/')}
-    assert header_links('', 'https://example.test/')[0].url == 'https://example.test/last'
-    assert calls == ['html', 'relations', 'http']
+def test_owned_parsers_replace_the_second_vendor_execution_pass(monkeypatch):
+    def forbidden(*args):
+        raise AssertionError('Discovery must not run a second vendor parser')
+    monkeypatch.setattr(bridge, 'html_links', forbidden)
+    monkeypatch.setattr(bridge, 'http_links', forbidden)
+    assert {'https://example.test/static', 'https://example.test/next'} <= {
+        link.url for link in extract_links('<a href="/static">Normal</a><link rel="previous" href="/next">', 'https://example.test/')}
+    assert header_links('</last>; rel="last"', 'https://example.test/')[0].url == 'https://example.test/last'
 
 
 def test_source_vendor_detector_is_used_without_accepting_widget_presence(monkeypatch):

@@ -1,8 +1,8 @@
 """Inspect/verify imported source locally; never start a solver, login or ingestion."""
 import argparse
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from crawler_coverage_auditor.integrations.main_crawler import status, verify_source

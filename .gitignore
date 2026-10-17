@@ -29,3 +29,8 @@ legacy/
 *.db-wal
 *.db-shm
 *.log
+# Local credentials / certificate material must not be published with the code.
+*.pem
+*.key
+*.pfx
+*.p12

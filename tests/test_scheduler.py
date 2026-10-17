@@ -9,4 +9,4 @@ def test_static_scheduler_never_starts_parallel_url_workers() -> None:
     assert not any(isinstance(node, ast.Call) and getattr(node.func, "attr", "") in {"gather", "create_task"} for node in ast.walk(method))
     calls = [getattr(node.value.func, "attr", "") for node in ast.walk(method)
              if isinstance(node, ast.Await) and isinstance(node.value, ast.Call)]
-    assert sorted(calls) == sorted(["_drain_pagination", "_process_url", "_crawl_browser", "_verify_all", "_drain_pagination"])
+    assert sorted(calls) == sorted(["_drain_pagination", "_process_url", "_crawl_browser", "_verify_all", "_drain_pagination", "step", "step"])

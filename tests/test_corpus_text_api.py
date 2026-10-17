@@ -4,6 +4,7 @@ import json
 
 import httpx
 import pytest
+from test_coverage_api import inventory, mock_api, response
 
 from crawler_coverage_auditor.analysis.coverage import coverage_summary, metrics
 from crawler_coverage_auditor.analysis.states import text_comparison_state
@@ -12,7 +13,6 @@ from crawler_coverage_auditor.corpus.errors import CorpusUnavailable
 from crawler_coverage_auditor.services import queries
 from crawler_coverage_auditor.storage.models import DiscoveredURL
 from crawler_coverage_auditor.validation.text_coverage import compare_html_text
-from test_coverage_api import inventory, mock_api, response
 
 
 def text_result(url, text='beginning middle ending', **fields):

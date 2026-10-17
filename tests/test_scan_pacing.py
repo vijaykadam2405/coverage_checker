@@ -5,13 +5,17 @@ import json
 import httpx
 import pytest
 from fastapi.testclient import TestClient
+from test_coverage_api import response
 
-from crawler_coverage_auditor.config import PACING_VERSION, paced_scan_settings
+from crawler_coverage_auditor.config import (
+    AUTOMATIC_DISCOVERY_SOURCES,
+    PACING_VERSION,
+    paced_scan_settings,
+)
 from crawler_coverage_auditor.corpus.coverage_api import CoverageAPIClient
 from crawler_coverage_auditor.services.jobs import AuditJobs
 from crawler_coverage_auditor.storage.database import AuditDatabase
 from crawler_coverage_auditor.web.api import create_app
-from test_coverage_api import response
 
 
 def test_defaults_are_faster_but_still_serial_and_paced(tmp_path, monkeypatch):
@@ -37,7 +41,7 @@ def test_old_saved_defaults_upgrade_without_changing_capture_scope(tmp_path):
     settings = TestClient(create_app(tmp_path/'audit.sqlite', tmp_path/'reports')).get('/api/state').json()['settings']
     assert settings['website_delay_seconds'] == 1 and settings['corpus_interval_seconds'] == 2
     assert settings['capture_types'] == ['HTML', 'PDF']
-    assert settings['discovery_sources'] == ['STATIC', 'SITEMAP'] and not settings['use_browser']
+    assert set(settings['discovery_sources']) == AUTOMATIC_DISCOVERY_SOURCES and settings['use_browser']
     assert settings['pacing_version'] == PACING_VERSION
     # A read upgrades the effective configuration, not the user's saved file/data.
     assert json.loads(settings_file.read_text())['corpus_interval_seconds'] == 3

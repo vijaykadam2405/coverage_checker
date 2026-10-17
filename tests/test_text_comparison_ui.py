@@ -1,11 +1,11 @@
 """Saved text comparisons stay distinct from URL-presence and live extraction."""
 import pytest
+from test_react_api import make_inventory
 
 from crawler_coverage_auditor.analysis.states import text_comparison_state
 from crawler_coverage_auditor.services import queries
 from crawler_coverage_auditor.storage.database import AuditDatabase
 from crawler_coverage_auditor.validation.fingerprints import text_similarity
-from test_react_api import make_inventory
 
 
 def compared_row(**kwargs):

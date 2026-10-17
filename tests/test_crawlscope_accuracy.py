@@ -7,10 +7,13 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from crawler_coverage_auditor.analysis.coverage import coverage_summary
+from crawler_coverage_auditor.analysis.states import public_states
 from crawler_coverage_auditor.auditor import CoverageAuditor
 from crawler_coverage_auditor.config import AuditConfig
-from crawler_coverage_auditor.analysis.states import public_states
-from crawler_coverage_auditor.discovery.pagination import numeric_page_parameter, replace_page_parameter
+from crawler_coverage_auditor.discovery.pagination import (
+    numeric_page_parameter,
+    replace_page_parameter,
+)
 from crawler_coverage_auditor.discovery.resources import json_links, trap_reason
 from crawler_coverage_auditor.storage.database import AuditDatabase
 from crawler_coverage_auditor.storage.models import DiscoveredURL

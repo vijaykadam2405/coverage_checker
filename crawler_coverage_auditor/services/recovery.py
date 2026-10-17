@@ -1,8 +1,7 @@
 """Recover discovery suppressed by historical count cutoffs, without deleting evidence."""
+import sqlite3
 from contextlib import closing
 from pathlib import Path
-import sqlite3
-
 
 HISTORICAL_COUNT_STAGE = 'Historical count cutoff'
 RECOVERY_STARTED = 'COUNT_LIMIT_RECOVERY'

@@ -10,7 +10,11 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from crawler_coverage_auditor.auditor import CoverageAuditor
 from crawler_coverage_auditor.config import AuditConfig
-from crawler_coverage_auditor.discovery.evidence import embedded_links, feed_links, header_links
+from crawler_coverage_auditor.discovery.evidence import (
+    embedded_links,
+    feed_links,
+    header_links,
+)
 from crawler_coverage_auditor.validation.normalize import same_scope
 
 

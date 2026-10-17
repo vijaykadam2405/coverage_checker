@@ -25,7 +25,9 @@ export function ScanToolbar({
         "FAILED",
         "RUNNING",
       ].includes(run.status)) ||
-    (!!run?.discovery_completed_at && run.needs_api_check);
+    (!!run?.discovery_completed_at && run.needs_api_check) ||
+    run?.discovery_upgrade_available ||
+    run?.discovery_work_remaining;
   return (
     <div className="run-toolbar">
       <div className="selected-inventory">
@@ -92,7 +94,11 @@ export function ScanToolbar({
               onClick={onResume}
             >
               <Play size={16} />
-              {run?.needs_api_check ? "Update saved analysis" : "Resume scan"}
+              {run?.discovery_upgrade_available
+                ? "Upgrade saved scan"
+                : run?.needs_api_check
+                  ? "Update saved analysis"
+                  : "Resume scan"}
             </button>
           ) : null}
         </div>

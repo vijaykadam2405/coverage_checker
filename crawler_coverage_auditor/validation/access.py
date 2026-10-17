@@ -6,11 +6,11 @@ solve challenges, submit login forms, or manufacture successful content.
 """
 from __future__ import annotations
 
-import re
 import json
+import re
 from dataclasses import dataclass
 
-from bs4 import BeautifulSoup
+from crawler_coverage_auditor.discovery.page import parsed_html
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,7 +39,7 @@ def detect_access(status: int | None, headers: dict, html: str, url: str = "", *
                 return AccessIssue('LOGIN_REQUIRED', 'API explicitly requires authentication; public audit does not submit credentials')
         except (TypeError, ValueError):
             pass
-    soup = BeautifulSoup(html[:500_000], "lxml")
+    soup = parsed_html(html[:500_000], mutable=True)
     for node in soup.select("[hidden], [aria-hidden='true']"):
         node.decompose()
     title = soup.title.get_text(" ", strip=True).lower() if soup.title else ""
@@ -129,7 +129,7 @@ def requires_rendering(html: str, meaningful_text: str) -> bool:
     """Recognize a script-driven mount with no readable content, not every small page."""
     if len(meaningful_text.strip()) >= 200:
         return False
-    soup = BeautifulSoup(html[:500_000], 'lxml')
+    soup = parsed_html(html[:500_000], mutable=True)
     mount = soup.select_one('#app, #root, #__next, #__nuxt, [ng-app]')
     if mount is None or not soup.find('script'):
         return False

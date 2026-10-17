@@ -5,6 +5,8 @@ from collections import Counter
 
 import pytest
 from fastapi.testclient import TestClient
+from test_react_api import Jobs
+from test_serial_scan import serial_fixture
 
 from crawler_coverage_auditor.auditor import CoverageAuditor
 from crawler_coverage_auditor.discovery.sitemap import discover_sitemaps
@@ -14,8 +16,6 @@ from crawler_coverage_auditor.storage.database import AuditDatabase
 from crawler_coverage_auditor.storage.models import DiscoveredURL
 from crawler_coverage_auditor.validation.http import FetchResult
 from crawler_coverage_auditor.web.api import create_app
-from test_serial_scan import serial_fixture
-from test_react_api import Jobs
 
 
 @pytest.mark.parametrize('pause_after', ['WEBSITE', 'BROWSER', 'COMPLETED'])

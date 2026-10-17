@@ -1,13 +1,21 @@
 """Saved, overlapping URL-backed discovery coverage; never invent states/maxima."""
-from collections import defaultdict
 import re
+from collections import defaultdict
 from urllib.parse import parse_qsl, urlsplit
+
+from crawler_coverage_auditor.discovery.pagination import (
+    NUMERIC_PAGE_PARAMETERS,
+    numeric_page_parameter,
+    pagination_series_key,
+)
+from crawler_coverage_auditor.validation.normalize import (
+    classify_parameter,
+    normalize_url,
+)
 
 from .coverage import coverage_summary, is_inventory_url
 from .inventory_segments import _methods, row_archive_year
 from .pagination_gaps import contiguous_ranges
-from crawler_coverage_auditor.discovery.pagination import numeric_page_parameter, pagination_series_key, NUMERIC_PAGE_PARAMETERS
-from crawler_coverage_auditor.validation.normalize import classify_parameter, normalize_url
 
 
 def address(row):

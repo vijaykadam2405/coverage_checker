@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import date
 from collections import defaultdict
+from datetime import date
 from urllib.parse import parse_qsl, urlsplit
+
 from crawler_coverage_auditor.analysis.coverage import is_found, is_inventory_url
 
 
@@ -93,4 +94,4 @@ def sitemap_coverage(rows: list[dict]) -> list[dict]:
 
 def js_only_rows(rows: list[dict]) -> list[dict]:
     static_methods = {"SEED", "STATIC", "SITEMAP", "PAGINATION", "FILTER_GET"}
-    return [row for row in _valid(rows) if "JS_DISCOVERY" in _methods(row) and not (_methods(row) & static_methods)]
+    return [row for row in _valid(rows) if _methods(row) & {'JS_DISCOVERY','JS_SOURCE'} and not (_methods(row) & static_methods)]

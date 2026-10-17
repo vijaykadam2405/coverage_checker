@@ -3,6 +3,7 @@ beautifulsoup4>=4.12,<5
 lxml>=5.2,<7
 openpyxl>=3.1,<4
 playwright>=1.48,<2
+camoufox==0.4.11
 pytest>=8,<9
 fastapi>=0.115,<1
 uvicorn>=0.30,<1

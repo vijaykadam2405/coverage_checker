@@ -26,6 +26,9 @@ def test_pdf_only_traverses_html_but_does_not_capture_it(tmp_path, monkeypatch):
     auditor = CoverageAuditor(config)
     requests = []
     class Website:
+        async def head(self, url, **kwargs):
+            return SimpleNamespace(headers={'content-type':'application/pdf'}, status_code=200,
+                                   final_url=url, error=None, failure_reason=None)
         async def get(self, url, **kwargs):
             requests.append(url)
             body = '<h1>Public content</h1><a href="/deep">Deep section</a>' if url.endswith('/') else '<h1>Deep content</h1><a href="/report.pdf">Report</a><a href="/doc.docx">Document</a><img src="/photo.jpg"><a href="/archive.zip">Archive</a>'

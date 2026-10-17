@@ -6,7 +6,12 @@ import logging
 from pathlib import Path
 
 from crawler_coverage_auditor.auditor import CoverageAuditor
-from crawler_coverage_auditor.config import AuditConfig, WEBSITE_DELAY_SECONDS, CORPUS_INTERVAL_SECONDS
+from crawler_coverage_auditor.config import (
+    AUTOMATIC_DISCOVERY_SOURCES,
+    CORPUS_INTERVAL_SECONDS,
+    WEBSITE_DELAY_SECONDS,
+    AuditConfig,
+)
 from crawler_coverage_auditor.corpus.credentials import api_url
 
 
@@ -14,8 +19,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Independent crawler coverage auditor")
     parser.add_argument("--url", required=True, help="Target website URL")
     parser.add_argument("--corpus", default=api_url(), help="Dedicated Corpus Coverage API base URL (not the dashboard)")
-    parser.add_argument("--include-subdomains", action="store_true")
-    parser.add_argument("--browser", action="store_true", help="Enable browser discovery when available")
+    # Retain old command compatibility; normal scans now enable these automatically.
+    parser.add_argument("--include-subdomains", action="store_true", default=True, help=argparse.SUPPRESS)
+    parser.add_argument("--browser", action="store_true", default=True, help=argparse.SUPPRESS)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--full-audit", action="store_true")
     parser.add_argument("--incremental", action="store_true")
@@ -28,7 +34,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-    config = AuditConfig(target_url=args.url, corpus_url=args.corpus, include_subdomains=args.include_subdomains,
+    config = AuditConfig(target_url=args.url, corpus_url=args.corpus, discovery_sources=set(AUTOMATIC_DISCOVERY_SOURCES), include_subdomains=args.include_subdomains,
                          use_browser=args.browser, website_delay_seconds=WEBSITE_DELAY_SECONDS, corpus_interval_seconds=CORPUS_INTERVAL_SECONDS, output_dir=args.output,
                          database_path=args.database, resume=args.resume, full_audit=args.full_audit or not args.incremental,
                          incremental=args.incremental, compare_run=args.compare_run)

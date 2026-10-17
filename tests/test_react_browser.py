@@ -1,6 +1,6 @@
 """Real browser QA, isolated fixtures; no website/Corpus actions or secret reads."""
-import socket
 import json
+import socket
 import threading
 import time
 from pathlib import Path
@@ -8,10 +8,67 @@ from pathlib import Path
 import httpx
 import pytest
 import uvicorn
-from playwright.sync_api import sync_playwright, expect
+from playwright.sync_api import expect, sync_playwright
+from test_react_api import Jobs, make_inventory
 
 from crawler_coverage_auditor.web.api import create_app
-from test_react_api import Jobs, make_inventory
+
+
+def test_control_room_key_entry_is_masked_saved_and_not_returned(tmp_path, monkeypatch):
+    import os
+    if os.name != 'nt':
+        pytest.skip('Protected desktop key entry requires Windows DPAPI')
+    monkeypatch.delenv('CRAWLSCOPE_CORPUS_API_KEY', raising=False)
+    root = Path(__file__).resolve().parents[1]
+    frontend = root/'frontend'/'dist'
+    if not (frontend/'index.html').is_file():
+        pytest.skip('Build frontend before browser QA')
+    database = tmp_path/'audit.sqlite'
+    make_inventory(database)
+    jobs = Jobs()
+    app = create_app(database,tmp_path/'reports',frontend=frontend,jobs=jobs)
+    sock = socket.socket()
+    sock.bind(('127.0.0.1',0))
+    address = f'http://127.0.0.1:{sock.getsockname()[1]}'
+    server = uvicorn.Server(uvicorn.Config(app,log_level='error'))
+    thread = threading.Thread(target=lambda:server.run(sockets=[sock]),daemon=True)
+    thread.start()
+    try:
+        for _ in range(100):
+            if server.started:
+                break
+            time.sleep(.05)
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page(viewport={'width':1600,'height':1000})
+            page.goto(address)
+            page.get_by_role('button',name='Control room',exact=True).click()
+            expect(page.get_by_role('heading',name='Corpus API connection')).to_be_visible()
+            field = page.locator('#corpus-api-key')
+            expect(field).to_have_attribute('type','password')
+            key = 'test-only-browser-credential'
+            field.fill(key)
+            page.get_by_role('button',name='Save API key',exact=True).click()
+            expect(field).to_have_value('')
+            expect(page.get_by_role('status')).to_contain_text('API key saved securely')
+            assert key not in httpx.get(address+'/api/state').text
+            assert key not in page.evaluate('JSON.stringify(localStorage)')
+            # Polling must not undo capture edits that have not been submitted.
+            page.get_by_role('switch',name='Capture Images',exact=True).check()
+            page.wait_for_timeout(5500)
+            expect(page.get_by_role('switch',name='Capture Images',exact=True)).to_be_checked()
+            for width in (1600,820,390):
+                page.set_viewport_size({'width':width,'height':1000})
+                assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+                output=tmp_path/'ui-review'
+                output.mkdir(parents=True,exist_ok=True)
+                page.screenshot(path=str(output/f'{width}-control-room-key.png'),full_page=True)
+            assert jobs.calls == []
+            browser.close()
+    finally:
+        server.should_exit=True
+        thread.join(timeout=5)
+        sock.close()
 
 
 def test_react_inventory_controls_and_responsive_layout(tmp_path):
@@ -28,7 +85,7 @@ def test_react_inventory_controls_and_responsive_layout(tmp_path):
     server=uvicorn.Server(uvicorn.Config(app,log_level='error'))
     thread=threading.Thread(target=lambda:server.run(sockets=[sock]),daemon=True);thread.start()
     address=f'http://127.0.0.1:{port}'
-    output=root/'reports'/'ui-review';output.mkdir(parents=True,exist_ok=True)
+    output=tmp_path/'ui-review';output.mkdir(parents=True,exist_ok=True)
     try:
         for _ in range(100):
             if server.started: break
@@ -47,8 +104,11 @@ def test_react_inventory_controls_and_responsive_layout(tmp_path):
             expect(page.locator('.live-url-table thead')).to_contain_text('Text coverage')
             expect(page.locator('.live-url-table thead')).to_contain_text('Period')
             expect(page.locator('.live-url-table tbody')).to_contain_text('75.0%')
-            expect(page.locator('.live-url-table tbody')).to_contain_text('Text similarity')
-            expect(page.locator('.live-url-table tbody')).to_contain_text('Not applicable · URL only')
+            text_bar=page.locator('.live-url-table').get_by_role('progressbar',name='HTML text coverage')
+            expect(text_bar).to_have_attribute('aria-valuenow','75')
+            expect(text_bar).to_have_attribute('aria-valuetext','75.0% text similarity')
+            expect(page.locator('.live-url-table .text-coverage-unavailable').first).to_have_text('—')
+            assert page.locator('.live-url-table .cell-note').count()==0
             expect(page.locator('.donut strong')).to_have_text('50.0%')
             # The new text API has real scores, not the old blanket "unavailable" label.
             db=AuditDatabase(database)
@@ -58,7 +118,7 @@ def test_react_inventory_controls_and_responsive_layout(tmp_path):
             db.add_corpus_match(1,'https://example.test/photo.jpg','NOT_TRACKED',None,None,None,None,'URL_ONLY',provider='coverage_api:https://api.test')
             db.connection.commit();db.close()
             page.reload()
-            expect(page.locator('.live-url-table tbody')).to_contain_text('Estimated word coverage')
+            expect(page.locator('.live-url-table').get_by_role('progressbar',name='HTML text coverage')).to_have_attribute('aria-valuetext','75.0% estimated word coverage')
             expect(page.locator('.live-url-table tbody')).to_contain_text('Not tracked by corpus')
             page.locator('.live-url-table').get_by_role('button',name='https://example.test/',exact=True).click()
             expect(page.get_by_role('dialog')).to_contain_text('Saved word coverage %')
@@ -75,24 +135,18 @@ def test_react_inventory_controls_and_responsive_layout(tmp_path):
             expect(page.get_by_role('heading',name='Capture control room')).to_be_visible()
             assert page.get_by_role('dialog').count()==0
             page.get_by_role('switch',name='Capture Images',exact=True).check()
-            page.get_by_role('tab',name='Capture',exact=True).focus()
-            page.keyboard.press('ArrowRight')
-            expect(page.get_by_role('tab',name='Discovery',exact=True)).to_be_focused()
-            page.keyboard.press('Home')
-            expect(page.get_by_role('tab',name='Capture',exact=True)).to_be_focused()
-            for group, removed in [('Scope', ['Inventory safeguard']),
-                                   ('Browser', ['Rendered-page safeguard', 'Actions per page']),
-                                   ('Pagination & filters', ['Values per filter', 'Numeric probe safeguard'])]:
-                page.get_by_role('tab',name=group,exact=True).click()
-                for label in removed:
-                    assert page.get_by_role('spinbutton',name=label,exact=True).count()==0
-            page.get_by_role('tab',name='Performance',exact=True).click()
-            assert page.get_by_role('spinbutton',name='Website concurrency').count()==0
-            page.get_by_role('spinbutton',name='Website request spacing (seconds)').fill('1.5')
-            page.get_by_role('button',name='Save settings').click()
-            expect(page.get_by_role('status')).to_have_text('Settings saved for your next discovery.')
+            assert page.get_by_role('tab').count()==0
+            assert page.get_by_role('spinbutton').count()==0
+            assert page.get_by_role('switch').count()==5
+            expect(page.get_by_role('heading',name='Corpus API connection')).to_be_visible()
+            expect(page.locator('#corpus-api-key')).to_have_attribute('type','password')
+            expect(page.locator('#corpus-api-key')).to_have_value('')
+            expect(page.get_by_role('button',name='Save API key')).to_be_disabled()
+            page.get_by_role('button',name='Save capture choices').click()
+            expect(page.get_by_role('status')).to_have_text('Capture choices saved for your next scan.')
             saved=httpx.get(address+'/api/state').json()['settings']
             assert saved['capture_types']==['DOCUMENT','HTML','IMAGE','PDF'] and saved['max_concurrency']==1
+            assert 'EXTERNAL_INDEX' in saved['discovery_sources'] and saved['use_browser']
             page.reload()
             expect(page.get_by_role('button',name='Capture settings')).to_contain_text('4')
             page.get_by_role('button',name='URL inventory',exact=True).click()
@@ -111,6 +165,9 @@ def test_react_inventory_controls_and_responsive_layout(tmp_path):
             page.get_by_role('textbox',name='Search URLs',exact=True).fill('report.pdf')
             expect(page.locator('.url-table tbody tr')).to_have_count(1)
             expect(page.locator('.url-table tbody')).to_contain_text('report.pdf')
+            expect(page.locator('.url-table .url-address')).to_have_count(1)
+            assert page.locator('.url-table .url-title').count()==0
+            assert page.locator('.url-table .url-button').inner_text()=='https://example.test/report.pdf'
             page.get_by_role('button',name='Inspect https://example.test/report.pdf').click()
             expect(page.get_by_role('dialog')).to_contain_text('No file download')
             page.keyboard.press('Escape')
@@ -146,6 +203,7 @@ def test_react_inventory_controls_and_responsive_layout(tmp_path):
             assert errors==[] and jobs.calls==[]
             # Read-only active-state fixtures demonstrate honest progress and locking.
             from types import SimpleNamespace
+
             from crawler_coverage_auditor.storage.database import AuditDatabase
             db=AuditDatabase(database)
             db.connection.execute("UPDATE audit_runs SET status='RUNNING',discovery_completed_at=NULL WHERE id=1")

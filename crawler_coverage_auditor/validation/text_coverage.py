@@ -22,7 +22,9 @@ def compare_html_text(live: str, stored: str) -> dict:
     if not source:
         return {'status': 'SOURCE_TEXT_NOT_AVAILABLE', 'score': None, 'evidence': {}}
     retention = lambda items: len(set(items) & target) / len(set(items)) if items else None
-    score = retention(source)
+    source_set = set(source)
+    matched = source_set & target
+    score = len(matched) / len(source_set)
     status = ('TEXT_MISSING' if not stored else 'FOUND_FULL' if score >= .98
               else 'FOUND_MOSTLY_FULL' if score >= .9 else 'FOUND_PARTIAL_TEXT' if score >= .5
               else 'FOUND_VERY_PARTIAL_TEXT')
@@ -30,7 +32,7 @@ def compare_html_text(live: str, stored: str) -> dict:
     segments = [source[:len(source)//3], source[len(source)//3:2*len(source)//3], source[2*len(source)//3:]]
     return {'status': status, 'score': score, 'evidence': {
         'method': 'unique_word_coverage', 'live_words': len(source),
-        'live_unique_words': len(set(source)), 'matched_unique_words': len(set(source) & target),
+        'live_unique_words': len(source_set), 'matched_unique_words': len(matched),
         'live_characters': len(live), 'corpus_characters': len(stored),
         'token_set_similarity': text_similarity(live, stored),
         'segments': {name: round(retention(items)*100, 2) if items else None

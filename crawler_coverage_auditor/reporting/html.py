@@ -16,9 +16,11 @@ def write_html(path: Path, summary: dict, rows: list[dict], issues: list[dict], 
                filter_rows: list[dict] | None = None, document_rows: list[dict] | None = None,
                archive_rows: list[dict] | None = None, sitemap_rows: list[dict] | None = None,
                js_rows: list[dict] | None = None, limits: list[dict] | None = None,
-               events: list[dict] | None = None, errors: list[dict] | None = None) -> None:
+               events: list[dict] | None = None, errors: list[dict] | None = None,
+               discovery_tasks: list[dict] | None = None) -> None:
     """Self-contained offline report; identical corpus/coverage rules to the live UI."""
     sections = {"pagination": pagination_rows or [], "filters": filter_rows or [], "documents": document_rows or [], 'limits': limits or []}
+    sections['discovery_tasks'] = discovery_tasks or []
     analysis = build_analysis(rows, sections)
     data = {"summary": summary, "rows": rows, "issues": issues, "analysis": analysis,
             "filters": filter_rows or [], "documents": document_rows or [], "sitemaps": sitemap_rows or [],

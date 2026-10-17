@@ -7,6 +7,8 @@ from urllib.parse import unquote, urljoin, urlsplit
 
 from bs4 import BeautifulSoup
 
+from crawler_coverage_auditor.discovery.page import parsed_html
+
 TAB_SELECTOR = '[role=tab], [data-toggle=tab], [data-bs-toggle=tab]'
 
 
@@ -43,7 +45,7 @@ def panel_has_content(panel) -> bool:
 
 
 def detect_tabs(html: str, page_url: str) -> list[ContentTab]:
-    soup = BeautifulSoup(html, 'lxml')
+    soup = parsed_html(html)
     page = urlsplit(page_url)
     result, seen = [], set()
     for node in soup.select(TAB_SELECTOR):
@@ -83,7 +85,7 @@ def merge_tab_content(html: str, fragments: list[str]) -> str:
     """Retain lazy tab content as evidence belonging to ONE HTML page."""
     if not fragments:
         return html
-    soup = BeautifulSoup(html, 'lxml')
+    soup = parsed_html(html, mutable=True)
     owner = soup.find('main') or soup.body or soup
     seen = set()
     for fragment in fragments:

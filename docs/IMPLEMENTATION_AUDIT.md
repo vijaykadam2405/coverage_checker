@@ -295,6 +295,9 @@ containers. Verified settings persistence, 4 selected capture types, HTML vs PDF
 counts, missing vs failed, server queries/CSV, lazy detail, Escape/focus restoration.
 Browser fixture never starts a discovery/Corpus job. Screenshots in reports/ui-review
 are **isolated fixture screenshots**, not claimed production scan results.
+Those generated project screenshots were subsequently removed during cleanup.
+Current browser tests save screenshots in pytest's temporary directories; the
+preview helper also defaults to a temporary directory outside the project.
 
 20k fixture: 20,000 URLs, 10 hosts, HTML/PDF/document/image/API/feed/media examples,
 5,000 events, two comparable older runs, three other target sites. Local full HTTP

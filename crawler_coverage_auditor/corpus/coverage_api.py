@@ -9,8 +9,11 @@ from urllib.parse import urlsplit
 
 import httpx
 
+from crawler_coverage_auditor.validation.failure_policy import transport_reason
+
 from .credentials import load_key
 from .errors import CorpusUnavailable
+from .tls import verification_context
 
 
 class CoverageAPIClient:
@@ -28,7 +31,7 @@ class CoverageAPIClient:
         self.base_url = base_url.rstrip('/')
         self._client = httpx.AsyncClient(base_url=self.base_url + '/', timeout=timeout,
             headers={'Authorization': 'Bearer ' + key, 'Accept': 'application/json'},
-            verify=not (parts.scheme == 'https' and parts.hostname == '187.127.134.12' and parts.port == 8445),
+            verify=verification_context(),
             follow_redirects=False, trust_env=False, transport=transport)
         self._lock = asyncio.Lock()
         self._interval = self._base_interval = max(0, min_interval)
@@ -36,6 +39,7 @@ class CoverageAPIClient:
         self._next = 0.0
         self._stopped = stopped or (lambda: False)
         self._on_event = on_event
+        self.metrics = {'request_attempts': 0, 'transport_seconds': 0.0, 'backoffs': 0}
 
     async def __aenter__(self):
         return self
@@ -86,14 +90,24 @@ class CoverageAPIClient:
             raise CorpusUnavailable('Corpus API batch exceeds the documented request-size limit')
         async with self._lock:
             for attempt in range(self._retries + 1):
+                failure = None
                 await self._wait(max(0, self._next - asyncio.get_running_loop().time()))
                 started = asyncio.get_running_loop().time()
+                self.metrics['request_attempts'] += 1
                 try:
                     response = await self._client.post(endpoint, json=body)
                     status = response.status_code
-                except httpx.RequestError:
+                except httpx.RequestError as error:
+                    failure = transport_reason(error)
+                    if failure == 'SSL_ERROR':
+                        raise CorpusUnavailable(
+                            'Corpus API TLS certificate verification failed. Use a valid HTTPS hostname '
+                            'or set CRAWLSCOPE_CORPUS_CA_BUNDLE to the trusted CA PEM supplied by '
+                            'your API administrator. Verification was not bypassed; URLs remain unverified.'
+                        ) from None
                     response, status = None, 0
                 latency = asyncio.get_running_loop().time() - started
+                self.metrics['transport_seconds'] += latency
                 if latency > 3:
                     self._interval = max(self._base_interval, min(12, max(self._interval, latency / 2)))
                 self._next = asyncio.get_running_loop().time() + self._interval
@@ -118,8 +132,10 @@ class CoverageAPIClient:
                     raise CorpusUnavailable(f'Corpus API HTTP {status}: request failed; URLs remain unverified')
                 delay = max(5 * 2 ** attempt, self._retry_after(response.headers.get('Retry-After')) if response else 0)
                 if attempt >= self._retries or delay > 60:
-                    raise CorpusUnavailable(f'Corpus API HTTP {status}: unavailable or overloaded; resume later (retry delay {delay:.0f}s)')
+                    reason = f'Corpus API {failure}: request failed' if failure else f'Corpus API HTTP {status}: unavailable or overloaded'
+                    raise CorpusUnavailable(f'{reason}; resume later (retry delay {delay:.0f}s)')
                 self._interval = max(self._base_interval, min(12, self._interval * 2))
+                self.metrics['backoffs'] += 1
                 self._event('CORPUS_BACKOFF', f'Corpus API HTTP {status}; retry in {delay:.0f}s, only one request in flight')
                 await self._wait(delay)
 

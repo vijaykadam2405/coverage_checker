@@ -38,6 +38,11 @@ class _FixtureHandler(BaseHTTPRequestHandler):
         self._send(200, json.dumps({'results': [{'url': url, 'held': url in held,
             'match': 'exact' if url in held else None, 'matched_url': url if url in held else None} for url in urls]}), 'application/json')
 
+    def do_HEAD(self) -> None:
+        self.send_response(200 if self.path == '/docs/report.pdf' else 404)
+        self.send_header('Content-Type', 'application/pdf')
+        self.end_headers()
+
     def do_GET(self) -> None:  # noqa: N802
         base = self.base_url
         if self.path == "/robots.txt":

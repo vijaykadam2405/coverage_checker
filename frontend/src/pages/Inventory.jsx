@@ -10,6 +10,7 @@ import {
 import { TYPES } from "../config/capture.js";
 import { number, time, period } from "../utils/format.js";
 import { TextCoverageCell } from "../components/inventory/TextCoverageCell.jsx";
+import { UrlIdentityCell } from "../components/inventory/UrlIdentityCell.jsx";
 import { Badge } from "../components/common/Badge.jsx";
 import { useQuery } from "../hooks/useQuery.js";
 import { inventoryQuery } from "../utils/query.js";
@@ -218,6 +219,21 @@ export function Inventory({ snapshot, preset, onDetail, methods }) {
       )}
       <div className="table-scroll" aria-busy={loading}>
         <table className="url-table">
+          <colgroup>
+            {[
+              "url",
+              "host",
+              "website",
+              "corpus",
+              "text",
+              "depth",
+              "discovery",
+              "period",
+              "action",
+            ].map((column) => (
+              <col key={column} className={`column-${column}`} />
+            ))}
+          </colgroup>
           <thead>
             <tr>
               <th>URL / title</th>
@@ -237,13 +253,12 @@ export function Inventory({ snapshot, preset, onDetail, methods }) {
             {(data?.items || []).map((row) => (
               <tr key={row.id}>
                 <td>
-                  <button className="url-button" onClick={() => onDetail(row)}>
-                    <span>{row.title || row.url}</span>
-                    <small>{row.url}</small>
-                  </button>
+                  <UrlIdentityCell row={row} onDetail={onDetail} />
                 </td>
                 <td>
-                  {row.host}
+                  <span className="cell-host" title={row.host}>
+                    {row.host}
+                  </span>
                   <small className="cell-note">
                     {TYPES[row.category]} · {row.subtype}
                   </small>
@@ -257,9 +272,11 @@ export function Inventory({ snapshot, preset, onDetail, methods }) {
                 <td>
                   <TextCoverageCell row={row} />
                 </td>
-                <td>{row.navigation_depth ?? "Unknown"}</td>
+                <td className="numeric-cell">{row.navigation_depth ?? "—"}</td>
                 <td>
-                  {row.method_label}
+                  <span className="cell-method" title={row.method_label}>
+                    {row.method_label}
+                  </span>
                   <small className="cell-note">
                     HTTP {row.status_code ?? "Not fetched"}
                   </small>

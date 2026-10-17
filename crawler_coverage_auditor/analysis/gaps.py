@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+
 from crawler_coverage_auditor.analysis.coverage import is_inventory_url
 
 

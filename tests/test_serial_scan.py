@@ -5,14 +5,14 @@ import sqlite3
 
 import httpx
 import pytest
+from test_corpus_text_api import text_result
+from test_coverage_api import mock_api, response
 
 from crawler_coverage_auditor.auditor import CoverageAuditor
 from crawler_coverage_auditor.config import AuditConfig
 from crawler_coverage_auditor.services.jobs import AuditJobs
 from crawler_coverage_auditor.validation.http import FetchResult
 from crawler_coverage_auditor.validation.normalize import normalize_url
-from test_coverage_api import mock_api, response
-from test_corpus_text_api import text_result
 
 
 def serial_fixture(tmp_path, monkeypatch, *, blocked=False, render=False):
@@ -25,6 +25,9 @@ def serial_fixture(tmp_path, monkeypatch, *, blocked=False, render=False):
         async def __aexit__(self, *args): pass
         async def wait_turn(self, url): return True
         def observe_response(self, *args): return 0
+        async def head(self, url, **kwargs):
+            events.append(('headers', url))
+            return FetchResult(url, url, 200, {'content-type':'application/pdf'}, b'', url_only=True)
         async def get(self, url, **kwargs):
             events.append(('website', url))
             html = '<h1>Beginning middle ending</h1>'
@@ -77,7 +80,7 @@ def test_every_url_is_fully_processed_before_next_fetch_including_render(tmp_pat
     child = seed+'child'
     assert events == [('website', seed), ('render', seed), ('presence', seed), ('text', seed),
                       ('website', child), ('render', child), ('presence', child), ('text', child),
-                      ('presence', seed+'file.pdf')]
+                      ('headers', seed+'file.pdf'), ('presence', seed+'file.pdf')]
     assert result['status'] == 'COMPLETED'
     with sqlite3.connect(config.database_path) as db:
         assert db.execute('SELECT COUNT(*) FROM urls').fetchone()[0] == 3
@@ -159,7 +162,9 @@ def test_cli_resume_finds_paused_run_even_with_a_saved_completion_timestamp(tmp_
 
 def test_resume_api_is_explicit_and_read_polling_never_starts_it(tmp_path):
     from types import SimpleNamespace
+
     from fastapi.testclient import TestClient
+
     from crawler_coverage_auditor.storage.database import AuditDatabase
     from crawler_coverage_auditor.web.api import create_app
     database = tmp_path/'db.sqlite'
@@ -215,6 +220,7 @@ def test_pagination_probes_complete_presence_and_text_before_next_website_fetch(
 def test_dotenv_bootstrap_uses_project_file_without_overwriting_process_settings(monkeypatch):
     import importlib
     from pathlib import Path
+
     import crawler_coverage_auditor
     calls = []
     monkeypatch.setattr('dotenv.load_dotenv', lambda path, **options: calls.append((path, options)))

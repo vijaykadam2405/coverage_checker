@@ -11,6 +11,7 @@ From this project directory, first-time setup:
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe scripts\setup_local_browser.py
 .\.venv\Scripts\python.exe -m playwright install chromium
 npm.cmd --prefix frontend ci
 npm.cmd --prefix frontend run build
@@ -34,20 +35,46 @@ The backend now records its loaded source revision. If Python source changes whi
 it is running, the dashboard and launcher show restart guidance instead of silently
 claiming to use the new code. Pause an active scan and wait for it to save before
 stopping its server. Restart on the same port, then resume the saved inventory.
+The API also rejects new/resumed scan work until a stale backend is restarted;
+reading saved results and safely pausing an active scan remain available.
 
 For development only, run the backend alongside
 `npm.cmd --prefix frontend run dev` (Vite port 5173, API proxy to 8000).
 Normal use requires only port 8000. Do not run a CLI audit and dashboard as
 simultaneous writers to the same database.
 
+## Before committing or pushing
+
+Install the development checks once, then run the release check:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe scripts\prepush_check.py
+```
+
+The publication gate checks current files and the current branch's full history.
+Use `--all-history` for a separate audit of every local branch and tag. Push only
+the reviewed branch, not `--all` or `--mirror`; unrelated backup branches are not
+part of a normal single-branch push.
+
+This checks publishable tracked/untracked files and reachable Git history for common secret patterns and
+runtime data, dependency consistency, Python tests/static checks, frontend
+formatting/tests/build, and Git whitespace. It does not stage, commit, push, start
+scans or query production Corpus. Use `--repository-only` for the quick publication
+check. Pattern-based scanning is not a guarantee that no secrets exist. If a
+historical credential is flagged, revoke/rotate it and explicitly review history
+cleanup before publishing; deleting it from the latest file is insufficient.
+The Windows GitHub Actions workflow repeats the checks without a
+production API key or database; tests use temporary local fixtures/mocked Corpus.
+
 ## Workflow
 
-1. In **Control room**, select capture types and real discovery/safety settings.
-   They are persisted locally, locked while an audit is active and apply to the
-   next inventory. Saved inventories retain their original capture/discovery scope.
-   On resume, old default pacing is upgraded; intentional slower settings are preserved.
+1. In **Control room**, select what to capture and enter the Corpus API key if
+   needed. Capture choices are persisted locally and locked while a scan is active.
+   Browser rendering, pagination, filters, metadata discovery and Wayback run
+   automatically. Existing capture choices and intentional slower pacing are preserved.
 2. In **Overview**, enter a public website and click **Start website scan**.
-   Each URL is processed serially: discover/validate → render if enabled →
+   Each URL is processed serially: discover/validate → browser discovery →
    Corpus presence → HTML text comparison → next URL. There is no separate Corpus
    Check button. A configured key is required before starting a dashboard scan.
 3. Website requests are spaced at least 1 second apart per host. Corpus
@@ -58,8 +85,10 @@ simultaneous writers to the same database.
    website/Corpus intervals without parallel workers or skipped discovery/text checks.
 4. If scanning pauses, completed checks remain saved. **Resume scan** continues
    unresolved checks before fetching the next queued page. Saved successful
-   website snapshots and comparisons are reused. **Update saved analysis** upgrades
-   older inventories without rediscovery. A timeout, unavailable service, malformed result
+   website snapshots and comparisons are reused. **Upgrade saved scan** adds the
+   new automatic discovery work; a Wayback-only upgrade does not repeat completed
+   HTML work. **Update saved analysis** refreshes Corpus comparison from saved
+   evidence. A timeout, unavailable service, malformed result
    or incomplete response never becomes a confirmed crawler miss.
 
 **Overview** places six selected-website counts above the page title: valid HTML,
@@ -85,6 +114,16 @@ truncated or non-HTML stored text has no completeness percentage. Different snap
 dates can cause differences that are not necessarily production-crawler defects.
 Non-HTML resources remain URL-only. Activity periods use whole elapsed days
 (e.g. `2d ago`; less than one day is `0d ago`) with exact timestamps in tooltips.
+
+Target inventories exclude external hosts for all content types, including PDFs
+and images. The saved target's host aliases and configured subdomains define the
+scope; a sibling host is not automatically included. External scripts and Wayback
+can still provide discovery evidence, but their own URLs are not target pages.
+Target HTTP/browser navigations cannot follow redirects into another host's scope.
+File links receive paced HEAD-only validation: final response MIME determines
+their type; no document body or text is downloaded. A PDF-looking link returning
+HTML is processed as HTML only when it stays in scope. Unsupported HEAD, missing
+MIME, blocks and errors stay unverified, not confirmed files or crawler misses.
 
 **Analysis** loads on entry or manual refresh, not every polling interval. It shows
 coverage by type and depth, source composition, validation outcomes, host counts,
@@ -213,8 +252,9 @@ cleanup. See [feature review and exclusions](docs/ZIP_FEATURE_REVIEW.md); it doe
 not claim complete 116-feature parity or unrestricted website access.
 
 The complete main-crawler source is now retained under `vendor/main_crawler/`
-(311 Python files). Reviewed original parsing/challenge helpers are connected to
-discovery; the other production features remain optional, preserving this audit's
+(311 Python files). Reviewed original challenge helpers are connected to
+discovery; HTML/relation/header extraction now uses one CrawlScope-owned pipeline
+with tested parity for imported link behavior. The other production features remain optional, preserving this audit's
 HTML-only text, URL-only resources, serial processing and read-only Corpus rules.
 See [complete source integration](docs/MAIN_CRAWLER_INTEGRATION.md) for the manifest,
 active/optional states, browser identity switch and configuration prerequisites.
@@ -264,8 +304,16 @@ Configure/rotate a key locally without embedding it in source or reports:
 The helper prompts privately. A protected local credential is used on Windows;
 `CRAWLSCOPE_CORPUS_API_KEY` can override it at runtime. `CRAWLSCOPE_CORPUS_API_URL`
 sets the trusted operator-configured API origin. Credentials never enter AuditConfig,
-React state or reports. The previously authorized self-signed API origin has a narrow
-TLS exception; all website TLS verification remains enabled. API redirects are refused
+React state or reports. TLS certificate and hostname verification are enabled for
+every Corpus origin; there is no IP-specific verification bypass. For a private CA,
+ask the API administrator for its trusted PEM and set
+`CRAWLSCOPE_CORPUS_CA_BUNDLE=data/certificates/corpus-ca.pem` in your local `.env`.
+Relative bundle paths resolve against the project root. The server certificate must
+also match the configured hostname/IP. Do not download an unverified certificate and
+automatically trust it. Missing/invalid certificates leave checks unverified, preserve
+saved results, and produce a specific certificate diagnostic without retrying the
+same TLS failure. Certificate material remains local and ignored by Git.
+API redirects are refused
 so bearer credentials cannot follow them to another host.
 
 Historical integrations' matches remain visible until a saved-analysis update.
@@ -338,7 +386,7 @@ browser checks and limitations. See [troubleshooting](docs/TROUBLESHOOTING.md) f
 interpreting older saved failures. Runtime databases, reports and secrets are ignored
 and preserved; Streamlit and obsolete Corpus integration sources were removed.
 
-The expert CLI remains `audit.py --url ... --browser --include-subdomains`; it uses
+The CLI is `audit.py --url ...`; browser, linked subdomains and Wayback discovery run automatically. It uses
 the same automatic serial workflow. Consult `audit.py --help`. Never run it alongside
 an active dashboard job. An internal `discovery_only` compatibility flag and `/verify`
 endpoint remain for existing integrations/tests; neither is a dashboard workflow.
@@ -350,6 +398,15 @@ The backend and launcher load the project-root file; process variables take prec
 The protected Windows key continues to work without `.env`. Never put secrets in
 `VITE_*` variables or commit `.env`. Install updated requirements after pulling changes.
 
+The Control Room now contains only five capture choices and a Corpus API-key form.
+Internal discovery, browser, pagination and timing switches are not user-facing.
+Normal scans always run the supported discovery methods, including live-validated
+Wayback candidates. Corpus requests remain read-only and sequential.
+The API-key form encrypts the key for the current Windows user and never returns
+it, stores it in scan settings/reports, or validates it by opening the Corpus website.
+An environment-managed key takes priority and must be removed from that environment
+before the form can replace it. Pause an active scan before changing credentials.
+
 URLs are unique by `(audit run, normalized URL)`, enforced by SQLite. Repeat discoveries
 merge methods, parent edges and shortest depth rather than creating entries or queueing
 another fetch. Host case, default ports, query ordering, tracking parameters and ordinary
@@ -360,3 +417,23 @@ Numeric pagination tasks are durable and their probes use the same serial verifi
 
 See [serial workflow review](docs/SERIAL_WORKFLOW_REVIEW.md) for this update's checks,
 cleanup scope and configuration findings.
+
+See [advanced discovery upgrade](docs/ADVANCED_DISCOVERY.md) for the new static
+JavaScript analysis, published CMS/ResourceSync adapters, resumable source tasks,
+retry evidence preservation, automatic Wayback discovery and compatibility rules.
+
+See [consolidation audit and verification](docs/CONSOLIDATION_AUDIT.md) for shared
+snapshot parsing, source-label preservation, filter/result caching, conservative
+browser GET-JSON reuse and measured before/after results. These changes require a
+backend restart after an active scan is safely paused or finished. They do not
+rewrite saved inventories or activate code in an already-running worker.
+
+The dashboard polls summaries with `diagnostics=false` to omit expensive unused
+HTML-health calculations (`health` is null in this explicit mode). The default
+summary API still returns its existing diagnostics. Summary results are reused for
+at most one second only while the database/WAL revision is unchanged.
+
+## Standalone local browser
+
+For the independent Camoufox browser setup, see [docs/LOCAL_BROWSER.md](docs/LOCAL_BROWSER.md).
+CrawlScope does not connect to the production crawler's browser service.

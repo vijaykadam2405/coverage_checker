@@ -42,26 +42,6 @@ tbody tr:hover {
   color: #8596b1;
   font-size: 12px;
 }
-.inventory-types {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 5px 22px 19px;
-  border-bottom: 1px solid var(--line);
-}
-.inventory-types button {
-  background: #222c40;
-  color: #9eafca;
-  border: 1px solid #34425d;
-  padding: 7px 12px;
-  border-radius: 5px;
-  font-size: 11px;
-}
-.inventory-types button.selected {
-  border-color: #869fff;
-  background: #304570;
-  color: #cad6ff;
-}
 .table-toolbar {
   display: flex;
   gap: 15px;
@@ -109,39 +89,20 @@ tbody tr:hover {
   background: #27354f;
   color: #bad0fa;
 }
-.url-table {
-  min-width: 740px;
-}
-.url-table td {
-  font-size: 10px;
-  padding-block: 12px;
-}
-.url-table th:first-child {
-  width: 40%;
-}
 .url-button {
   background: none;
   text-align: left;
   display: block;
   padding: 0;
-  max-width: 460px;
+  width: 100%;
   color: #d5e1f8;
-  min-width: 170px;
 }
 .url-button span {
   display: block;
-  font-size: 11px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  max-width: 400px;
 }
 .url-button small {
   display: block;
-  font-size: 9px;
-  color: #6e86ac;
   margin-top: 5px;
-  overflow-wrap: anywhere;
 }
 .icon-button {
   display: inline-flex;

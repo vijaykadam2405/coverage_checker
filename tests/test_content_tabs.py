@@ -10,9 +10,12 @@ from crawler_coverage_auditor.auditor import CoverageAuditor
 from crawler_coverage_auditor.config import AuditConfig
 from crawler_coverage_auditor.discovery.browser import BrowserExplorer
 from crawler_coverage_auditor.discovery.filters import detect_filters
-from crawler_coverage_auditor.discovery.tabs import detect_tabs, merge_tab_content, same_document_url
+from crawler_coverage_auditor.discovery.tabs import (
+    detect_tabs,
+    merge_tab_content,
+    same_document_url,
+)
 from crawler_coverage_auditor.validation.text_extract import extract_text
-
 
 STATIC_HTML = '''<html><head><title>Products</title><style>body{min-height:3000px}.hidden{display:none}</style></head>
 <body><main><h1>Products</h1><div role="tablist">

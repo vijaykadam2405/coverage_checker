@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 
 from crawler_coverage_auditor.validation.http import FetchResult
 
-
 SCHEMA = '''
 CREATE TABLE IF NOT EXISTS scan_checkpoints (
  audit_run_id INTEGER PRIMARY KEY REFERENCES audit_runs(id),

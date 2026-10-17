@@ -1,24 +1,26 @@
 """Discovery reporting must measure evidence, not fabricate completeness."""
-import json
 import asyncio
-from pathlib import Path
+import json
 
 import pytest
 from openpyxl import load_workbook
-from playwright.sync_api import sync_playwright, expect
+from playwright.sync_api import expect, sync_playwright
 
 from crawler_coverage_auditor.analysis.dashboard import build_analysis
-from crawler_coverage_auditor.analysis.inventory_segments import archive_year, archive_coverage
-from crawler_coverage_auditor.reporting.html import write_html
-from crawler_coverage_auditor.reporting.excel import write_excel
-from crawler_coverage_auditor.discovery.pagination import pagination_series_key
-from crawler_coverage_auditor.storage.database import AuditDatabase
-from crawler_coverage_auditor.storage.models import DiscoveredURL
-from scripts.refresh_reports import refresh
+from crawler_coverage_auditor.analysis.inventory_segments import (
+    archive_coverage,
+    archive_year,
+)
 from crawler_coverage_auditor.auditor import CoverageAuditor
 from crawler_coverage_auditor.config import AuditConfig
 from crawler_coverage_auditor.discovery.browser import BrowserDiscovery
+from crawler_coverage_auditor.discovery.pagination import pagination_series_key
 from crawler_coverage_auditor.discovery.static_links import Link
+from crawler_coverage_auditor.reporting.excel import write_excel
+from crawler_coverage_auditor.reporting.html import write_html
+from crawler_coverage_auditor.storage.database import AuditDatabase
+from crawler_coverage_auditor.storage.models import DiscoveredURL
+from scripts.refresh_reports import refresh
 
 
 def row(path, match='EXACT_MATCH', validity='VALID_PAGE', **extra):
@@ -186,7 +188,7 @@ def test_offline_report_discovery_sections_render_empty_and_measured(tmp_path):
     write_html(empty, {'target': 'https://example.test/'}, [row('/about')], [])
     write_html(measured, {'target': 'https://example.test/'}, [row('/news?page=2&year=2021'),
                row('/news?page=3&year=2021', 'NOT_FOUND')], [])
-    output = Path(__file__).resolve().parents[1] / 'reports/ui-review'
+    output = tmp_path / 'ui-review'
     output.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch()

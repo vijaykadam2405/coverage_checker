@@ -1,152 +1,61 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { KeyRound, ShieldCheck } from "lucide-react";
 import { Panel } from "../components/common/Panel.jsx";
-import { TYPES } from "../config/capture.js";
-import { SOURCES, NUMERIC_CONTROLS } from "../config/controls.js";
+import { CAPTURE_OPTIONS } from "../config/controls.js";
 
-const GROUPS = {
-  capture: "Capture",
-  discovery: "Discovery",
-  scope: "Scope",
-  browser: "Browser",
-  pagination: "Pagination & filters",
-  performance: "Performance",
-  corpus: "Corpus",
-};
-export function ControlRoom({
-  value,
-  active,
-  save,
-  corpus,
-  target,
-  sessionAvailable,
-}) {
+export function ControlRoom({ value, active, save, corpus, saveKey }) {
   const [settings, setSettings] = useState(value);
-  const [group, setGroup] = useState("capture");
   const [working, setWorking] = useState(false);
   const [message, setMessage] = useState("");
-  const disabled = !!active || working;
-  function update(name, value) {
-    setSettings((previous) => ({ ...previous, [name]: value }));
+  const [key, setKey] = useState("");
+  const [keyWorking, setKeyWorking] = useState(false);
+  const [keyMessage, setKeyMessage] = useState("");
+  const [keyError, setKeyError] = useState(false);
+  const savedSettings = useRef(value);
+  useEffect(() => {
+    if (JSON.stringify(value) !== JSON.stringify(savedSettings.current)) {
+      savedSettings.current = value;
+      setSettings(value);
+    }
+  }, [value]);
+  const disabled = !!active || working || keyWorking;
+  const environmentKey = corpus?.source === "environment";
+  const keySupported = corpus?.key_management_supported === true;
+
+  function toggleCapture(types, checked) {
+    setSettings((previous) => ({
+      ...previous,
+      capture_types: checked
+        ? [...new Set([...previous.capture_types, ...types])]
+        : previous.capture_types.filter((kind) => !types.includes(kind)),
+    }));
     setMessage("");
   }
-  function toggleList(name, value, checked) {
-    update(
-      name,
-      checked
-        ? [...settings[name], value]
-        : settings[name].filter((item) => item !== value),
-    );
-  }
-  const toggle = (name, label, help) => (
-    <label className="capture-option" key={name}>
-      <span>
-        <strong>{label}</strong>
-        <small>{help}</small>
-      </span>
-      <input
-        type="checkbox"
-        role="switch"
-        aria-label={label}
-        checked={!!settings[name]}
-        disabled={disabled}
-        onChange={(event) => update(name, event.target.checked)}
-      />
-    </label>
-  );
+
   return (
-    <Panel
-      title="Capture control room"
-      subtitle="Saved settings apply to the next discovery; existing inventories retain their original scope"
-    >
-      <div
-        className="inventory-types"
-        role="tablist"
-        aria-label="Control room groups"
+    <>
+      <Panel
+        title="Capture control room"
+        subtitle="Choose what to collect. Discovery and Corpus verification run automatically."
       >
-        {Object.entries(GROUPS).map(([key, label]) => (
-          <button
-            key={key}
-            role="tab"
-            aria-selected={group === key}
-            aria-controls={`control-${key}`}
-            tabIndex={group === key ? 0 : -1}
-            onKeyDown={(event) => {
-              const keys = Object.keys(GROUPS);
-              const index = keys.indexOf(key);
-              const next =
-                event.key === "ArrowRight"
-                  ? keys[(index + 1) % keys.length]
-                  : event.key === "ArrowLeft"
-                    ? keys[(index + keys.length - 1) % keys.length]
-                    : event.key === "Home"
-                      ? keys[0]
-                      : event.key === "End"
-                        ? keys[keys.length - 1]
-                        : null;
-              if (next) {
-                event.preventDefault();
-                setGroup(next);
-                event.currentTarget.parentElement
-                  .querySelectorAll("[role=tab]")
-                  [keys.indexOf(next)].focus();
-              }
-            }}
-            className={group === key ? "selected" : ""}
-            onClick={() => setGroup(key)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      <form
-        onSubmit={async (event) => {
-          event.preventDefault();
-          setWorking(true);
-          setMessage("");
-          try {
-            await save(settings);
-            setMessage("Settings saved for your next discovery.");
-          } catch (error) {
-            setMessage(error.message);
-          } finally {
-            setWorking(false);
-          }
-        }}
-      >
-        <div
-          className="control-grid"
-          role="tabpanel"
-          id={`control-${group}`}
-          aria-label={GROUPS[group]}
+        <form
+          onSubmit={async (event) => {
+            event.preventDefault();
+            setWorking(true);
+            setMessage("");
+            try {
+              await save(settings);
+              setMessage("Capture choices saved for your next scan.");
+            } catch (error) {
+              setMessage(error.message);
+            } finally {
+              setWorking(false);
+            }
+          }}
         >
-          {group === "capture" &&
-            Object.entries(TYPES).map(([kind, label]) => (
-              <label className="capture-option" key={kind}>
-                <span>
-                  <strong>{label}</strong>
-                  <small>
-                    {kind === "HTML"
-                      ? "Validate HTML and automatically compare live page text with Corpus text."
-                      : ["API", "FEED"].includes(kind)
-                        ? "Collect endpoint URLs; metadata can be traversed to discover HTML links."
-                        : "URL only. No file download, text extraction or availability test."}
-                  </small>
-                </span>
-                <input
-                  type="checkbox"
-                  role="switch"
-                  aria-label={`Capture ${label}`}
-                  checked={settings.capture_types.includes(kind)}
-                  disabled={disabled}
-                  onChange={(event) =>
-                    toggleList("capture_types", kind, event.target.checked)
-                  }
-                />
-              </label>
-            ))}
-          {group === "discovery" &&
-            Object.entries(SOURCES).map(([key, [label, help]]) => (
-              <label className="capture-option" key={key}>
+          <div className="control-grid">
+            {CAPTURE_OPTIONS.map(({ label, types, help }) => (
+              <label className="capture-option" key={label}>
                 <span>
                   <strong>{label}</strong>
                   <small>{help}</small>
@@ -154,159 +63,152 @@ export function ControlRoom({
                 <input
                   type="checkbox"
                   role="switch"
-                  aria-label={label}
-                  checked={settings.discovery_sources.includes(key)}
+                  aria-label={`Capture ${label}`}
+                  checked={types.some((kind) =>
+                    settings.capture_types.includes(kind),
+                  )}
                   disabled={disabled}
                   onChange={(event) =>
-                    toggleList("discovery_sources", key, event.target.checked)
+                    toggleCapture(types, event.target.checked)
                   }
                 />
               </label>
             ))}
-          {group === "scope" && (
-            <>
-              {toggle(
-                "include_subdomains",
-                "Linked subdomains",
-                "Include discovered subdomains; this does not enumerate unlinked DNS hosts.",
-              )}
-              {toggle(
-                "external_resources",
-                "External resource links",
-                "Collect selected document/image/asset URLs on linked external hosts.",
-              )}
-              <div className="control-note">
-                <strong>
-                  Selected website: {target || "No inventory selected"}
-                </strong>
-                <p>
-                  No fixed URL count, browser-page count or navigation-depth
-                  cutoff. Discovery continues while new eligible content is
-                  found.
-                </p>
-                <strong>Robots policy: ON</strong>
-                <p>
-                  Downloaded robots restrictions and Crawl-Delay are honored. No
-                  depth cutoff is used. Private-network and metadata targets are
-                  blocked in normal operation.
-                </p>
-              </div>
-            </>
-          )}
-          {group === "browser" && (
-            <>
-              {toggle(
-                "use_browser",
-                "Enable browser discovery",
-                "Requires Rendered pages in Discovery. Uses normal Chromium, without stealth or access-control evasion.",
-              )}
-              {toggle(
-                "reuse_public_session",
-                "Reuse prepared public session",
-                "Use locally prepared public-page cookies when available; cookie values never appear here.",
-              )}
-              <div className="control-note">
-                <p>
-                  Prepared public session:{" "}
-                  {target
-                    ? sessionAvailable
-                      ? "Local session file available; freshness is checked when used."
-                      : "Not prepared for this website."
-                    : "Select a website to see availability."}
-                </p>
-                <p>
-                  Public pages only. CAPTCHA/login walls remain boundaries.
-                  Manual public challenge preparation is documented in README;
-                  no automated login or CAPTCHA solving.
-                </p>
-              </div>
-            </>
-          )}
-          {group === "pagination" && (
-            <div className="control-note">
-              <strong>Observed cursor pagination</strong>
+          </div>
+          <div className="automatic-discovery-note">
+            <ShieldCheck size={19} aria-hidden="true" />
+            <div>
+              <strong>Discovery runs automatically</strong>
               <p>
-                Follow site-supplied cursors/offset links; never invent opaque
-                values. Numeric exponential/binary probes require a monotonic
-                series. There is no fixed page-number, action or filter-value
-                ceiling; blocking or inconclusive repetition leaves the maximum
-                unknown.
+                Page links, sitemaps, JavaScript, public APIs, filters, tabs,
+                pagination, archives and Wayback are checked without separate
+                switches. Historical HTML URLs must pass live website validation
+                before they count toward coverage.
+              </p>
+              <p>
+                Corpus checks stay read-only and one URL at a time, with
+                automatic slowdown under load. Only HTML text is compared; files
+                remain URL-only.
               </p>
             </div>
+          </div>
+          {active && (
+            <p className="warning-text">
+              Pause the scan and wait for it to save before changing settings or
+              the API key.
+            </p>
           )}
-          {group === "corpus" && (
-            <div className="control-note">
-              <strong>
-                Read-only Coverage API ·{" "}
-                {corpus?.configured ? "Key configured" : "Key not configured"}
-              </strong>
-              <p>
-                API-only verification. No dashboard/browser fallback, no file
-                text. Each URL is checked automatically during the scan, before
-                moving to the next URL. One URL per request; at least 2 seconds
-                between Corpus requests, with additional backoff under load.
-              </p>
-            </div>
+          {message && (
+            <p className="settings-message" role="status">
+              {message}
+            </p>
           )}
-          {(NUMERIC_CONTROLS[group] || []).map(
-            ([key, label, min, max, step, help]) => (
-              <label className="numeric-control" key={key}>
-                <strong>{label}</strong>
-                <input
-                  type="number"
-                  aria-label={label}
-                  min={min}
-                  max={max}
-                  step={step}
-                  required
-                  value={settings[key]}
-                  disabled={disabled}
-                  onChange={(event) =>
-                    update(
-                      key,
-                      event.target.value === ""
-                        ? ""
-                        : Number(event.target.value),
-                    )
-                  }
-                />
-                <small>{help}</small>
-                <small>
-                  Allowed: {min}–{max}
-                </small>
-              </label>
-            ),
-          )}
-        </div>
-        <p className="footnote">
-          HTML/API metadata may be visited to discover enabled file types when
-          their own capture is off. Traversal-only URLs are excluded from
-          inventory, reports and Corpus checks.
-        </p>
-        {active && (
-          <p className="warning-text">
-            Settings are locked while a scan is active.
-          </p>
-        )}
-        {message && (
-          <p className="settings-message" role="status">
-            {message}
-          </p>
-        )}
-        <div className="control-footer">
+          <div className="control-footer">
+            <span>Changes apply to new scans; saved results are retained.</span>
+            <button
+              type="submit"
+              className="primary"
+              disabled={disabled || !settings.capture_types.length}
+            >
+              {working ? "Saving…" : "Save capture choices"}
+            </button>
+          </div>
+        </form>
+      </Panel>
+      <Panel
+        title="Corpus API connection"
+        subtitle="The only connection to your production crawler's data. API access only—no Corpus website login."
+      >
+        <div className="corpus-key-status">
+          <KeyRound size={18} aria-hidden="true" />
+          <strong>
+            {corpus?.configured ? "API key configured" : "API key required"}
+          </strong>
           <span>
-            {settings.capture_types.length} capture types ·{" "}
-            {settings.discovery_sources.length} discovery sources
+            {environmentKey
+              ? "Managed by backend environment"
+              : "Protected on this computer"}
           </span>
+        </div>
+        <form
+          className="corpus-key-form"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            if (disabled || environmentKey || !keySupported) return;
+            setKeyWorking(true);
+            setKeyMessage("");
+            setKeyError(false);
+            try {
+              await saveKey(key.trim());
+              setKeyMessage(
+                "API key saved securely. Authentication is checked when your scan contacts Corpus.",
+              );
+            } catch (error) {
+              setKeyError(true);
+              setKeyMessage(error.message);
+            } finally {
+              setKey("");
+              setKeyWorking(false);
+            }
+          }}
+        >
+          <label className="corpus-key-field" htmlFor="corpus-api-key">
+            <span>
+              {corpus?.configured ? "Replace API key" : "Corpus API key"}
+            </span>
+            <input
+              id="corpus-api-key"
+              type="password"
+              autoComplete="new-password"
+              spellCheck={false}
+              maxLength={512}
+              required
+              placeholder="Paste your Corpus API key"
+              value={key}
+              onChange={(event) => {
+                setKey(event.target.value);
+                setKeyMessage("");
+              }}
+              disabled={disabled || environmentKey || !keySupported}
+            />
+          </label>
           <button
             type="submit"
             className="primary"
-            disabled={disabled || !settings.capture_types.length}
+            disabled={
+              disabled || environmentKey || !keySupported || !key.trim()
+            }
           >
-            {working ? "Saving…" : "Save settings"}
+            {keyWorking ? "Saving key…" : "Save API key"}
           </button>
-        </div>
-      </form>
-    </Panel>
+        </form>
+        <p className="corpus-key-help">
+          Existing keys are never displayed. On Windows, the key is encrypted
+          for your user account—not saved in frontend storage, scan settings or
+          reports.
+        </p>
+        {environmentKey && (
+          <p className="info-box">
+            Your environment key takes priority. Remove
+            CRAWLSCOPE_CORPUS_API_KEY from the backend environment and restart
+            before replacing it here.
+          </p>
+        )}
+        {!keySupported && (
+          <p className="info-box">
+            Restart the updated Windows backend to enable this form. On other
+            systems, set the key in the backend environment.
+          </p>
+        )}
+        {keyMessage && (
+          <p
+            className={`settings-message ${keyError ? "warning-text" : ""}`}
+            role={keyError ? "alert" : "status"}
+          >
+            {keyMessage}
+          </p>
+        )}
+      </Panel>
+    </>
   );
 }

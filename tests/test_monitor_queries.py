@@ -8,16 +8,24 @@ from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
+from test_react_api import HEADERS, Jobs, make_inventory
 
-from crawler_coverage_auditor.config import AuditConfig, capture_category, resource_subtype
-from crawler_coverage_auditor.discovery.resources import resource_type
 from crawler_coverage_auditor.auditor import CoverageAuditor
+from crawler_coverage_auditor.config import (
+    AUTOMATIC_DISCOVERY_SOURCES,
+    AuditConfig,
+    capture_category,
+    resource_subtype,
+)
+from crawler_coverage_auditor.discovery.resources import resource_type
 from crawler_coverage_auditor.services import queries
 from crawler_coverage_auditor.storage.database import AuditDatabase
 from crawler_coverage_auditor.storage.models import DiscoveredURL
-from crawler_coverage_auditor.validation.network_safety import validate_target, check_public_request
+from crawler_coverage_auditor.validation.network_safety import (
+    check_public_request,
+    validate_target,
+)
 from crawler_coverage_auditor.web.api import create_app
-from test_react_api import HEADERS, Jobs, make_inventory
 
 
 def test_metrics_do_not_conflate_verified_coverage_and_completion():
@@ -113,7 +121,8 @@ def test_controls_are_validated_persisted_and_passed_to_worker(tmp_path):
     settings.update(capture_types=['HTML','API'],discovery_sources=['STATIC'],max_urls=500,max_concurrency=1,website_delay_seconds=1.5,corpus_batch_size=1)
     assert client.put('/api/settings',headers=HEADERS,json=settings).status_code==200
     restored=TestClient(create_app(path,tmp_path/'reports',jobs=jobs)).get('/api/state').json()['settings']
-    assert restored['discovery_sources']==['STATIC']
+    assert set(restored['discovery_sources']) == AUTOMATIC_DISCOVERY_SOURCES
+    assert restored['use_browser'] and restored['include_subdomains']
     assert client.post('/api/discover',headers=HEADERS,json={'target_url':'https://example.test/'}).status_code==202
     assert 'max_urls' not in jobs.settings and jobs.settings['website_delay_seconds']==1.5
     assert jobs.settings['corpus_batch_size']==1 and jobs.settings['capture_types']==['API','HTML']
@@ -247,7 +256,7 @@ def test_non_monotonic_pagination_stays_unknown(tmp_path):
     auditor=CoverageAuditor(config)
     class Website:
         async def get(self,url):
-            from urllib.parse import parse_qs,urlsplit
+            from urllib.parse import parse_qs, urlsplit
             page=int(parse_qs(urlsplit(url).query).get('page',['1'])[0])
             status=404 if page==3 else 200
             return SimpleNamespace(status_code=status,text=f'<h1>Unique page {page}</h1><article>Article {page}</article>',error=None,headers={},final_url=url)
@@ -268,6 +277,7 @@ def test_history_is_not_comparable_when_discovery_limits_change(tmp_path):
 
 def test_redirect_to_private_network_is_blocked_before_transport(tmp_path,monkeypatch):
     import httpx
+
     from crawler_coverage_auditor.validation.http import PoliteHttpClient
     monkeypatch.delenv('CRAWLSCOPE_ALLOW_PRIVATE_TARGETS')
     monkeypatch.setattr('socket.getaddrinfo',lambda *args,**kwargs:[(2,1,6,'',('93.184.216.34',443))])

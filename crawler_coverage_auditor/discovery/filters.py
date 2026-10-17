@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
+from functools import lru_cache
 from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 
-from bs4 import BeautifulSoup
+from crawler_coverage_auditor.discovery.page import parsed_html
+from crawler_coverage_auditor.discovery.static_links import document_base
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,7 +38,8 @@ def non_content_form(form) -> bool:
 
 def detect_filters(html: str, page_url: str) -> list[FilterControl]:
     """Learn filter values from supplied page controls; never invent site values."""
-    soup = BeautifulSoup(html, "lxml")
+    soup = parsed_html(html)
+    base_url = document_base(html, page_url)
     controls: list[FilterControl] = []
     for element in soup.select("select[name], input[type=checkbox][name], input[type=radio][name]"):
         name = element.get("name", "").strip()
@@ -45,7 +48,7 @@ def detect_filters(html: str, page_url: str) -> list[FilterControl]:
         form = element.find_parent("form")
         if non_content_form(form):
             continue
-        form_action = urljoin(page_url, form.get("action") or page_url) if form else page_url
+        form_action = urljoin(base_url, form.get("action")) if form and form.get('action') else page_url
         form_method = (form.get("method", "get") if form else "javascript").lower()
         defaults = []
         if form:
@@ -76,9 +79,35 @@ def get_filter_urls(control: FilterControl, page_url: str) -> list[str]:
         return []
     parts = urlsplit(control.form_action)
     # Preserve dependencies already supplied by the current page and hidden defaults.
-    current = dict(parse_qsl(urlsplit(page_url).query, keep_blank_values=True))
-    current.update(dict(control.defaults))
-    current.update(dict(parse_qsl(parts.query, keep_blank_values=True)))
-    base_pairs = [(key, value) for key, value in current.items() if key != control.name and key.lower() not in {"page", "paged", "offset", "start"}]
-    return [urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode([*base_pairs, (control.name, value.request_value)]), ""))
-            for value in control.values]
+    current = parse_qsl(urlsplit(page_url).query, keep_blank_values=True)
+    for extra in (control.defaults, parse_qsl(parts.query, keep_blank_values=True)):
+        keys = {key for key, _ in extra}
+        current = [(key, value) for key, value in current if key not in keys] + list(extra)
+    # Preserve multi-value dependencies (e.g. category[]=a&category[]=b).
+    base_pairs = [(key, value) for key, value in current if key != control.name and key.lower() not in {"page", "paged", "offset", "start"}]
+    return list(_filter_states(parts.scheme, parts.netloc, parts.path, tuple(base_pairs),
+                               control.name, tuple(value.request_value for value in control.values)))
+
+
+@lru_cache(maxsize=512)
+def _filter_states(scheme, netloc, path, base_pairs, name, values):
+    # Complete effective URL dependencies are part of the immutable key. Labels
+    # and selectors remain per-source evidence, not shared mutable controls.
+    return tuple(urlunsplit((scheme, netloc, path, urlencode([*base_pairs, (name, value)]), ''))
+                 for value in values)
+
+
+def dependent_controls(baseline, changed, selection):
+    """Explore observed option dependencies, not a blind Cartesian product."""
+    before = {(item['name'], item['type']): {value['value'] for value in item['values']} for item in baseline}
+    result = []
+    if selection.get('method') == 'post':
+        return result
+    for spec in changed:
+        if spec['unsafe'] or spec['name'] == selection['name'] or spec['method'].lower() == 'get':
+            continue
+        old = before.get((spec['name'], spec['type']), set())
+        now = {value['value'] for value in spec['values']}
+        if now != old and now:
+            result.append(dict(spec, setup=[*selection.get('setup', []), selection]))
+    return result

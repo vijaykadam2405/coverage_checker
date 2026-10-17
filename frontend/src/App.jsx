@@ -148,8 +148,11 @@ export function App() {
                 value={state.settings}
                 active={state.active}
                 corpus={state.corpus_api}
-                target={snapshot?.run.target_url}
-                sessionAvailable={snapshot?.public_session_available}
+                saveKey={async (key) => {
+                  const saved = await api("/corpus/key", { key });
+                  setState((previous) => ({ ...previous, corpus_api: saved }));
+                  setRefresh((value) => value + 1);
+                }}
                 save={async (settings) => {
                   const saved = await api("/settings", settings, "PUT");
                   setState((previous) => ({ ...previous, settings: saved }));
